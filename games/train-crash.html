@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Train Crash - Weston and Rocky Arcade</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html,body{margin:0;height:100%;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges;height:96vh;max-width:98vw;aspect-ratio:16/10;cursor:crosshair}
+</style></head><body>
+<canvas id="c" width="320" height="200"></canvas>
+<script>
+const cv=document.getElementById('c'),g=cv.getContext('2d');g.imageSmoothingEnabled=false;
+const W=320,H=200;
+// ---------- tiny pixel font ----------
+const F={A:"0110100110011111100110011001",B:"1110100110011110100110011110",C:"0111100010001000100010000111",D:"1110100110011001100110011110",E:"1111100010001110100010001111",F:"1111100010001110100010001000",G:"0111100010001011100110010111",H:"1001100110011111100110011001",I:"111010010010010010111",J:"0001000100010001100110010110",K:"1001101011001100101010011001",L:"1000100010001000100010001111",M:"10001110111010110001100011000110001",N:"1001110111011011100110011001",O:"0110100110011001100110010110",P:"1110100110011110100010001000",Q:"0110100110011001100110110111",R:"1110100110011110110010101001",S:"0111100010000110000100011110",T:"111010010010010010010",U:"1001100110011001100110010110",V:"10001100011000101010010100010000100",W:"10001100011000110101101011101110001",X:"1001100101100110011010011001",Y:"101101101010010010010",Z:"1111000100100100100010001111","0":"0110100110111101100110010110","1":"010110010010010010111","2":"0110100100010010010010001111","3":"1110000100010110000100011110","4":"1001100110011111000100010001","5":"1111100010001110000100011110","6":"0110100010001110100110010110","7":"1111000100010010010001000100","8":"0110100110010110100110010110","9":"0110100110010111000100010110","!":"1111101","?":"0110100100010010001000000010",".":"0000001",":":"0101000","-":"00000011000000","+":"000010111010000000000","/":"0001000100100010010010001000","'":"1100000"," ":"000000000000000000000"};
+function glyphW(ch){const p=F[ch]||F[' '];return p.length/7|0}
+function textW(s,sc=1){let w=0;for(const ch of s)w+=(glyphW(ch)+1)*sc;return w-sc}
+function txt(s,x,y,col,sc=1,center=false){s=String(s).toUpperCase();if(center)x=Math.round(x-textW(s,sc)/2);g.fillStyle=col;for(const ch of s){const p=F[ch]||F[' '],w=glyphW(ch);for(let i=0;i<p.length;i++)if(p[i]=='1')g.fillRect(x+(i%w)*sc,y+((i/w)|0)*sc,sc,sc);x+=(w+1)*sc}}
+function shadowTxt(s,x,y,col,sc=1,center=false){txt(s,x+sc,y+sc,'#000',sc,center);txt(s,x,y,col,sc,center)}
+
+F['=']='0000000011110000111100000000';F[',']='00000101';
+// ---------- car sprites (top view, facing up) ----------
+const SPR={
+ sports:["..llll..",".kkkkkk.","tkkkkkkt","tkkkkkkt",".kwwwwk.",".kwwwwk.",".kkkkkk.",".kkkkkk.",".kwwwwk.","tkkkkkkt","tkkkkkkt",".kkkkkk.",".dddddd."],
+ p911:["..kkkk..",".kllllk.","tkkkkkkt","tkkkkkkt",".kkkkkk.",".kwwwwk.",".kwwwwk.",".kkkkkk.",".kwwwwk.","tkkkkkkt","tkkkkkkt",".kkkkkk.",".dllld.."],
+ cyber:[".llllll.","kkkkkkkk","tkkkkkkt","tkkkkkkt","kkwwwwkk","kkwwwwkk","kkkkkkkk","kdddddkk","kdddddkk","tkkkkkkt","tkkkkkkt","kkkkkkkk","dddddddd"],
+ roadster:["..kkkk..",".kkkkkk.","tkkkkkkt","tkkkkkkt",".kkkkkk.",".kwwwwk.",".kwwwwk.",".kkddkk.",".kkkkkk.","tkkkkkkt","tkkkkkkt",".kkkkkk.","..dddd.."],
+ lambo:[".lkkkkl.","kkkkkkkk","tkkkkkkt","tkkkkkkt",".kwwwwk.",".kwwwwk.",".kkddkk.",".kkddkk.",".kkkkkk.","tkkkkkkt","tkkkkkkt","kkkkkkkk",".dddddd."],
+ truck:[".llllll.","kkkkkkkk","tkkkkkkt","tkkkkkkt","kwwwwwwk","kkkkkkkk","kddddddk","kddddddk","kddddddk","tkkkkkkt","tkkkkkkt","kkkkkkkk","dddddddd"]
+};
+const CARS=[
+ {name:'FERRARI SF90',spr:'sports',k:'#e8202a',d:'#7a0d12'},
+ {name:'PORSCHE 911',spr:'p911',k:'#ffd21e',d:'#8a6a00'},
+ {name:'CYBERTRUCK',spr:'cyber',k:'#b9c2cc',d:'#5b636c'},
+ {name:'TESLA ROADSTER',spr:'roadster',k:'#2f7cff',d:'#123e8a'},
+ {name:'LAMBORGHINI',spr:'lambo',k:'#5be33b',d:'#23701a'},
+ {name:'MONSTER TRUCK',spr:'truck',k:'#ff7a1a',d:'#8a3a00',big:1}
+];
+// pre-render each car sprite to a tiny canvas
+for(const c of CARS){const s=SPR[c.spr],o=document.createElement('canvas');o.width=8;o.height=13;const x=o.getContext('2d');
+ const pal={k:c.k,w:'#9fe7ff',t:'#111',l:'#fff6a0',s:'#fff',d:c.d};
+ for(let r=0;r<13;r++)for(let i=0;i<8;i++){const ch=s[r][i];if(ch=='.')continue;x.fillStyle=pal[ch];x.fillRect(i,r,1,1)}c.img=o}
+function drawCarIcon(c,x,y,sc){g.drawImage(c.img,x,y,8*sc,13*sc)}
+// ---------- sound ----------
+let AC=null;function ac(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}return AC}
+function snd(f,d=0.05,type='square',v=0.06,f2){const a0=ac();if(!a0)return;try{const o=a0.createOscillator(),a=a0.createGain();o.type=type;o.frequency.setValueAtTime(f,a0.currentTime);if(f2)o.frequency.exponentialRampToValueAtTime(f2,a0.currentTime+d);a.gain.setValueAtTime(v,a0.currentTime);o.connect(a);a.connect(a0.destination);o.start();a.gain.exponentialRampToValueAtTime(0.0001,a0.currentTime+d);o.stop(a0.currentTime+d+0.02)}catch(e){}}
+let noiseBuf=null;
+function noise(d=0.5,v=0.4,freq=800){const a0=ac();if(!a0)return;try{if(!noiseBuf){noiseBuf=a0.createBuffer(1,a0.sampleRate*2,a0.sampleRate);const ch=noiseBuf.getChannelData(0);for(let i=0;i<ch.length;i++)ch[i]=Math.random()*2-1}
+ const s=a0.createBufferSource();s.buffer=noiseBuf;const f=a0.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(freq,a0.currentTime);f.frequency.exponentialRampToValueAtTime(60,a0.currentTime+d);
+ const a=a0.createGain();a.gain.setValueAtTime(v,a0.currentTime);a.gain.exponentialRampToValueAtTime(0.0001,a0.currentTime+d);s.connect(f);f.connect(a);a.connect(a0.destination);s.start();s.stop(a0.currentTime+d+0.05)}catch(e){}}
+function boom(){noise(1.4,0.9,2500);snd(120,0.9,'sine',0.5,30);setTimeout(()=>noise(0.6,0.4,900),120)}
+function horn(){snd(311,0.45,'square',0.05);snd(370,0.45,'square',0.05)}
+function ding(){[784,988,1318].forEach((f,i)=>setTimeout(()=>snd(f,.12,'square',.05),i*80))}
+// ---------- world ----------
+const TOP=12,BOT=172;              // playfield between HUD and car bar
+const TY=96;                        // track center line
+const TRAIN_LEN=96;
+let state='title',score=0,best=0,shake=0,flash=0,mode='car',sel=-1;
+let cars=[],parts=[],fires=[],smoke=[],scorch=[],pops=[],combo=0,comboT=0,rocky={txt:'',t:0},tip=0;
+const train={x:60,v:0,dir:1,chug:0,horn:0};
+const keys={};
+const ROCKY_LINES=['AMAZE! BIG BOOM!','BOOM BOOM BOOM!','CAR IS GONE. GOOD GOOD.','FIST MY BUMP!','SO FAST TRAIN. AMAZE!','YOU CRASH GOOD. GOOD GOOD!','MORE CARS QUESTION?','NOBODY IN CAR. ALL SAFE!','AMAZE AMAZE AMAZE!','ROCKY LIKES THIS GAME!'];
+function say(s,t=150){rocky.txt=s;rocky.t=t}
+const TREES=[],HOUSES=[];
+for(let i=0;i<14;i++)TREES.push({x:(i*71+13)%300+10,y:i%2?TOP+8+(i*29)%30:BOT-24-(i*17)%30});
+function resetWorld(){cars=[];parts=[];fires=[];smoke=[];scorch=[];pops=[];train.x=60;train.v=0;sel=-1;mode='car';combo=0;score=0;
+ spawnCar(0,120,TY);spawnCar(2,220,TY+2);say('PUT CARS ON TRACK. THEN PRESS T!',260)}
+function spawnCar(ci,x,y){if(cars.length>=14){say('TOO MANY CARS! CRASH SOME!');return}
+ const c={ci,x:x??(154+Math.random()*12),y:y??(BOT-16),a:0,v:0,tx:null,ty:null};
+ cars.push(c);sel=cars.length-1;mode='car';snd(660,.08);snd(880,.08);return c}
+// ---------- input ----------
+addEventListener('keydown',e=>{ac();
+ if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();
+ keys[e.code]=true;if(e.repeat)return;
+ if(state==='title'){if(e.code==='Space'||e.code==='Enter'){start()}return}
+ if(e.code>='Digit1'&&e.code<='Digit6'){spawnCar(+e.code[5]-1);return}
+ if(e.code==='KeyC'||e.code==='KeyN'){spawnCar(Math.floor(Math.random()*CARS.length));return}
+ if(e.code==='KeyT'){grabTrain();return}
+ if(e.code==='Tab'){e.preventDefault();cycleCar();return}
+ if(e.code==='KeyH'){horn();return}
+ if(e.code==='KeyR'){resetWorld();snd(440,.1);return}
+});
+addEventListener('keyup',e=>{keys[e.code]=false});
+function grabTrain(){mode='train';sel=-1;horn();say('YOU DRIVE TRAIN! RIGHT ARROW = GO!',200)}
+function cycleCar(){if(!cars.length)return;sel=(sel+1)%cars.length;mode='car';snd(520,.05)}
+function start(){state='play';resetWorld();ding()}
+let mouse={x:0,y:0,down:false};
+function mpos(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H}}
+cv.addEventListener('pointerdown',e=>{ac();const p=mpos(e);mouse={...p,down:true};
+ if(state==='title'){start();return}
+ // car bar buttons
+ if(p.y>=BOT){for(let i=0;i<6;i++){const bx=4+i*30;if(p.x>=bx&&p.x<bx+28){spawnCar(i);return}}
+  if(p.x>=186&&p.x<246){grabTrain();return}
+  if(p.x>=250){resetWorld();snd(440,.1);return}return}
+ // click the train?
+ if(Math.abs(p.y-TY)<10&&inTrain(p.x)){grabTrain();return}
+ // click a car?
+ for(let i=cars.length-1;i>=0;i--){const c=cars[i];if(Math.hypot(c.x-p.x,c.y-p.y)<12){sel=i;mode='car';snd(520,.05);return}}
+ // otherwise drive selected car there
+ if(mode==='car'&&sel>=0&&cars[sel]){cars[sel].tx=p.x;cars[sel].ty=p.y;snd(330,.04)}
+});
+cv.addEventListener('pointermove',e=>{const p=mpos(e);mouse.x=p.x;mouse.y=p.y});
+addEventListener('pointerup',()=>{mouse.down=false});
+function inTrain(x){return x>=train.x-TRAIN_LEN&&x<=train.x}
+// ---------- update ----------
+function trainSegs(){return [[train.x-TRAIN_LEN,train.x]]}
+function explode(c,i){
+ const C=CARS[c.ci];boom();shake=22;flash=4;
+ const sp=Math.abs(train.v);
+ combo=comboT>0?combo+1:1;comboT=120;
+ const pts=Math.round(100+sp*60)*combo;score+=pts;best=Math.max(best,score);
+ pops.push({x:c.x,y:c.y-14,t:90,s:'+'+pts});
+ pops=pops.filter(q=>!q.big);pops.push({x:W/2,y:44,t:100,big:1,s:combo>=3?'MEGA CRASH!':combo==2?'DOUBLE CRASH!':'DESTROYED!'});
+ say(ROCKY_LINES[Math.floor(Math.random()*ROCKY_LINES.length)]);
+ // flying pieces: body chunks, windows, tires, a wheel or two
+ const cols=[C.k,C.k,C.k,C.d,'#9fe7ff','#111','#fff6a0'];
+ for(let k=0;k<46;k++){const ang=Math.random()*Math.PI*2,spd=1+Math.random()*4;
+  parts.push({x:c.x,y:c.y,vx:Math.cos(ang)*spd+train.v*0.6*train.dir,vy:Math.sin(ang)*spd,z:0,vz:2+Math.random()*5,col:cols[k%cols.length],s:k<8?3:k<20?2:1,rot:0,life:200+Math.random()*80})}
+ for(let k=0;k<4;k++)parts.push({x:c.x,y:c.y,vx:(Math.random()-.5)*6+train.v*.5,vy:(Math.random()-.5)*6,z:0,vz:5+Math.random()*4,col:'#111',s:4,wheel:1,life:260});
+ for(let k=0;k<14;k++)fires.push({x:c.x+(Math.random()-.5)*16,y:c.y+(Math.random()-.5)*16,r:2,mr:10+Math.random()*14,t:0,d:k*2});
+ scorch.push({x:c.x,y:c.y,r:12+Math.random()*4});
+ cars.splice(i,1);if(sel===i)sel=-1;else if(sel>i)sel--;
+}
+let last=performance.now();
+function update(dt){
+ if(shake>0)shake-=dt;if(flash>0)flash-=dt;if(comboT>0)comboT-=dt;if(rocky.t>0)rocky.t-=dt;tip+=dt;
+ // --- train control ---
+ const acc=0.06;
+ if(mode==='train'){
+  const go=keys.ArrowRight||keys.KeyD||keys.Space||keys.ArrowUp||keys.KeyW||mouse.down;
+  const back=keys.ArrowLeft||keys.KeyA||keys.ArrowDown||keys.KeyS;
+  if(go)train.v=Math.min(train.v+acc*dt,6);
+  if(back)train.v=Math.max(train.v-acc*1.5*dt,-3);
+ }
+ train.v*=Math.pow(mode==='train'?0.997:0.985,dt);if(Math.abs(train.v)<0.01)train.v=0;
+ train.x+=train.v*dt;
+ if(train.x-TRAIN_LEN>W)train.x-=W+TRAIN_LEN;if(train.x<0)train.x+=W+TRAIN_LEN;
+ train.chug+=Math.abs(train.v)*dt;if(train.chug>18){train.chug=0;noise(0.06,0.12,1200);smoke.push({x:train.x-10,y:TY-2,r:2,t:0,vx:-train.v*.2})}
+ // --- cars ---
+ cars.forEach((c,i)=>{
+  const me=(mode==='car'&&i===sel);let thr=0,steer=0;
+  if(me){if(keys.ArrowUp||keys.KeyW)thr=1;if(keys.ArrowDown||keys.KeyS)thr=-0.6;if(keys.ArrowLeft||keys.KeyA)steer=-1;if(keys.ArrowRight||keys.KeyD)steer=1;if(thr||steer)c.tx=null}
+  if(c.tx!=null){const dx=c.tx-c.x,dy=c.ty-c.y,dd=Math.hypot(dx,dy);
+   if(dd<4){c.tx=null}else{const want=Math.atan2(dx,-dy);let da=want-c.a;while(da>Math.PI)da-=Math.PI*2;while(da<-Math.PI)da+=Math.PI*2;steer=Math.max(-1,Math.min(1,da*3));thr=dd<14?0.4:1}}
+  c.v+=thr*0.12*dt;c.v*=Math.pow(0.9,dt);
+  c.a+=steer*0.07*dt*Math.min(1,Math.abs(c.v)/1.2+0.25)*(c.v<0?-1:1);
+  c.x+=Math.sin(c.a)*c.v*dt;c.y-=Math.cos(c.a)*c.v*dt;
+  c.x=Math.max(8,Math.min(W-8,c.x));c.y=Math.max(TOP+10,Math.min(BOT-10,c.y));
+  if(me&&Math.abs(c.v)>0.3&&Math.random()<0.05*dt)snd(90+Math.abs(c.v)*30,.03,'sawtooth',.015);
+ });
+ // --- train hits cars ---
+ const tFront=train.x;
+ for(let i=cars.length-1;i>=0;i--){const c=cars[i];const r=c.ci==5?11:9;
+  if(Math.abs(c.y-TY)>r+7)continue;
+  let hit=false;for(const s of trainSegs()){if(c.x+r>s[0]&&c.x-r<s[1])hit=true}
+  if(!hit)continue;
+  if(Math.abs(train.v)>0.6)explode(c,i);
+  else{ // slow train just nudges the car off the track
+   c.y+=(c.y<TY?-1:1)*1.5*dt;}
+ }
+ // --- fx ---
+ for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;p.vz-=0.25*dt;if(p.z<0){p.z=0;p.vz*=-0.4;p.vx*=0.7;p.vy*=0.7}p.rot+=dt;p.life-=dt}
+ parts=parts.filter(p=>p.life>0);
+ for(const f of fires){if(f.d>0){f.d-=dt;continue}f.t+=dt;f.r=Math.min(f.mr,f.r+1.2*dt);if(f.t>10&&Math.random()<0.3)smoke.push({x:f.x,y:f.y,r:3,t:0,vx:0})}
+ fires=fires.filter(f=>f.t<40);
+ for(const s of smoke){s.t+=dt;s.r+=0.15*dt;s.y-=0.3*dt;s.x+=s.vx*dt}smoke=smoke.filter(s=>s.t<70);if(smoke.length>200)smoke.splice(0,smoke.length-200);
+ for(const p of pops){p.t-=dt;if(!p.big)p.y-=0.4*dt}pops=pops.filter(p=>p.t>0);
+}
+// ---------- drawing ----------
+function drawGround(){
+ g.fillStyle='#3fa34d';g.fillRect(0,TOP,W,BOT-TOP);
+ g.fillStyle='#358a41';for(let i=0;i<90;i++)g.fillRect((i*53)%W,TOP+(i*37)%(BOT-TOP),2,2);
+ // road crossing (vertical)
+ g.fillStyle='#55555f';g.fillRect(148,TOP,24,BOT-TOP);g.fillStyle='#e8e8a0';for(let y=TOP;y<BOT;y+=12)g.fillRect(159,y,2,6);
+ // gravel bed
+ g.fillStyle='#8a7a66';g.fillRect(0,TY-11,W,22);g.fillStyle='#776854';for(let i=0;i<120;i++)g.fillRect((i*29)%W,TY-11+(i*7)%22,1,1);
+ // ties
+ g.fillStyle='#6b4423';for(let x=0;x<W;x+=8)g.fillRect(x,TY-9,4,18);
+ // rails
+ g.fillStyle='#c9ccd4';g.fillRect(0,TY-7,W,2);g.fillRect(0,TY+5,W,2);g.fillStyle='#7d808a';g.fillRect(0,TY-5,W,1);g.fillRect(0,TY+7,W,1);
+ // crossing signs
+ for(const [x,y] of [[144,TY-18],[176,TY+14]]){g.fillStyle='#222';g.fillRect(x,y,2,6);const on=Math.abs(train.v)>0.3&&((performance.now()/250|0)%2);g.fillStyle=on?'#ff3030':'#5a1010';g.fillRect(x-2,y-2,6,3)}
+ // trees
+ for(const t of TREES){if(Math.abs(t.y-TY)<20||(t.x>140&&t.x<180))continue;g.fillStyle='#1f6b2a';g.fillRect(t.x-5,t.y-5,10,10);g.fillStyle='#2b8a37';g.fillRect(t.x-4,t.y-6,8,8);g.fillStyle='#5fc46a';g.fillRect(t.x-2,t.y-4,2,2)}
+ // scorch marks
+ for(const s of scorch){g.fillStyle='rgba(20,15,10,.55)';g.beginPath();g.arc(s.x,s.y,s.r,0,7);g.fill();g.fillStyle='rgba(20,15,10,.35)';g.beginPath();g.arc(s.x+4,s.y-3,s.r*.6,0,7);g.fill()}
+}
+function drawTrainAt(fx,cy=TY){
+ const x0=Math.round(fx-TRAIN_LEN),y=cy-8;
+ // two freight cars
+ const fc=['#2f6fd6','#29a35a'];
+ for(let k=0;k<2;k++){const x=x0+k*30;g.fillStyle='#111';g.fillRect(x+2,y-1,4,18);g.fillRect(x+20,y-1,4,18);
+  g.fillStyle=fc[k];g.fillRect(x,y,26,16);g.fillStyle='rgba(0,0,0,.25)';g.fillRect(x,y+12,26,4);g.fillStyle='rgba(255,255,255,.35)';g.fillRect(x+2,y+2,22,2);
+  g.fillStyle='#333';g.fillRect(x+26,y+7,4,2)}
+ // locomotive
+ const x=x0+60;g.fillStyle='#111';for(const wx of [2,12,24])g.fillRect(x+wx,y-1,5,18);
+ g.fillStyle='#d42a2a';g.fillRect(x,y,32,16);g.fillStyle='#8a1616';g.fillRect(x,y+12,32,4);
+ g.fillStyle='#222';g.fillRect(x,y+1,9,14);g.fillStyle='#9fe7ff';g.fillRect(x+2,y+3,5,4);g.fillRect(x+2,y+9,5,4);
+ g.fillStyle='#ffd21e';g.fillRect(x+10,y+7,18,2);
+ g.fillStyle='#333';g.fillRect(x+22,y+5,6,6);g.fillStyle='#000';g.fillRect(x+23,y+6,4,4); // smokestack
+ g.fillStyle='#ffd21e';g.fillRect(x+32,y+2,4,12);g.fillStyle='#fff6a0';g.fillRect(x+34,y+6,2,4); // cow catcher + light
+ if(train.v>0.3){g.fillStyle='rgba(255,246,160,.25)';g.beginPath();g.moveTo(x+36,y+8);g.lineTo(x+70,y-6);g.lineTo(x+70,y+22);g.fill()}
+}
+function drawTrain(){drawTrainAt(train.x);
+ if(mode==='train'){const t=(performance.now()/300|0)%2;let ax=Math.max(10,Math.min(W-10,train.x-50));if(t){g.fillStyle='#fff';g.fillRect(ax-1,TY-22,3,6);g.fillRect(ax-3,TY-18,7,2);g.fillRect(ax-2,TY-17,5,2)}}}
+function drawCars(){
+ cars.forEach((c,i)=>{const C=CARS[c.ci],sc=C.big?2.4:2;
+  g.save();g.translate(Math.round(c.x),Math.round(c.y));g.rotate(c.a);
+  g.fillStyle='rgba(0,0,0,.3)';g.fillRect(-8*sc/2+2,-13*sc/2+2,8*sc,13*sc);
+  g.drawImage(C.img,-8*sc/2,-13*sc/2,8*sc,13*sc);g.restore();
+  if(mode==='car'&&i===sel){const b=(performance.now()/200|0)%2?1:0;g.strokeStyle='#fff';g.lineWidth=1;g.strokeRect(Math.round(c.x)-14-b+.5,Math.round(c.y)-14-b+.5,28+2*b,28+2*b);
+   if(c.tx!=null){g.fillStyle='#fff';g.fillRect(c.tx-2,c.ty,5,1);g.fillRect(c.tx,c.ty-2,1,5)}}
+ })}
+function drawFx(){
+ for(const s of smoke){const a=Math.max(0,.5-s.t/140);g.fillStyle='rgba(200,200,200,'+a+')';g.fillRect(s.x-s.r,s.y-s.r,s.r*2,s.r*2)}
+ for(const f of fires){if(f.d>0)continue;const a=1-f.t/40;g.fillStyle='rgba(255,90,20,'+a+')';g.beginPath();g.arc(f.x,f.y,f.r,0,7);g.fill();
+  g.fillStyle='rgba(255,220,60,'+a+')';g.beginPath();g.arc(f.x,f.y,f.r*.6,0,7);g.fill();g.fillStyle='rgba(255,255,220,'+a+')';g.beginPath();g.arc(f.x,f.y,f.r*.25,0,7);g.fill()}
+ for(const p of parts){const s=p.s*(1+Math.min(p.z,30)/20);const y=p.y-p.z;
+  if(p.z>0){g.fillStyle='rgba(0,0,0,.25)';g.fillRect(p.x-p.s/2,p.y,p.s,p.s)}
+  g.fillStyle=p.col;if(p.wheel){g.beginPath();g.arc(p.x,y,s/2+1,0,7);g.fill();g.fillStyle='#888';g.fillRect(p.x-1,y-1,2,2)}else g.fillRect(p.x-s/2,y-s/2,s,s)}
+}
+function drawRocky(x,y){ // little Eridian: rocky carapace + 5 legs
+ g.fillStyle='#6b5a48';const legs=[[-9,4],[-6,9],[0,10],[6,9],[9,4]];for(const [lx,ly] of legs){g.fillRect(x+lx/2,y+2,2,2);g.fillRect(x+lx,y+ly,2,3)}
+ g.fillStyle='#8b7660';g.fillRect(x-6,y-6,13,9);g.fillRect(x-4,y-8,9,2);g.fillStyle='#a8927a';g.fillRect(x-3,y-6,3,2);g.fillRect(x+2,y-3,2,2);g.fillStyle='#4e4134';g.fillRect(x-6,y+1,13,2)}
+function drawHud(now){
+ g.fillStyle='#10102c';g.fillRect(0,0,W,TOP);
+ txt('SCORE '+score,4,3,'#ffd21e');txt('BEST '+best,90,3,'#7cf');
+ txt(mode==='train'?'DRIVING: TRAIN':'DRIVING: '+(sel>=0&&cars[sel]?CARS[cars[sel].ci].name:'NOTHING'),W-4-textW(mode==='train'?'DRIVING: TRAIN':'DRIVING: '+(sel>=0&&cars[sel]?CARS[cars[sel].ci].name:'NOTHING')),3,mode==='train'?'#ff6060':'#4cff6a');
+ // bottom bar
+ g.fillStyle='#10102c';g.fillRect(0,BOT,W,H-BOT);g.fillStyle='#ffd21e';g.fillRect(0,BOT,W,1);
+ for(let i=0;i<6;i++){const bx=4+i*30,hov=mouse.y>=BOT&&mouse.x>=bx&&mouse.x<bx+28;g.fillStyle=hov?'#3a3a80':'#1d1d48';g.fillRect(bx,BOT+3,28,24);
+  g.save();g.translate(bx+11,BOT+15);g.rotate(Math.PI/2);g.drawImage(CARS[i].img,-4,-6.5,8,13);g.restore();txt(String(i+1),bx+23,BOT+4,'#888')}
+ const th=mode==='train';g.fillStyle=th?'#d42a2a':'#4a1a1a';g.fillRect(186,BOT+3,60,24);txt('T: GRAB',216,BOT+7,'#fff',1,true);txt('TRAIN',216,BOT+16,'#ffd21e',1,true);
+ g.fillStyle='#1d1d48';g.fillRect(250,BOT+3,66,24);txt('R: RESET',283,BOT+7,'#fff',1,true);txt('H: HORN',283,BOT+16,'#aaa',1,true);
+}
+function drawTips(){
+ const lines=mode==='train'?['HOLD RIGHT ARROW OR CLICK = GO','LEFT = BRAKE  TAB = CARS']:['ARROWS OR CLICK = DRIVE CAR','1-6 = NEW CAR  T = TRAIN'];
+ g.fillStyle='rgba(0,0,0,.45)';g.fillRect(2,BOT-21,150,20);txt(lines[0],5,BOT-19,'#fff');txt(lines[1],5,BOT-10,'#ccc');
+}
+function drawRockySay(){
+ drawRocky(W-16,BOT-14);
+ if(rocky.t>0){const s=rocky.txt,w=textW(s)+8,x=Math.max(2,W-24-w),y=BOT-30;g.fillStyle='#fff';g.fillRect(x,y,w,11);g.fillRect(W-28,y+11,4,3);txt(s,x+4,y+2,'#000')}
+}
+function drawPops(){for(const p of pops){if(p.big){const sc=p.t>90?3+(p.t-90)/4:3;const a=p.t<20?(p.t/20>.5):true;if(a)shadowTxt(p.s,W/2,p.y-sc*3,'#ff3b3b',Math.round(sc),true)}else shadowTxt(p.s,p.x,p.y,'#ffd21e',1,true)}}
+function titleScreen(now){
+ g.fillStyle='#0b0b2a';g.fillRect(0,0,W,H);
+ for(let i=0;i<60;i++){g.fillStyle=i%7?'#334':'#889';g.fillRect((i*97)%W,(i*53)%120,1,1)}
+ shadowTxt('TRAIN',W/2,22,'#ffd21e',5,true);shadowTxt('CRASH!',W/2,60,'#ff4040',5,true);
+ // tracks + demo train + exploding car
+ g.fillStyle='#6b4423';for(let x=0;x<W;x+=8)g.fillRect(x,121,4,18);g.fillStyle='#c9ccd4';g.fillRect(0,123,W,2);g.fillRect(0,135,W,2);
+ const tx=((now/8)%(W+180))-40;drawTrainAt(tx,130);
+ const carX=230;if(tx<carX-18){g.save();g.translate(carX,130);g.drawImage(CARS[3].img,-8,-13,16,26);g.restore()}
+ else if(tx<carX+60){const k=(tx-carX+18)/78;for(let i=0;i<10;i++){g.fillStyle=['#ff5a14','#ffdc3c','#fff'][i%3];g.beginPath();g.arc(carX+Math.cos(i)*k*30,130+Math.sin(i*1.7)*k*20,8*(1-k)+2,0,7);g.fill()}if(k<.6)shadowTxt('BOOM!',carX,104,'#ffd21e',2,true)}
+ drawRocky(28,160);
+ if((now/400|0)%2)shadowTxt('PRESS SPACE OR CLICK',W/2,154,'#fff',1,true);
+ txt('BY WESTON AND ROCKY',W/2,166,'#7cf',1,true);
+ txt('NO PEOPLE IN THE CARS. JUST BOOM!',W/2,180,'#888',1,true);
+}
+function loop(now){
+ const dt=Math.min((now-last)/16.67,3);last=now;
+ if(state==='title'){titleScreen(now)}
+ else{update(dt);
+  g.save();if(shake>0){g.translate(Math.round((Math.random()-.5)*shake*.5),Math.round((Math.random()-.5)*shake*.5))}
+  drawGround();drawCars();drawTrain();drawFx();g.restore();
+  if(flash>0){g.fillStyle='rgba(255,255,230,'+(flash/5)+')';g.fillRect(0,0,W,H)}
+  drawTips();drawRockySay();drawPops();drawHud(now);
+ }
+ requestAnimationFrame(loop);
+}
+if(location.hash=='#play')start();
+if(location.hash=='#crash'){start();setTimeout(()=>{grabTrain();train.v=5;},50)}
+requestAnimationFrame(loop);
+// test hook for automated checks
+window.__tc={start,spawnCar,grabTrain,train,get cars(){return cars},get score(){return score},keys};
+</script></body></html>
