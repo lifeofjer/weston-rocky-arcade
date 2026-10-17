@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Turbo Tap Racers</title>
+<style>
+html,body{margin:0;height:100%;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges;height:96vh;max-width:98vw;aspect-ratio:16/10}
+</style></head><body>
+<canvas id="c" width="320" height="200"></canvas>
+<script>
+const cv=document.getElementById('c'),g=cv.getContext('2d');g.imageSmoothingEnabled=false;
+const W=320,H=200,RACE=10;
+// ---------- tiny pixel font ----------
+const F={A:"0110100110011111100110011001",B:"1110100110011110100110011110",C:"0111100010001000100010000111",D:"1110100110011001100110011110",E:"1111100010001110100010001111",F:"1111100010001110100010001000",G:"0111100010001011100110010111",H:"1001100110011111100110011001",I:"111010010010010010111",J:"0001000100010001100110010110",K:"1001101011001100101010011001",L:"1000100010001000100010001111",M:"10001110111010110001100011000110001",N:"1001110111011011100110011001",O:"0110100110011001100110010110",P:"1110100110011110100010001000",Q:"0110100110011001100110110111",R:"1110100110011110110010101001",S:"0111100010000110000100011110",T:"111010010010010010010",U:"1001100110011001100110010110",V:"10001100011000101010010100010000100",W:"10001100011000110101101011101110001",X:"1001100101100110011010011001",Y:"101101101010010010010",Z:"1111000100100100100010001111","0":"0110100110111101100110010110","1":"010110010010010010111","2":"0110100100010010010010001111","3":"1110000100010110000100011110","4":"1001100110011111000100010001","5":"1111100010001110000100011110","6":"0110100010001110100110010110","7":"1111000100010010010001000100","8":"0110100110010110100110010110","9":"0110100110010111000100010110","!":"1111101","?":"0110100100010010001000000010",".":"0000001",":":"0101000","-":"00000011000000","+":"000010111010000000000","/":"0001000100100010010010001000","'":"1100000"," ":"000000000000000000000"};
+function glyphW(ch){const p=F[ch]||F[' '];return p.length/7|0}
+function textW(s,sc=1){let w=0;for(const ch of s)w+=(glyphW(ch)+1)*sc;return w-sc}
+function txt(s,x,y,col,sc=1,center=false){s=String(s).toUpperCase();if(center)x=Math.round(x-textW(s,sc)/2);g.fillStyle=col;for(const ch of s){const p=F[ch]||F[' '],w=glyphW(ch);for(let i=0;i<p.length;i++)if(p[i]=='1')g.fillRect(x+(i%w)*sc,y+((i/w)|0)*sc,sc,sc);x+=(w+1)*sc}}
+function shadowTxt(s,x,y,col,sc=1,center=false){txt(s,x+sc,y+sc,'#000',sc,center);txt(s,x,y,col,sc,center)}
+// ---------- cars (top view, facing up) ----------
+// k=body, w=window, t=tire, l=light, s=stripe, d=dark trim
+const SPR={
+ sports:["..llll..",".kkkkkk.","tkkkkkkt","tkkkkkkt",".kwwwwk.",".kwwwwk.",".kkkkkk.",".kkkkkk.",".kwwwwk.","tkkkkkkt","tkkkkkkt",".kkkkkk.",".dddddd."],
+ p911:["..kkkk..",".kllllk.","tkkkkkkt","tkkkkkkt",".kkkkkk.",".kwwwwk.",".kwwwwk.",".kkkkkk.",".kwwwwk.","tkkkkkkt","tkkkkkkt",".kkkkkk.",".dllld.."],
+ cyber:[".llllll.","kkkkkkkk","tkkkkkkt","tkkkkkkt","kkwwwwkk","kkwwwwkk","kkkkkkkk","kdddddkk","kdddddkk","tkkkkkkt","tkkkkkkt","kkkkkkkk","dddddddd"],
+ roadster:["..kkkk..",".kkkkkk.","tkkkkkkt","tkkkkkkt",".kkkkkk.",".kwwwwk.",".kwwwwk.",".kkddkk.",".kkkkkk.","tkkkkkkt","tkkkkkkt",".kkkkkk.","..dddd.."],
+ lambo:[".lkkkkl.","kkkkkkkk","tkkkkkkt","tkkkkkkt",".kwwwwk.",".kwwwwk.",".kkddkk.",".kkddkk.",".kkkkkk.","tkkkkkkt","tkkkkkkt","kkkkkkkk",".dddddd."],
+ truck:[".llllll.","kkkkkkkk","tkkkkkkt","tkkkkkkt","kwwwwwwk","kkkkkkkk","kddddddk","kddddddk","kddddddk","tkkkkkkt","tkkkkkkt","kkkkkkkk","dddddddd"]
+};
+const CARS=[
+ {name:'FERRARI SF90',spr:'sports',k:'#e8202a',d:'#7a0d12',push:1.00,top:1.00},
+ {name:'PORSCHE 911',spr:'p911',k:'#ffd21e',d:'#8a6a00',push:1.02,top:0.98},
+ {name:'CYBERTRUCK',spr:'cyber',k:'#b9c2cc',d:'#5b636c',push:1.06,top:0.95},
+ {name:'TESLA ROADSTER',spr:'roadster',k:'#2f7cff',d:'#123e8a',push:0.97,top:1.04},
+ {name:'LAMBORGHINI',spr:'lambo',k:'#5be33b',d:'#23701a',push:0.99,top:1.02},
+ {name:'MONSTER TRUCK',spr:'truck',k:'#ff7a1a',d:'#8a3a00',push:1.08,top:0.93}
+];
+function drawCar(c,x,y,sc,shake=0){const s=SPR[c.spr];const pal={k:c.k,w:'#9fe7ff',t:'#111',l:'#fff6a0',s:'#fff',d:c.d};
+ for(let r=0;r<s.length;r++)for(let i=0;i<8;i++){const ch=s[r][i];if(ch=='.')continue;g.fillStyle=pal[ch];g.fillRect(x+i*sc+(ch=='t'?0:shake),y+r*sc,sc,sc)}}
+// ---------- sound ----------
+let AC=null;function snd(f,d=0.05,type='square',v=0.06){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),a=AC.createGain();o.type=type;o.frequency.value=f;a.gain.value=v;o.connect(a);a.connect(AC.destination);o.start();a.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+d);o.stop(AC.currentTime+d+0.02)}catch(e){}}
+// ---------- game state ----------
+const P=[{key:'ShiftLeft',label:'LEFT SHIFT',car:0,col:'#ff5a5a'},{key:'ShiftRight',label:'RIGHT SHIFT',car:2,col:'#5ab0ff'}];
+let state='title',t0=0,countStart=0,raceStart=0,lastCount=-1,winner=-1,flash=0;
+function resetRace(){for(const p of P){p.v=0;p.dist=0;p.taps=0;p.scroll=0;p.puff=[]}}
+resetRace();
+addEventListener('keydown',e=>{
+ if(e.code==='ShiftLeft'||e.code==='ShiftRight'||e.code==='Space'||e.code==='Enter')e.preventDefault();
+ if(e.repeat)return;
+ const pi=e.code==='ShiftLeft'?0:e.code==='ShiftRight'?1:-1;
+ if(state==='title'){if(e.code==='Space'||e.code==='Enter'||pi>=0){state='select';snd(660,.1)}return}
+ if(state==='select'){
+  if(pi>=0){P[pi].car=(P[pi].car+1)%CARS.length;snd(pi?520:440,.06)}
+  if(e.code==='Space'||e.code==='Enter'){resetRace();state='count';countStart=performance.now();lastCount=-1}
+  return}
+ if(state==='race'&&pi>=0){const p=P[pi],c=CARS[p.car];p.v=Math.min(p.v+0.55*c.push,9*c.top);p.taps++;p.puff.push({x:0,y:0,a:1});snd(pi?180:150,.03,'sawtooth',.03);return}
+ if(state==='done'&&(e.code==='Space'||e.code==='Enter')){state='select';snd(660,.1)}
+ if(state==='done'&&e.code==='Escape'){state='title'}
+});
+// ---------- drawing ----------
+function road(x0,w,scroll,p){
+ g.fillStyle='#2f9e3a';g.fillRect(x0,0,w,H);
+ // grass pixels
+ g.fillStyle='#257f2e';for(let i=0;i<40;i++){const yy=((i*37+scroll*1.0)%(H+10))-5;g.fillRect(x0+((i*53)%w),yy|0,2,2)}
+ const rx=x0+18,rw=w-36;g.fillStyle='#3b3b45';g.fillRect(rx,0,rw,H);
+ // curbs
+ for(let y=-16;y<H+16;y+=16){const yy=(y+scroll%16)|0;g.fillStyle='#fff';g.fillRect(rx-6,yy,6,8);g.fillRect(rx+rw,yy,6,8);g.fillStyle='#e02020';g.fillRect(rx-6,yy+8,6,8);g.fillRect(rx+rw,yy+8,6,8)}
+ // center dashes
+ g.fillStyle='#e8e8a0';for(let y=-24;y<H+24;y+=24){g.fillRect(x0+w/2-1,(y+scroll%24)|0,2,12)}
+}
+function hud(x0,w,p,i){
+ g.fillStyle='rgba(0,0,0,.55)';g.fillRect(x0+4,4,w-8,22);
+ shadowTxt((i?'P2':'P1')+' '+CARS[p.car].name,x0+8,7,p.col);
+ txt('DIST '+Math.floor(p.dist)+'M',x0+8,17,'#fff');
+ // speed bar
+ const sp=Math.min(p.v/9,1);g.fillStyle='#222';g.fillRect(x0+w-46,17,38,6);g.fillStyle=sp>.8?'#ff3b3b':sp>.5?'#ffd21e':'#4cff6a';g.fillRect(x0+w-46,17,38*sp|0,6);
+}
+function lane(i,now){
+ const p=P[i],x0=i*160,w=160;road(x0,w,p.scroll,p);
+ const sc=3,cx=x0+w/2-12,cy=120;
+ // exhaust puffs
+ for(const f of p.puff){g.fillStyle='rgba(220,220,220,'+f.a+')';g.fillRect(cx+9+f.x,cy+39+f.y,4,4)}
+ drawCar(CARS[p.car],cx,cy,sc,p.v>6?((now/40|0)%2):0);
+ // speed lines
+ if(p.v>5){g.fillStyle='rgba(255,255,255,.6)';for(let k=0;k<4;k++){const yy=((now/6+k*50+i*25)%H)|0;g.fillRect(x0+26+k*30,yy,1,10)}}
+ hud(x0,w,p,i);
+ g.fillStyle='rgba(0,0,0,.55)';g.fillRect(x0+4,H-16,w-8,12);txt('TAP '+P[i].label+'!',x0+w/2,H-13,p.col,1,true);
+}
+function divider(){g.fillStyle='#000';g.fillRect(158,0,4,H);g.fillStyle='#ffd21e';for(let y=0;y<H;y+=8)g.fillRect(159,y,2,4)}
+function bigTimer(sec,col){const s=sec.toFixed(1);g.fillStyle='rgba(0,0,0,.7)';g.fillRect(W/2-22,28,44,16);txt(s,W/2,31,col,2,true)}
+function checker(y){for(let x=0;x<W;x+=8)for(let r=0;r<2;r++){g.fillStyle=((x/8+r)%2)?'#fff':'#000';g.fillRect(x,y+r*4,8,4)}}
+function title(now){
+ g.fillStyle='#0b0b2a';g.fillRect(0,0,W,H);
+ for(let i=0;i<60;i++){g.fillStyle=i%7?'#334':'#889';g.fillRect((i*97)%W,(i*53+now/20)%H|0,1,1)}
+ checker(16);checker(176);
+ shadowTxt('TURBO TAP',W/2,44,'#ffd21e',4,true);shadowTxt('RACERS',W/2,76,'#ff4040',4,true);
+ drawCar(CARS[0],80,112,3);drawCar(CARS[2],216,112,3);
+ if((now/400|0)%2)shadowTxt('PRESS SPACE TO START',W/2,156,'#fff',1,true);
+ txt('BY WESTON AND ROCKY',W/2,166,'#7cf',1,true);
+}
+function select(now){
+ g.fillStyle='#10102c';g.fillRect(0,0,W,H);checker(0);
+ shadowTxt('PICK YOUR CAR',W/2,14,'#ffd21e',2,true);
+ for(let i=0;i<2;i++){const p=P[i],x0=i*160,c=CARS[p.car];
+  g.fillStyle='#1d1d48';g.fillRect(x0+10,34,140,124);g.fillStyle=p.col;g.fillRect(x0+10,34,140,2);
+  shadowTxt(i?'PLAYER 2':'PLAYER 1',x0+80,40,p.col,1,true);
+  drawCar(c,x0+80-16,56,4);
+  shadowTxt(c.name,x0+80,114,'#fff',1,true);
+  const bar=(lbl,v,y)=>{txt(lbl,x0+22,y,'#aaa');g.fillStyle='#333';g.fillRect(x0+70,y,60,5);g.fillStyle=p.col;g.fillRect(x0+70,y,60*v|0,5)};
+  bar('PUSH',(c.push-0.9)/0.2,126);bar('TOP',(c.top-0.88)/0.2,136);
+  txt('TAP '+p.label,x0+80,146,'#fff',1,true);txt('TO CHANGE',x0+80,153,'#888',1,true);
+ }
+ if((now/400|0)%2)shadowTxt('SPACE = RACE!',W/2,170,'#4cff6a',2,true);
+}
+let last=performance.now();
+function loop(now){
+ const dt=Math.min((now-last)/16.67,3);last=now;
+ if(state==='title')title(now);
+ else if(state==='select')select(now);
+ else{
+  // physics
+  if(state==='race'){for(const p of P){p.v*=Math.pow(0.965,dt);p.dist+=p.v*dt*0.6;p.scroll+=p.v*dt*1.6;for(const f of p.puff){f.y+=1.5*dt;f.x+=(Math.random()-.5)*dt;f.a-=0.04*dt}p.puff=p.puff.filter(f=>f.a>0)}}
+  else{for(const p of P){p.v*=Math.pow(0.9,dt);p.scroll+=p.v*dt*1.6;for(const f of p.puff)f.a-=0.04*dt;p.puff=p.puff.filter(f=>f.a>0)}}
+  lane(0,now);lane(1,now);divider();
+  if(state==='count'){const el=(now-countStart)/1000,n=3-Math.floor(el);
+   if(n!==lastCount){lastCount=n;snd(n>0?440:880,.18,'square',.08)}
+   g.fillStyle='rgba(0,0,0,.45)';g.fillRect(0,70,W,50);
+   if(n>0)shadowTxt(String(n),W/2,78,'#ffd21e',5,true);else{shadowTxt('GO!',W/2,78,'#4cff6a',5,true)}
+   if(el>=3){state='race';raceStart=now}}
+  else if(state==='race'){const left=RACE-(now-raceStart)/1000;bigTimer(Math.max(0,left),left<3?'#ff4040':'#fff');
+   if(left<=0){state='done';const a=P[0].dist,b=P[1].dist;winner=Math.abs(a-b)<0.5?-1:(a>b?0:1);
+    [523,659,784,1046].forEach((f,i)=>setTimeout(()=>snd(f,.15,'square',.07),i*120))}}
+  else if(state==='done'){
+   g.fillStyle='rgba(0,0,0,.75)';g.fillRect(20,40,280,120);checker(40);checker(152);
+   if(winner<0)shadowTxt('TIE!',W/2,56,'#ffd21e',4,true);
+   else{shadowTxt((winner?'PLAYER 2':'PLAYER 1')+' WINS!',W/2,56,P[winner].col,3,true);drawCar(CARS[P[winner].car],W/2-12,80,3,(now/120|0)%2)}
+   for(let i=0;i<2;i++){const p=P[i];txt((i?'P2 ':'P1 ')+Math.floor(p.dist)+'M  '+p.taps+' TAPS',i?232:88,124,p.col,1,true)}
+   if((now/400|0)%2)txt('SPACE = RACE AGAIN',W/2,140,'#fff',1,true);
+  }
+ }
+ requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script></body></html>
