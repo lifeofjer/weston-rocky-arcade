@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Rocky's Mega Game</title>
+<style>
+html,body{margin:0;height:100%;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges;height:96vh;max-width:98vw;aspect-ratio:16/10;touch-action:none}
+</style></head><body>
+<canvas id="c" width="320" height="200"></canvas>
+<script>
+const cv=document.getElementById('c'),g=cv.getContext('2d');g.imageSmoothingEnabled=false;
+const W=320,H=200;
+const SPEED=Math.max(1,+(new URLSearchParams(location.search).get('speed')||1));// test hook only
+// ---------- tiny pixel font ----------
+const F={A:"0110100110011111100110011001",B:"1110100110011110100110011110",C:"0111100010001000100010000111",D:"1110100110011001100110011110",E:"1111100010001110100010001111",F:"1111100010001110100010001000",G:"0111100010001011100110010111",H:"1001100110011111100110011001",I:"111010010010010010111",J:"0001000100010001100110010110",K:"1001101011001100101010011001",L:"1000100010001000100010001111",M:"10001110111010110001100011000110001",N:"1001110111011011100110011001",O:"0110100110011001100110010110",P:"1110100110011110100010001000",Q:"0110100110011001100110110111",R:"1110100110011110110010101001",S:"0111100010000110000100011110",T:"111010010010010010010",U:"1001100110011001100110010110",V:"10001100011000101010010100010000100",W:"10001100011000110101101011101110001",X:"1001100101100110011010011001",Y:"101101101010010010010",Z:"1111000100100100100010001111","0":"0110100110111101100110010110","1":"010110010010010010111","2":"0110100100010010010010001111","3":"1110000100010110000100011110","4":"1001100110011111000100010001","5":"1111100010001110000100011110","6":"0110100010001110100110010110","7":"1111000100010010010001000100","8":"0110100110010110100110010110","9":"0110100110010111000100010110","!":"1111101","?":"0110100100010010001000000010",".":"0000001",":":"0101000","-":"00000011000000","+":"000010111010000000000","/":"0001000100100010010010001000","'":"1100000",",":"00000000000110","=":"000000111000111000000","%":"11001110100001000100010000101110011"," ":"000000000000000000000"};
+function glyphW(ch){const p=F[ch]||F[' '];return p.length/7|0}
+function textW(s,sc=1){let w=0;for(const ch of s)w+=(glyphW(ch)+1)*sc;return w-sc}
+function txt(s,x,y,col,sc=1,center=false){s=String(s).toUpperCase();if(center)x=Math.round(x-textW(s,sc)/2);g.fillStyle=col;for(const ch of s){const p=F[ch]||F[' '],w=glyphW(ch);for(let i=0;i<p.length;i++)if(p[i]=='1')g.fillRect(x+(i%w)*sc,y+((i/w)|0)*sc,sc,sc);x+=(w+1)*sc}}
+function shadowTxt(s,x,y,col,sc=1,center=false){txt(s,x+sc,y+sc,'#000',sc,center);txt(s,x,y,col,sc,center)}
+
+// ---------- sound ----------
+let AC=null;function ac(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}return AC}
+function snd(f,d=0.05,type='square',v=0.05,slide=0){const a0=ac();if(!a0||a0.state!=='running')return;try{const o=a0.createOscillator(),a=a0.createGain();o.type=type;o.frequency.value=f;if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(20,f*slide),a0.currentTime+d);a.gain.value=v;o.connect(a);a.connect(a0.destination);o.start();a.gain.exponentialRampToValueAtTime(0.0001,a0.currentTime+d);o.stop(a0.currentTime+d+0.02)}catch(e){}}
+let NB=null;function boom(){const a0=ac();if(!a0||a0.state!=='running')return;try{if(!NB){NB=a0.createBuffer(1,a0.sampleRate,a0.sampleRate);const ch=NB.getChannelData(0);for(let i=0;i<ch.length;i++)ch[i]=Math.random()*2-1}
+ const s=a0.createBufferSource();s.buffer=NB;const f=a0.createBiquadFilter();f.type='lowpass';f.frequency.value=1500;f.frequency.exponentialRampToValueAtTime(60,a0.currentTime+.9);const a=a0.createGain();a.gain.value=.6;a.gain.exponentialRampToValueAtTime(0.0001,a0.currentTime+.9);s.connect(f);f.connect(a);a.connect(a0.destination);s.start();s.stop(a0.currentTime+1)}catch(e){}snd(90,.5,'sawtooth',.1,.3)}
+function tune(notes,step=120,type='square'){notes.forEach((f,i)=>setTimeout(()=>snd(f,.14,type,.06),i*step))}
+// ---------- car bitmap (side view, facing right) ----------
+const CARMAP=[
+"........#########.........",
+".......#wwwww#wwwww#......",
+"s.....#wwwwww#wwwwww#.....",
+"s#########################",
+"#########################l",
+"##########################",
+"#.oooooo.######.oooooo.###",
+"..oooooo........oooooo....",
+"..oohhoo........oohhoo....",
+"...oooo.........oooo......"];
+const PAINTS=[{n:'FERRARI RED',k:'#e8202a',d:'#7a0d12'},{n:'PORSCHE YELLOW',k:'#ffd21e',d:'#8a6a00'},{n:'CYBER SILVER',k:'#b9c2cc',d:'#5b636c'},{n:'ROADSTER BLUE',k:'#2f7cff',d:'#123e8a'},{n:'LAMBO GREEN',k:'#5be33b',d:'#23701a'},{n:'MONSTER ORANGE',k:'#ff7a1a',d:'#8a3a00'}];
+let paint=0;
+const CELLS=[];for(let r=CARMAP.length-1;r>=0;r--)for(let c=0;c<26;c++){const ch=CARMAP[r][c];if(ch!=='.')CELLS.push({r,c,ch})}
+function cellCol(ch,painted,p){if(!painted)return ch==='o'?'#d8dde0':ch==='w'?'#eef6ff':ch==='h'?'#c0c8cc':'#ffffff';
+ return{'#':p.k,w:'#9fe7ff',o:'#151515',h:'#999',l:'#fff6a0',s:p.d}[ch]}
+function drawCarSide(x,y,sc,p,spin=0){for(const e of CELLS){let ch=e.ch;if(ch==='h'&&spin%2)ch='o';else if(ch==='o'&&e.r===8&&spin%2&&(e.c===4||e.c===18))ch='h';g.fillStyle=cellCol(ch,true,p);g.fillRect(x+e.c*sc,y+e.r*sc,sc,sc)}
+ g.fillStyle=p.d;for(let c=1;c<25;c++)g.fillRect(x+c*sc,y+5*sc+sc-1,sc,1)}
+// ---------- Rocky (Eridian) ----------
+const ROCKYMAP=[
+"....aaaaaa....",
+"..aabbbbbbaa..",
+".abbbccbbbbba.",
+"abbbbbbbbbbbba",
+"abbbbbbbbbbbba",
+".aaaaaaaaaaaa."];
+function drawRocky(x,y,sc,t,bounce=0){const yy=y-bounce;const P={a:'#4a3d30',b:'#6b5a48',c:'#9a8670'};
+ for(let r=0;r<ROCKYMAP.length;r++)for(let c=0;c<14;c++){const ch=ROCKYMAP[r][c];if(ch==='.')continue;g.fillStyle=P[ch];g.fillRect(x+c*sc,yy+r*sc,sc,sc)}
+ // 5 legs, knobby, alternating step
+ for(let i=0;i<5;i++){const lx=x+(1+i*2.8)*sc,step=((t/150|0)+i)%2;g.fillStyle='#4a3d30';g.fillRect(lx,yy+6*sc,sc,(3+step)*sc);g.fillRect(lx+(i<2?-sc:i>2?sc:0),yy+(9+step)*sc,sc,sc)}
+}
+// ---------- loading ----------
+const LOAD_SEC=60;
+const CURVE=[[0,0],[7,14],[13,26],[18,42],[25,42],[31,57],[37,61],[44,80],[50,92],[54,99],[58.5,99],[60,100]];
+function progAt(t){if(t>=60)return 100;for(let i=1;i<CURVE.length;i++){const[a,pa]=CURVE[i-1],[b,pb]=CURVE[i];if(t<=b)return pa+(pb-pa)*(t-a)/(b-a)}return 100}
+const MSGS=[
+"ROCKY WAKING UP COMPUTER... GOOD GOOD",
+"ROCKY MAKING XENONITE. HOT HOT HOT!",
+"ROCKY TIGHTENING BOLTS... GOOD GOOD",
+"COUNTING WHEELS: 1, 2, 3, 4... AMAZE!",
+"ROCKY LOOKING FOR TINY SCREW...",
+"STILL LOOKING... WHERE SCREW, QUESTION?",
+"FOUND IT! SCREW WAS UNDER ROCKY. HA HA",
+"PAINTING STARS ON THE SKY...",
+"TEACHING CAR TO JUMP. CAR SCARED, QUESTION?",
+"ADDING EXTRA FAST. VERY FAST. AMAZE!",
+"POLISHING HEADLIGHTS... SHINY SHINY",
+"ASKING GRACE FOR HELP. GRACE SLEEPING.",
+"ALMOST... ALMOST... ALMOST...",
+"FIST MY BUMP! GAME READY!"];
+function msgAt(t){if(t>=60)return MSGS[13];return MSGS[Math.min(12,Math.floor(t/60*13))]}
+const POKES=['HI WESTON!','PATIENCE, FRIEND!','ROCKY WORKING! WORKING!','TAP TAP TAP. HA HA!','ALMOST READY, QUESTION?','GOOD GOOD!','AMAZE!'];
+let state='load',loadStart=performance.now(),placed=0,falling=[],sparks=[],poke='',pokeT=0,rockyBounce=0,lastPct=-1,readyAt=0,soundOn=false;
+function loadT(now){return (now-loadStart)/1000*SPEED}
+function drawShip(now){
+ g.fillStyle='#0d1530';g.fillRect(0,0,W,H);
+ g.fillStyle='#16224a';for(let x=0;x<W;x+=40)g.fillRect(x,0,1,H);for(let y=24;y<H;y+=44)g.fillRect(0,y,W,1);
+ // round window with stars
+ g.fillStyle='#24305e';g.beginPath();g.arc(270,52,26,0,7);g.fill();g.fillStyle='#000014';g.beginPath();g.arc(270,52,22,0,7);g.fill();
+ for(let i=0;i<14;i++){g.fillStyle=(i+(now/300|0))%5?'#88a':'#fff';g.fillRect(252+(i*13)%36,36+(i*7)%32,1,1)}
+ g.fillStyle='#2b6';g.beginPath();g.arc(282,62,7,0,7);g.fill();g.fillStyle='#36f';g.fillRect(278,58,5,4);
+ // blinking lights
+ for(let i=0;i<6;i++){g.fillStyle=((now/250|0)+i)%3?'#123':'#4f8';g.fillRect(14+i*8,186,3,3)}
+ // floor
+ g.fillStyle='#2a2f45';g.fillRect(0,124,W,8);g.fillStyle='#3a4060';g.fillRect(0,124,W,1)}
+const BX=40,BY=82,BS=4;// build area origin (car 104x40)
+function loadScreen(now){
+ const t=loadT(now),pct=progAt(t),target=Math.floor(CELLS.length*pct/100);
+ drawShip(now);
+ shadowTxt("ROCKY'S MEGA GAME",W/2,8,'#ffd21e',2,true);
+ txt('BY WESTON AND ROCKY',W/2,24,'#7cf',1,true);
+ // blueprint outline
+ g.fillStyle='rgba(120,200,255,.25)';for(const e of CELLS)g.fillRect(BX+e.c*BS+1,BY+e.r*BS+1,BS-2,BS-2);
+ // spawn new falling blocks
+ while(placed<target){const e=CELLS[placed++];falling.push({e,y:BY-60-Math.random()*20,vy:0});}
+ // placed blocks (landed)
+ const landedUpTo=placed-falling.length;
+ for(let i=0;i<landedUpTo;i++){const e=CELLS[i];g.fillStyle=cellCol(e.ch,false);g.fillRect(BX+e.c*BS,BY+e.r*BS,BS,BS);g.fillStyle='rgba(0,0,0,.12)';g.fillRect(BX+e.c*BS,BY+e.r*BS+BS-1,BS,1)}
+ for(const f of falling){f.vy+=.35;f.y+=f.vy;const ty=BY+f.e.r*BS;if(f.y>=ty){f.y=ty;f.done=true;snd(700+f.e.r*40,.03,'square',.03);for(let k=0;k<2;k++)sparks.push({x:BX+f.e.c*BS+2,y:ty,vx:Math.random()*2-1,vy:-Math.random()*1.5,t:15})}
+  g.fillStyle='#fff';g.fillRect(BX+f.e.c*BS,f.y,BS,BS)}
+ // keep order: only remove from front when landed
+ while(falling.length&&falling[0].done)falling.shift();
+ // Rocky with torch beam
+ const cur=CELLS[Math.max(0,placed-1)],tx=BX+cur.c*BS+2,ty=BY+cur.r*BS+2;
+ rockyBounce=Math.max(0,rockyBounce-.6);const rb=Math.abs(Math.sin(now/120))*2+rockyBounce;
+ const rx=176+Math.sin(now/900)*10,ry=95;drawRocky(rx,ry,3,now,rb);
+ if(pct<100&&(now/60|0)%3){g.strokeStyle='rgba(255,240,140,.7)';g.lineWidth=1;g.beginPath();g.moveTo(rx+4,ry-rb+6);g.lineTo(tx,ty);g.stroke();g.fillStyle='#fff6a0';g.fillRect(tx-1,ty-1,3,3)}
+ for(const s of sparks){s.x+=s.vx;s.y+=s.vy;s.vy+=.1;s.t--;g.fillStyle=s.t>8?'#fff':'#ffd21e';g.fillRect(s.x,s.y,1,1)}sparks=sparks.filter(s=>s.t>0);
+ if(pokeT>0){pokeT--;const bw=textW(poke)+8;g.fillStyle='#fff';g.fillRect(rx+20-bw/2,ry-24-rb,bw,11);g.fillRect(rx+18,ry-13-rb,3,3);txt(poke,rx+20,ry-22-rb,'#000',1,true)}
+ // progress bar
+ g.fillStyle='#000';g.fillRect(38,140,244,14);g.fillStyle='#555';g.fillRect(40,142,240,10);
+ const pw=240*pct/100|0;g.fillStyle='#4cff6a';g.fillRect(40,142,pw,10);g.fillStyle='#b8ffc4';g.fillRect(40,142,pw,2);
+ for(let x=40+((now/40|0)%12);x<40+pw;x+=12){g.fillStyle='rgba(255,255,255,.25)';g.fillRect(x,144,4,8)}
+ shadowTxt('LOADING '+Math.floor(pct)+'%',W/2,128,'#fff',1,true);
+ const m=msgAt(t);shadowTxt(m,W/2,160,'#ffd21e',1,true);
+ if(pct!==lastPct&&Math.floor(pct)%10===0&&Math.floor(pct)!==Math.floor(lastPct)){snd(440+pct*4,.08,'triangle',.04)}lastPct=pct;
+ if(!soundOn)txt('TAP ANY KEY FOR SOUND',W/2,174,(now/500|0)%2?'#888':'#555',1,true);
+ else txt('TAP KEYS TO SAY HI TO ROCKY',W/2,174,'#667',1,true);
+ if(t>=LOAD_SEC){state='ready';readyAt=now;tune([523,659,784,1046,784,1046],110);}
+}
+function readyScreen(now){
+ drawShip(now);
+ shadowTxt("ROCKY'S MEGA GAME",W/2,8,'#ffd21e',2,true);txt('BY WESTON AND ROCKY',W/2,24,'#7cf',1,true);
+ // paint sweep
+ const k=Math.min(1,(now-readyAt)/700);const p=PAINTS[paint];
+ for(const e of CELLS){g.fillStyle=e.c/26<k?cellCol(e.ch,true,p):cellCol(e.ch,false);g.fillRect(BX+e.c*BS,BY+e.r*BS,BS,BS)}
+ drawRocky(176,95,3,now,Math.abs(Math.sin(now/100))*4);
+ shadowTxt('100% DONE! AMAZE!',W/2,130,'#4cff6a',2,true);
+ shadowTxt('PAINT: '+p.n,W/2,150,p.k,1,true);txt('LEFT/RIGHT = CHANGE PAINT',W/2,160,'#aaa',1,true);
+ if((now/400|0)%2)shadowTxt('PRESS SPACE TO PLAY!',W/2,174,'#fff',2,true)}
+// ---------- stunt game ----------
+const GY=166;let segs=[],genX=0,stars=[],barrels=[],car,camX,score,starsGot,best=+(localStorage.getItem('rockyMegaBest')||0),parts=[],shake=0,crashT=0,rmsg='',rmsgT=0,dist=0;
+function addSeg(type,len,h=0){segs.push({type,x0:genX,x1:genX+len,h});genX+=len}
+function gen(){while(genX<camX+700){const sp=car?car.speed:2.6,r=Math.random();
+ if(genX<400){addSeg('flat',400-genX);continue}
+ if(r<.3){addSeg('flat',60+Math.random()*120);const gl=40+Math.random()*30*(sp/2.6);const gx=genX;addSeg('gap',gl);stars.push({x:gx+gl/2,y:GY-60,got:false})}
+ else if(r<.55){addSeg('flat',70+Math.random()*60);const rx=genX;addSeg('ramp',50,26);const gl=70+Math.random()*40*(sp/2.6);addSeg('gap',gl);for(let i=0;i<3;i++)stars.push({x:rx+60+i*gl/3,y:GY-80-i*4,got:false})}
+ else if(r<.78){addSeg('flat',140+Math.random()*80);barrels.push({x:genX-70});stars.push({x:genX-70,y:GY-50,got:false})}
+ else{addSeg('flat',100+Math.random()*100);for(let i=0;i<3;i++)stars.push({x:genX-80+i*18,y:GY-14,got:false})}}}
+function groundAt(x){for(const s of segs){if(x>=s.x0&&x<s.x1){if(s.type==='gap')return null;if(s.type==='ramp')return{y:GY-s.h*(x-s.x0)/(s.x1-s.x0),slope:s.h/(s.x1-s.x0)};return{y:GY,slope:0}}}return{y:GY,slope:0}}
+function startRun(){segs=[];stars=[];barrels=[];parts=[];genX=0;camX=0;car={x:60,y:GY,vy:0,ground:true,speed:2.6,spin:0,rot:0,alive:true,slope:0};score=0;starsGot=0;dist=0;gen();state='play';rmsg='ROCKY: GO GO GO!';rmsgT=90;tune([392,523,659],90)}
+function jump(){if(state!=='play'||!car.alive)return;if(car.ground){car.vy=-4.7-car.slope*car.speed*1.2;car.ground=false;snd(330,.15,'square',.05,2.2)}}
+function crash(why){car.alive=false;crashT=0;shake=10;boom();
+ for(let i=0;i<40;i++){const a=Math.random()*6.28,s=Math.random()*3+.3;parts.push({x:car.x+13,y:car.y-5,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,t:30+Math.random()*30,type:'fire'})}
+ for(let i=0;i<16;i++){const a=Math.random()*6.28,s=Math.random()*3+1;parts.push({x:car.x+13,y:car.y-5,vx:Math.cos(a)*s,vy:-Math.random()*4-1,t:120,type:'part',col:i<4?'#151515':(i%2?PAINTS[paint].k:'#fff'),rot:Math.random()*6})}
+ score=Math.floor(dist/10)+starsGot*10;if(score>best){best=score;localStorage.setItem('rockyMegaBest',best)}
+ rmsg=why==='hole'?'ROCKY: CAR FELL IN HOLE! OOPS OOPS':'ROCKY: BOOM! BARREL WIN. HA HA';rmsgT=9999;state='crashed'}
+function updatePlay(dt){
+ if(car.alive){
+  car.speed=Math.min(4.6,2.6+dist/6000);const dx=car.speed*dt;car.x+=dx;dist+=dx;camX=car.x-60;car.spin+=dx/3;
+  const gd=groundAt(car.x+13);
+  if(car.ground){
+   if(!gd||gd.y>car.y+3){car.ground=false;car.vy=-car.slope*car.speed*2.3;if(car.slope>0){snd(500,.3,'square',.05,2);rmsg='ROCKY: WHEEEE! AMAZE!';rmsgT=60}}
+   else{car.y=gd.y;car.slope=gd.slope;car.vy=0}}
+  else{car.vy+=.2*dt;car.y+=car.vy*dt;car.rot=Math.max(-.5,Math.min(.5,car.vy*.08));
+   if(gd&&car.vy>=0&&car.y>=gd.y&&car.y-gd.y<10){car.y=gd.y;car.ground=true;car.slope=gd.slope;car.rot=0;snd(120,.08,'square',.05);for(let i=0;i<6;i++)parts.push({x:car.x+Math.random()*26,y:car.y,vx:Math.random()*2-1,vy:-Math.random(),t:20,type:'dust'})}
+   if(gd&&car.y>gd.y+10&&car.y<gd.y+40&&car.vy>=0){/* hit the side of a cliff */crash('hole')}}
+  if(car.ground)car.rot=-Math.atan(car.slope);
+  if(car.alive&&car.y>H+20)crash('hole');
+  for(const b of barrels)if(car.alive&&!b.hit&&Math.abs(car.x+13-(b.x+4))<22&&car.y>GY-9){b.hit=true;crash('barrel')}
+  for(const s of stars)if(!s.got&&Math.abs(car.x+13-s.x)<18&&Math.abs(car.y-9-s.y)<14){s.got=true;starsGot++;tune([1046,1318],60,'triangle');parts.push({x:s.x,y:s.y,vx:0,vy:-.5,t:40,type:'txt',s:'+10'})}
+  score=Math.floor(dist/10)+starsGot*10;
+  segs=segs.filter(s=>s.x1>camX-50);stars=stars.filter(s=>s.x>camX-50);barrels=barrels.filter(b=>b.x>camX-50);gen();
+ }else crashT+=dt;
+ for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.type==='part'){p.vy+=.15*dt;p.rot+=.2}p.t-=dt}parts=parts.filter(p=>p.t>0);
+ if(shake>0)shake=Math.max(0,shake-.4*dt);if(rmsgT>0)rmsgT-=dt}
+function drawCity(now){
+ const sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#3a7bd5');sky.addColorStop(1,'#bfe4ff');g.fillStyle=sky;g.fillRect(0,0,W,H);
+ g.fillStyle='#fff6a0';g.fillRect(260,20,14,14);g.fillStyle='#ffd21e';g.fillRect(262,22,10,10);
+ // clouds
+ g.fillStyle='#fff';for(let i=0;i<5;i++){const x=((i*90-camX*.1)%400+400)%400-40;g.fillRect(x,30+i*9%30,30,6);g.fillRect(x+6,26+i*9%30,16,4)}
+ // far city
+ for(let i=0;i<30;i++){const bw=14+(i*7)%12,bh=40+(i*37)%70,x=((i*26-camX*.25)%780+780)%780-40;g.fillStyle='#7a94b8';g.fillRect(x,GY-bh+10,bw,bh);}
+ // near city
+ for(let i=0;i<22;i++){const bw=18+(i*11)%14,bh=30+(i*53)%60,x=((i*40-camX*.5)%880+880)%880-40;g.fillStyle='#4d5f7f';g.fillRect(x,GY-bh+14,bw,bh);g.fillStyle='#ffe98a';for(let wy=GY-bh+18;wy<GY;wy+=6)for(let wx=x+3;wx<x+bw-3;wx+=5)if((wx*7+wy*3+i)%4)g.fillRect(wx,wy,2,3)}}
+function drawWorld(now){
+ for(const s of segs){const x0=s.x0-camX,x1=s.x1-camX;if(x1<0||x0>W)continue;
+  if(s.type==='flat'){g.fillStyle='#3b3b45';g.fillRect(x0,GY,x1-x0,6);g.fillStyle='#e8e8a0';for(let x=Math.ceil(s.x0/24)*24;x<s.x1-10;x+=24)g.fillRect(x-camX,GY+2,10,1);g.fillStyle='#6b4a2a';g.fillRect(x0,GY+6,x1-x0,H-GY);g.fillStyle='#4a2f18';g.fillRect(x0,GY+6,x1-x0,2)}
+  else if(s.type==='ramp'){g.fillStyle='#6b4a2a';g.fillRect(x0,GY+6,x1-x0,H-GY);g.fillStyle='#3b3b45';g.fillRect(x0,GY,x1-x0,6);
+   for(let x=0;x<x1-x0;x++){const hh=s.h*x/(x1-x0);g.fillStyle=((x+s.x0)/4|0)%2?'#ffd21e':'#222';g.fillRect(x0+x,GY-hh,1,hh)}
+   g.fillStyle='#8a6a00';g.fillRect(x1-2,GY-s.h,2,s.h)}
+  else{g.fillStyle='#000';g.fillRect(x0,GY+20,x1-x0,H);txt('JUMP!',(x0+x1)/2,GY+8,(now/250|0)%2?'#ff4040':'#ffd21e',1,true)}}
+ for(const b of barrels){const x=b.x-camX;if(b.hit)continue;g.fillStyle='#e02020';g.fillRect(x,GY-10,8,10);g.fillStyle='#ffd21e';g.fillRect(x,GY-7,8,2);g.fillStyle='#ff7070';g.fillRect(x+1,GY-9,2,6)}
+ for(const s of stars){if(s.got)continue;const x=s.x-camX,y=s.y+Math.sin(now/200+s.x)*2;g.fillStyle='#ffd21e';g.fillRect(x-1,y-4,3,9);g.fillRect(x-4,y-1,9,3);g.fillStyle='#fff6a0';g.fillRect(x,y-1,1,1)}}
+function drawCar(now){if(!car.alive)return;const p=PAINTS[paint];g.save();g.translate(car.x-camX+13,car.y);g.rotate(car.rot);g.scale(1.6,1.6);
+ // draw cells relative so bottom center at origin
+ for(const e of CELLS){let ch=e.ch;if(e.r===8&&(e.c===4||e.c===5||e.c===18||e.c===19)&&((car.spin|0)%2))ch='o';g.fillStyle=cellCol(ch,true,p);g.fillRect(e.c-13,e.r-10,1,1)}
+ if(car.ground&&(now/60|0)%2){g.fillStyle='rgba(200,200,200,.7)';g.fillRect(-16,-4,2,2)}
+ g.restore()}
+function drawParts(){for(const p of parts){if(p.type==='fire'){g.fillStyle=p.t>45?'#fff6a0':p.t>30?'#ffd21e':p.t>15?'#ff7a1a':'#b02010';g.fillRect(p.x-camX-2,p.y-2,4,4)}
+ else if(p.type==='part'){g.save();g.translate(p.x-camX,p.y);g.rotate(p.rot);g.fillStyle=p.col;g.fillRect(-1,-1,3,3);g.restore()}
+ else if(p.type==='dust'){g.fillStyle='rgba(200,180,150,.7)';g.fillRect(p.x-camX,p.y-2,2,2)}
+ else if(p.type==='txt')shadowTxt(p.s,p.x-camX,p.y-8,'#ffd21e',1,true)}}
+function playScreen(now,dt){if(state==='play'||state==='crashed')updatePlay(dt);
+ g.save();if(shake>0)g.translate((Math.random()*2-1)*shake|0,(Math.random()*2-1)*shake|0);
+ drawCity(now);drawWorld(now);drawCar(now);drawParts();g.restore();
+ g.fillStyle='rgba(0,0,0,.5)';g.fillRect(0,0,W,13);txt('SCORE '+score,4,4,'#fff');txt('STARS '+starsGot,W/2,4,'#ffd21e',1,true);txt('BEST '+best,W-4-textW('BEST '+best),4,'#7cf');
+ if(rmsgT>0){g.fillStyle='rgba(0,0,0,.6)';g.fillRect(30,18,260,13);txt(rmsg,W/2,21,'#ffd21e',1,true)}
+ if(state==='play'&&dist<300)shadowTxt('SPACE = JUMP!',W/2,60,'#fff',2,true);
+ if(state==='crashed'&&crashT>40){g.fillStyle='rgba(0,0,0,.7)';g.fillRect(50,60,220,70);shadowTxt('CRASH!',W/2,66,'#ff4040',3,true);txt('SCORE '+score+'   BEST '+best,W/2,92,'#fff',1,true);drawRocky(64,98,1,now,0);txt('ROCKY FIX CAR. AGAIN, QUESTION?',W/2+8,104,'#ffd21e',1,true);if((now/400|0)%2)txt('SPACE = DRIVE AGAIN',W/2,118,'#4cff6a',1,true)}}
+// ---------- input ----------
+function press(code){const a0=ac();if(a0&&a0.state==='running')soundOn=true;
+ if(state==='load'){poke=POKES[Math.random()*POKES.length|0];pokeT=70;rockyBounce=8;snd(523+Math.random()*400,.1,'triangle',.06);return}
+ if(state==='ready'){if(code==='ArrowRight'||code==='KeyD'){paint=(paint+1)%6;snd(600,.05)}else if(code==='ArrowLeft'||code==='KeyA'){paint=(paint+5)%6;snd(600,.05)}else if(code==='Space'||code==='Enter'||code==='tap')startRun();return}
+ if(state==='play'){if(code==='Space'||code==='ArrowUp'||code==='KeyW'||code==='tap')jump();return}
+ if(state==='crashed'&&crashT>40&&(code==='Space'||code==='Enter'||code==='tap'))startRun()}
+addEventListener('keydown',e=>{if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();ac();if(e.repeat)return;press(e.code)});
+cv.addEventListener('pointerdown',e=>{e.preventDefault();ac();press('tap')});
+let last=performance.now();
+function loop(now){const dt=Math.min((now-last)/16.67,3);last=now;
+ if(state==='load')loadScreen(now);else if(state==='ready')readyScreen(now);else playScreen(now,dt);
+ requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+window.__bl={state:()=>state,car:()=>car,start:startRun};
+</script></body></html>
