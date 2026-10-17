@@ -200,9 +200,9 @@ const MAXH = 24, FALL_H = 10;
 
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(500,500), new THREE.MeshStandardMaterial({color:0x4b4f58, roughness:.95}));
 ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
-const pad = new THREE.Mesh(new THREE.PlaneGeometry(ZONE*2+1, ZONE*2+1), new THREE.MeshStandardMaterial({color:0xbcc5cf, roughness:.8}));
+const pad = new THREE.Mesh(new THREE.PlaneGeometry(ZONE*2+1, ZONE*2+1), new THREE.MeshStandardMaterial({color:0x8794a3, roughness:.8}));
 pad.rotation.x = -Math.PI/2; pad.position.y = 0.01; pad.receiveShadow = true; scene.add(pad);
-const grid = new THREE.GridHelper(ZONE*2+1, ZONE*2+1, 0x8d99a6, 0x8d99a6); grid.position.y = 0.02; scene.add(grid);
+const grid = new THREE.GridHelper(ZONE*2+1, ZONE*2+1, 0x6b7785, 0x6b7785); grid.position.y = 0.02; scene.add(grid);
 // dashed yellow road lines down the middle of every street
 { const pos = [];
   for(let k=-4;k<4;k++){ const c = k*32+16; for(let i=-140;i<=140;i+=6){ if(Math.abs(c)<=ZONE+2 && Math.abs(i)<=ZONE+2) continue; pos.push([c,i,0],[i,c,1]); } }
