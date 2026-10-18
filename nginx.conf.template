@@ -2,5 +2,8 @@ server {
   listen ${PORT};
   root /usr/share/nginx/html;
   index index.html;
-  location / { try_files $uri $uri/ $uri.html =404; }
+  location / {
+    add_header Cache-Control "no-cache, must-revalidate" always;
+    try_files $uri $uri/ $uri.html =404;
+  }
 }
