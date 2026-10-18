@@ -24,22 +24,65 @@ const SPR={
  sedan:["..kkkk..",".kkkkkk.","tkkkkkkt","tkkkkkkt",".kkkkkk.",".kwwwwk.",".kwwwwk.",".kkddkk.",".kkkkkk.","tkkkkkkt","tkkkkkkt",".kkkkkk.","..dddd.."],
  lambo:[".lkkkkl.","kkkkkkkk","tkkkkkkt","tkkkkkkt",".kwwwwk.",".kwwwwk.",".kkddkk.",".kkddkk.",".kkkkkk.","tkkkkkkt","tkkkkkkt","kkkkkkkk",".dddddd."],
  truck:[".llllll.","kkkkkkkk","tkkkkkkt","tkkkkkkt","kwwwwwwk","kkkkkkkk","kddddddk","kddddddk","kddddddk","tkkkkkkt","tkkkkkkt","kkkkkkkk","dddddddd"],
+ suv:[".llllll.","kkkkkkkk","tkkkkkkt","tkkkkkkt","kwwwwwwk","kkkkkkkk","kddddddk","kddddddk","kwwwwwwk","kkkkkkkk","tkkkkkkt","tkkkkkkt","kkkkkkkk",".dddddd."],
+ pickup:[".llllll.","kkkkkkkk","tkkkkkkt","tkkkkkkt","kwwwwwwk","kkkkkkkk","kwwwwwwk","kkkkkkkk","kddddddk","kddddddk","tddddddt","tddddddt","kddddddk","kkkkkkkk"],
+ hatch:["..llll..",".kkkkkk.","tkkkkkkt","tkkkkkkt",".kwwwwk.",".kwwwwk.",".kkkkkk.",".kwwwwk.","tkkkkkkt","tkkkkkkt",".dddddd."],
  semi:[".llllll.","kkkkkkkk","tkkkkkkt","kwwwwwwk","kwwwwwwk","kkkkkkkk","kkddddkk","tkkkkkkt","tkkkkkkt",".dd..dd.","ssssssss","saaaaaas","saaaaaas","saaaaaas","saaaaaas","saaaaaas","saaaaaas","saaaaaas","saaaaaas","saaaaaas","saaaaaas","saaaaaas","saaaaaas","saaaaaas","saaaaaas","taaaaaat","taaaaaat","saaaaaas","taaaaaat","ssssssss"]
 };
-const TYPE={sports:{top:2.6,acc:.08,turn:.08,mass:1,str:2},p911:{top:2.5,acc:.085,turn:.088,mass:1,str:2},cyber:{top:2.2,acc:.075,turn:.065,mass:1.6,str:4},sedan:{top:2.45,acc:.09,turn:.078,mass:1.1,str:2},lambo:{top:2.65,acc:.08,turn:.08,mass:1,str:2},truck:{top:2.1,acc:.07,turn:.062,mass:1.9,str:4},semi:{top:1.75,acc:.05,turn:.05,mass:3.4,str:5}};
-const BRANDS=[
- ['FERRARI',[['SF90','sports','#e8202a','#7a0d12'],['F40','sports','#ff3a20','#8a1a10'],['296 GTB','sports','#ffd21e','#8a6a00'],['LAFERRARI','lambo','#c0101a','#500008']]],
- ['PORSCHE',[['911 TURBO S','p911','#ffd21e','#8a6a00'],['911 GT3 RS','p911','#ff6a1a','#8a3000'],['918 SPYDER','p911','#c8ccd0','#5b636c'],['TAYCAN','sedan','#3a6fd8','#123e8a']]],
- ['TESLA',[['ROADSTER','sedan','#e8202a','#7a0d12'],['CYBERTRUCK','cyber','#b9c2cc','#5b636c'],['MODEL S','sedan','#2f7cff','#123e8a'],['MODEL 3','sedan','#f4f4f4','#888'],['MODEL X','sedan','#222','#000']]],
- ['LAMBORGHINI',[['REVUELTO','lambo','#ff7a1a','#8a3a00'],['HURACAN','lambo','#5be33b','#23701a'],['AVENTADOR','lambo','#ffd21e','#8a6a00'],['COUNTACH','lambo','#f4f4f4','#888']]],
- ['MCLAREN',[['P1','sports','#ff8a1a','#8a4000'],['720S','sports','#2f7cff','#123e8a'],['SENNA','sports','#f4f4f4','#555']]],
- ['BUGATTI',[['CHIRON','lambo','#1a4fd8','#0a1f60'],['VEYRON','lambo','#c8ccd0','#222']]],
- ['FORD',[['GT','sports','#2f7cff','#fff'],['MUSTANG','p911','#e8202a','#fff'],['F-150 RAPTOR','truck','#3a6fd8','#123e8a']]],
- ['CHEVY',[['CORVETTE','sports','#ffd21e','#222'],['CAMARO','p911','#ff7a1a','#222']]],
- ['MONSTER TRUCKS',[['MONSTER TRUCK','truck','#ff7a1a','#8a3a00'],['BIGFOOT','truck','#2f7cff','#123e8a'],['GRAVE DIGGER','truck','#5be33b','#111']]],
- ['SEMI TRUCKS',[['PETERBILT 579','semi','#e8202a','#7a0d12'],['KENWORTH W900','semi','#2f7cff','#123e8a'],['FREIGHTLINER','semi','#f4f4f4','#777'],['VOLVO VNL','semi','#1a2f80','#0a1040'],['TESLA SEMI','semi','#c8ccd0','#5b636c'],['MACK ANTHEM','semi','#222','#000']]]
-];
+const TYPE={sports:{top:2.6,acc:.08,turn:.08,mass:1,str:2},p911:{top:2.5,acc:.085,turn:.088,mass:1,str:2},cyber:{top:2.2,acc:.075,turn:.065,mass:1.6,str:4},sedan:{top:2.45,acc:.09,turn:.078,mass:1.1,str:2},lambo:{top:2.65,acc:.08,turn:.08,mass:1,str:2},truck:{top:2.1,acc:.07,turn:.062,mass:1.9,str:4},suv:{top:2.25,acc:.075,turn:.07,mass:1.5,str:3},pickup:{top:2.2,acc:.075,turn:.066,mass:1.7,str:4},hatch:{top:2.3,acc:.095,turn:.095,mass:.85,str:1},semi:{top:1.75,acc:.05,turn:.05,mass:3.4,str:5}};
+// brand data: name/sprite/color ; sprites s=sports p=coupe c=cyber e=sedan l=hyper t=monster m=semi u=suv k=pickup h=hatch
+const CODES={s:'sports',p:'p911',c:'cyber',e:'sedan',l:'lambo',t:'truck',m:'semi',u:'suv',k:'pickup',h:'hatch'};
+const COLS={R:'#e8202a',Y:'#ffd21e',S:'#c0c6cc',B:'#2f7cff',G:'#1f8a3a',L:'#5be33b',O:'#ff7a1a',W:'#f4f4f4',K:'#2a2a2e',N:'#1a2f80',P:'#8a3ad8',T:'#20b2aa',C:'#d8c080',M:'#8a1020',U:'#707880'};
+const DATA=`FERRARI|SF90/s/R;F40/s/R;296 GTB/s/Y;LAFERRARI/l/M;ROMA/s/W;812 SUPERFAST/s/R;PUROSANGUE/u/K;F8 TRIBUTO/s/Y;ENZO/l/R;TESTAROSSA/s/R
+LAMBORGHINI|REVUELTO/l/O;HURACAN/l/L;AVENTADOR/l/Y;COUNTACH/l/W;URUS/u/Y;MURCIELAGO/l/O;DIABLO/l/P;SIAN/l/C
+PORSCHE|911 TURBO S/p/Y;911 GT3 RS/p/O;918 SPYDER/p/S;TAYCAN/e/B;CAYMAN/p/R;BOXSTER/p/T;CAYENNE/u/K;MACAN/u/W;CARRERA GT/p/S;959/p/W
+MCLAREN|P1/s/O;720S/s/B;SENNA/s/W;750S/s/O;ARTURA/s/T;F1/s/K
+BUGATTI|CHIRON/l/B;VEYRON/l/S;DIVO/l/P;BOLIDE/l/N;MISTRAL/l/C
+KOENIGSEGG|JESKO/l/W;AGERA RS/l/O;REGERA/l/S;GEMERA/e/B;CC850/l/T
+PAGANI|HUAYRA/l/S;ZONDA/l/Y;UTOPIA/l/B
+ASTON MARTIN|DB11/s/T;VANTAGE/s/L;VALKYRIE/l/G;DBX/u/K;DB5/p/S
+ROLLS-ROYCE|PHANTOM/e/K;CULLINAN/u/W;GHOST/e/S;SPECTRE/e/P
+BENTLEY|CONTINENTAL GT/e/G;BENTAYGA/u/C;FLYING SPUR/e/N
+TESLA|ROADSTER/e/R;CYBERTRUCK/c/S;MODEL S/e/B;MODEL 3/e/W;MODEL X/u/K;MODEL Y/u/R
+BMW|M3/e/B;M4/e/L;M5/e/K;I8/s/W;X5/u/N;Z4/p/R;I4/e/S
+MERCEDES|AMG GT/s/S;G-WAGON/u/K;S-CLASS/e/K;C63 AMG/e/W;SLS GULLWING/s/R;MAYBACH/e/C;EQS/e/S
+AUDI|R8/s/R;RS6/e/K;E-TRON GT/e/B;Q7/u/W;TT/p/Y;RS Q8/u/O
+TOYOTA|SUPRA/p/O;GR86/p/W;CAMRY/e/R;COROLLA/h/B;PRIUS/h/S;RAV4/u/L;4RUNNER/u/K;TACOMA/k/O;TUNDRA/k/S;LAND CRUISER/u/C
+HONDA|CIVIC TYPE R/h/W;NSX/s/R;ACCORD/e/N;CR-V/u/S;S2000/p/Y;ODYSSEY/u/B
+NISSAN|GT-R/s/S;Z/p/Y;SKYLINE R34/e/B;LEAF/h/B;ALTIMA/e/W;FRONTIER/k/R
+MAZDA|MX-5 MIATA/p/R;RX-7/p/Y;CX-5/u/M;MAZDA3/h/R
+SUBARU|WRX STI/e/B;BRZ/p/W;OUTBACK/u/G;FORESTER/u/S
+HYUNDAI|IONIQ 5/h/S;ELANTRA N/e/B;TUCSON/u/W;SANTA FE/u/K
+KIA|EV6/h/G;STINGER/e/R;TELLURIDE/u/S;SOUL/h/L
+VOLKSWAGEN|GOLF GTI/h/R;BEETLE/h/Y;ID.4/u/B;JETTA/e/W;ID. BUZZ/u/T
+MINI|COOPER S/h/R;COUNTRYMAN/h/G;MINI ELECTRIC/h/Y
+FORD|GT/s/B;GT40/s/B;MUSTANG/p/R;MUSTANG MACH-E/u/R;F-150 RAPTOR/k/B;BRONCO/u/O;EXPLORER/u/K;MODEL T/h/K
+CHEVY|CORVETTE/s/Y;CAMARO/p/O;SILVERADO/k/R;TAHOE/u/K;BOLT/h/W;IMPALA/e/T
+DODGE|CHALLENGER/p/P;CHARGER/e/K;VIPER/s/R;DURANGO/u/S
+JEEP|WRANGLER/u/L;GRAND CHEROKEE/u/N;GLADIATOR/k/O
+RAM|1500 TRX/k/K;2500/k/W
+GMC|HUMMER EV/c/W;SIERRA/k/R;YUKON/u/K
+CADILLAC|ESCALADE/u/K;CT5-V/e/B;LYRIQ/u/S
+RIVIAN|R1T/k/G;R1S/u/B
+LUCID|AIR/e/S;GRAVITY/u/W
+LOTUS|EVIJA/l/Y;EMIRA/s/G;ELISE/p/Y
+ALFA ROMEO|GIULIA/e/R;4C/p/R;STELVIO/u/B
+MASERATI|MC20/s/W;GRANTURISMO/e/B;LEVANTE/u/K
+VOLVO|XC90/u/S;S60/e/B;EX30/h/Y
+LAND ROVER|DEFENDER/u/G;RANGE ROVER/u/K;DISCOVERY/u/S
+JAGUAR|F-TYPE/p/G;E-TYPE/p/R;I-PACE/u/W
+LEXUS|LFA/s/W;LC 500/s/B;RX/u/S
+GENESIS|G90/e/K;GV80/u/N
+POLESTAR|POLESTAR 1/s/S;POLESTAR 2/e/W
+DELOREAN|DMC-12/p/S
+MONSTER TRUCKS|MONSTER TRUCK/t/O;BIGFOOT/t/B;GRAVE DIGGER/t/G;MAX-D/t/S;EL TORO LOCO/t/R;MEGALODON/t/T
+SEMI TRUCKS|PETERBILT 579/m/R;KENWORTH W900/m/B;FREIGHTLINER/m/W;VOLVO VNL/m/N;TESLA SEMI/m/S;MACK ANTHEM/m/K;INTERNATIONAL LT/m/Y`;
+function shade(h,f){const n=parseInt(h.slice(1),16);return'#'+[16,8,0].map(b=>Math.round(((n>>b)&255)*f).toString(16).padStart(2,'0')).join('')}
+const BRANDS=DATA.split('\n').map(l=>{const[b,cs]=l.split('|');return[b,cs.split(';').map(x=>{const[n,sp,c]=x.split('/');return[n,CODES[sp],COLS[c],c==='K'?'#000':shade(COLS[c],.5)]})]});
 const ROSTER=[];BRANDS.forEach(([b,list],bi)=>list.forEach(([n,spr,k,d],i)=>{const t=TYPE[spr],v=((i*37+bi*11)%7-3)*.012;ROSTER.push({brand:b,bi,name:n,full:(b==='SEMI TRUCKS'||b==='MONSTER TRUCKS'?'':b+' ')+n,spr,k,d,top:t.top+v*3,acc:t.acc,turn:t.turn+v*.3,mass:t.mass,str:t.str,semi:spr==='semi'})}));
+const SEMIS=ROSTER.map((r,i)=>i).filter(i=>ROSTER[i].semi),NONSEMI=ROSTER.map((r,i)=>i).filter(i=>!ROSTER[i].semi);
+let listTop=0;
+function randomCar(){const ci=Math.random()*ROSTER.length|0;brand=ROSTER[ci].bi;pick=ci-ROSTER.findIndex(r=>r.bi===brand);tune([660,880,1100],60)}
 const IMG={};function spriteImg(ci){if(IMG[ci])return IMG[ci];const c=ROSTER[ci],s=SPR[c.spr],o=document.createElement('canvas');o.width=8;o.height=s.length;const x=o.getContext('2d');
  const pal={k:c.k,w:'#9fe7ff',t:'#111',l:'#fff6a0',d:c.d,a:'#e8e8ee',s:'#8a8a96'};for(let r=0;r<s.length;r++)for(let i=0;i<8;i++){const ch=s[r][i];if(ch=='.')continue;x.fillStyle=pal[ch];x.fillRect(i,r,1,1)}return IMG[ci]=o}
 function drawBig(ci,cx,cy,sc){const o=spriteImg(ci);g.drawImage(o,Math.round(cx-4*sc),Math.round(cy-o.height*sc/2),8*sc,o.height*sc)}
@@ -66,7 +109,7 @@ function circles(c){const fx=Math.cos(c.a),fy=Math.sin(c.a);const offs=ROSTER[c.
 const R=6;
 function makeCar(ci,who,x,y,a){return{ci,who,x,y,vx:0,vy:0,a,spin:0,hp:100,dents:[],dead:false,deadT:0,inv:60,crashes:0,cd:0,smokeT:0,node:null,ai:{stuck:0,rev:0}}}
 function spawnAI(c){let best=null,bd=-1;for(let k=0;k<8;k++){const n=NODES[Math.random()*NODES.length|0];const d=player?Math.hypot(n.x-player.x,n.y-player.y):999;if(d>bd){bd=d;best=n}}
- const ci=Math.random()<.18?ROSTER.findIndex(r=>r.semi)+(Math.random()*6|0):(Math.random()*(ROSTER.length-6))|0;
+ const ci=Math.random()<.15?SEMIS[Math.random()*SEMIS.length|0]:NONSEMI[Math.random()*NONSEMI.length|0];
  const nb=nbrs(best);const nx=nb[Math.random()*nb.length|0];
  Object.assign(c,makeCar(ci,-1,best.x,best.y,Math.atan2(nx.y-best.y,nx.x-best.x)));c.node=nx;c.prev=best}
 function startDrive(){const ci=ROSTER.findIndex(r=>r.bi===brand)+pick;carsUsed++;garage.push(ci);if(carsUsed>bestCars){bestCars=carsUsed;localStorage.setItem('crash10BestCars',bestCars)}
@@ -85,6 +128,7 @@ addEventListener('keydown',e=>{
   if(e.code==='ArrowLeft'||e.code==='KeyA'){brand=(brand+BRANDS.length-1)%BRANDS.length;pick=0;snd(440,.05)}
   if(e.code==='ArrowDown'||e.code==='KeyS'){pick=(pick+1)%brandCars(brand);snd(560,.04)}
   if(e.code==='ArrowUp'||e.code==='KeyW'){pick=(pick+brandCars(brand)-1)%brandCars(brand);snd(560,.04)}
+  if(e.code==='KeyR'){randomCar()}
   if(e.code==='KeyT'){brand=BRANDS.length-1;pick=0;snd(300,.1)}
   if(e.code==='Space'||e.code==='Enter')startDrive();return}
  if(state==='play'&&e.code==='Escape'){state='select'}
@@ -96,7 +140,8 @@ cv.addEventListener('pointerdown',e=>{ac();const[x,y]=evPos(e);
  if(state==='title'){state='select';return}
  if(state!=='select')return;
  if(y>=28&&y<=40){if(x<60){brand=(brand+BRANDS.length-1)%BRANDS.length;pick=0}else if(x>260){brand=(brand+1)%BRANDS.length;pick=0}snd(440,.05);return}
- if(x>=8&&x<=128&&y>=46&&y<46+brandCars(brand)*14){pick=(y-46)/14|0;snd(560,.04);return}
+ if(x>=8&&x<=128&&y>=46&&y<46+Math.min(6,brandCars(brand))*14){pick=listTop+((y-46)/14|0);snd(560,.04);return}
+ if(x>=8&&x<=100&&y>=158&&y<=174){randomCar();return}
  if(x>=200&&x<=312&&y>=160&&y<=176){brand=BRANDS.length-1;pick=0;snd(300,.1);return}
  if(y>=178)startDrive()});
 // ---------- physics ----------
@@ -193,7 +238,7 @@ function rocky(x,y){g.fillStyle='#6b5a48';g.fillRect(x+2,y,8,6);g.fillRect(x,y+2
 function title(now){g.fillStyle='#1a0f08';g.fillRect(0,0,W,H);
  for(let i=0;i<40;i++){const k=((now/8+i*40)%400)/400;g.fillStyle=k<.5?'#ff7a1a':'#b02010';g.fillRect((i*67)%W,H-(k*120)|0,2,2)}
  shadowTxt('CRASH',W/2,22,'#ffd21e',5,true);shadowTxt('10',W/2,58,'#ff4040',6,true);
- const sh=(now/90|0)%2;drawBig(0,90+sh,130,3);drawBig(ROSTER.length-6,232-sh,130,2);
+ const sh=(now/90|0)%2;drawBig(0,90+sh,130,3);drawBig(SEMIS[0],232-sh,130,2);
  txt('CRASH 10 TIMES. CAR BREAKS. GET NEW CAR!',W/2,164,'#fff',1,true);
  if((now/400|0)%2)shadowTxt('PRESS SPACE TO START',W/2,176,'#4cff6a',1,true);txt('BY WESTON AND ROCKY',W/2,188,'#7cf',1,true);rocky(150,96)}
 function select(now){g.fillStyle='#10102c';g.fillRect(0,0,W,H);
@@ -205,12 +250,15 @@ function select(now){g.fillStyle='#10102c';g.fillRect(0,0,W,H);
  shadowTxt(BRANDS[brand][0],W/2,31,'#ffd21e',1,true);txt((brand+1)+'/'+BRANDS.length,40,31,'#667');
  // car list
  const list=BRANDS[brand][1],base=ROSTER.findIndex(r=>r.bi===brand);
- for(let i=0;i<list.length;i++){const y=46+i*14,on=i===pick;g.fillStyle=on?'#ffd21e':'#1d1d48';g.fillRect(8,y,120,12);
-  g.save();g.translate(17,y+6);g.rotate(Math.PI/2);g.drawImage(spriteImg(base+i),-4,-spriteImg(base+i).height/2*(ROSTER[base+i].semi?.45:1),8,spriteImg(base+i).height*(ROSTER[base+i].semi?.45:1));g.restore();
+ if(pick<listTop)listTop=pick;if(pick>listTop+5)listTop=pick-5;if(listTop>Math.max(0,list.length-6))listTop=Math.max(0,list.length-6);
+ for(let r=0;r<Math.min(6,list.length);r++){const i=listTop+r,y=46+r*14,on=i===pick;g.fillStyle=on?'#ffd21e':'#1d1d48';g.fillRect(8,y,120,12);
+  const im=spriteImg(base+i),k=ROSTER[base+i].semi?.45:1;g.save();g.translate(17,y+6);g.rotate(Math.PI/2);g.drawImage(im,-4,-im.height/2*k,8,im.height*k);g.restore();
   txt(list[i][0],34,y+3,on?'#000':'#ccc')}
- if(list.length>1){txt('UP/DOWN',68,46+list.length*14+2,'#667',1,true)}
+ if(listTop>0)txt('-',124,40,'#fff');if(listTop+6<list.length){g.fillStyle=(now/300|0)%2?'#fff':'#888';g.fillRect(64,132,5,2);g.fillRect(65,134,3,1)}
+ txt((pick+1)+' OF '+list.length,68,138,'#667',1,true);
+ 
  // preview
- const ci=base+pick,c=ROSTER[ci];g.fillStyle='#1d1d48';g.fillRect(136,46,176,110);g.fillStyle='#2a2a60';g.fillRect(136,46,176,2);
+ const ci=base+pick,c=ROSTER[ci];g.fillStyle='#1d1d48';g.fillRect(136,46,176,96);g.fillStyle='#2a2a60';g.fillRect(136,46,176,2);
  const bob=Math.sin(now/250)*2;if(c.semi)drawBig(ci,176,98+bob,1.6);else drawBig(ci,176,96+bob,4);
  shadowTxt(c.name,262,54,'#fff',1,true);txt(c.brand,262,63,'#888',1,true);
  const bar=(l,v,y,col)=>{txt(l,214,y,'#aaa');g.fillStyle='#333';g.fillRect(250,y,56,5);g.fillStyle=col;g.fillRect(250,y,56*Math.max(.08,Math.min(1,v))|0,5)};
@@ -218,7 +266,7 @@ function select(now){g.fillStyle='#10102c';g.fillRect(0,0,W,H);
  if(c.semi)txt('HUGE CRASHES!',262,132,(now/200|0)%2?'#ff4040':'#ffd21e',1,true);
  // trucks shortcut
  g.fillStyle=brand===BRANDS.length-1?'#ff7a1a':'#3a2a10';g.fillRect(200,160,112,14);txt('T = SEMI TRUCKS',256,164,'#fff',1,true);
- txt('CARS USED '+carsUsed+'  CRASHES '+totalCrashes,8,164,'#7cf');
+ txt('CARS USED '+carsUsed+'  CRASHES '+totalCrashes+'   '+ROSTER.length+' CARS IN GARAGE',8,148,'#7cf');g.fillStyle='#5a1a8a';g.fillRect(8,160,92,14);txt('R = RANDOM!',54,164,(now/200|0)%2?'#fff':'#ffd21e',1,true);
  if((now/400|0)%2)shadowTxt('SPACE = DRIVE!',W/2,180,'#4cff6a',2,true);
  txt('LEFT/RIGHT = BRAND',8,192,'#556');}
 function loop(now){const dt=Math.min((now-last)/16.67,3);last=now;
