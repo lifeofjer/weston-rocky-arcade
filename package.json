@@ -1,0 +1,13 @@
+{
+  "name": "weston-rocky-arcade",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.mjs",
+    "test:play": "node server/play-together.test.mjs"
+  },
+  "dependencies": {
+    "three": "0.160.0",
+    "ws": "^8.18.3"
+  }
+}
