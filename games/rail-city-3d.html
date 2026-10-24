@@ -67,7 +67,7 @@ button:hover,.btn:hover{border-color:#ff4040}
 #ptMini{position:absolute;left:12px;top:70px;background:rgba(0,0,0,.55);border:3px solid #4cff6a;padding:4px 8px;font-weight:bold;font-size:13px;box-shadow:4px 4px 0 #000}
 #ptStatus{color:#ffd21e;font-weight:bold;font-size:13px;min-height:18px}
 </style>
-<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head><body>
 <div id="ui">
   <div id="topl"><div id="logo">RAIL CITY 3D<small>by Weston and Rocky</small></div><a class="btn pe" href="../index.html">🕹 ARCADE</a> <button id="ptOpenIn" class="pe" style="margin-left:6px;background:#2a6cff">PLAY TOGETHER</button></div>
@@ -139,7 +139,7 @@ window.addEventListener('error', function(ev){ (window.RC_ERRS = window.RC_ERRS 
 import * as THREE from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { installKit } from './rail-city-kit.js?v=play2'; // tabby-cat from Cat City 3D + play-together kit
+import { installKit } from './rail-city-kit.js?v=play3'; // tabby-cat from Cat City 3D + play-together kit
 const $ = id => document.getElementById(id);
 const V3 = THREE.Vector3;
 const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), pick=a=>a[Math.floor(Math.random()*a.length)];
