@@ -1,9 +1,6 @@
-FROM node:22-alpine
-WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm install --omit=dev
-COPY . .
+FROM nginx:alpine
 ENV PORT=8080
-ENV ARCADE_BUILD=play2
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY . /usr/share/nginx/html
+RUN rm -f /usr/share/nginx/html/Dockerfile /usr/share/nginx/html/nginx.conf.template
 EXPOSE 8080
-CMD ["node", "server/index.mjs"]
