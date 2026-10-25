@@ -9,7 +9,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const PORT = Number(process.env.PORT) || 8080;
-const BUILD = process.env.ARCADE_BUILD || 'play2';
+const BUILD = process.env.ARCADE_BUILD || 'play4';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
