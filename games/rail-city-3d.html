@@ -892,6 +892,7 @@ function hideDetail(e){
   e.detailOn=false; e.detailWrecked=false; e.G.visible=false;
 }
 function updateTraffic(){
+  camera.updateMatrixWorld();
   _proj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
   _frustum.setFromProjectionMatrix(_proj);
   _near.length=0; _far.length=0;
@@ -902,8 +903,9 @@ function updateTraffic(){
     const P=e.G.position;
     e._lodD=Math.hypot(P.x-cam.x,P.z-cam.z);
     _sphere.center.copy(P); _sphere.radius=e.L*.7+2;
-    if(!_frustum.intersectsSphere(_sphere)){ hideDetail(e); continue; }
-    if(e._lodD<Q.nearR) _near.push(e); else _far.push(e);
+    const inView=_frustum.intersectsSphere(_sphere);
+    if(!inView && e._lodD>240){ hideDetail(e); continue; }
+    if(inView && e._lodD<Q.nearR) _near.push(e); else _far.push(e);
     if(blobK<T_N){ DUM.position.set(P.x,.03,P.z); DUM.rotation.set(0,e.yaw||0,0); DUM.scale.set(e.W*.55,1,e.L*.4); DUM.updateMatrix(); TBLOB.setMatrixAt(blobK++,DUM.matrix); }
   }
   _near.sort((a,b)=>a._lodD-b._lodD);
@@ -1383,6 +1385,7 @@ window.RC={ get mode(){ return mode; }, startPlay, setSel, callTrain, derail, sp
   setMe(x,z,yaw){ if(me){ me.G.position.x=x; me.G.position.z=z; me.yaw=yaw; me.V.set(0,0,0); } },
   get E(){ return ents; }, scene, camera, renderer, sim(sec){ for(let t=0;t<sec;t+=1/30) simStep(1/30); }, look(p,t){ camOverride=p?{p:new V3(...p), t:new V3(...t)}:null; }, get slow(){ return !!slow; }, endSlow(){ if(slow){ slow=null; $('slow').classList.add('hidden'); $('bars').classList.add('hidden'); } },
   get stats(){ return {wrecks:wreckCount, big:bigHit, loose:loose.length, shards:SH.list.length, ents:ents.length, inst:ents.filter(e=>e.inst).length, detail:ents.filter(e=>e.detailOn).length, fps:+Q.fps.toFixed(1), q:Q.level, near:Q.nearR, calls:renderer.info.render.calls, tris:renderer.info.render.triangles}; },
+  get kits(){ return LODKITS.map((k,i)=>!k?null:{i,n:k.n,top:k.top,parts:k.list.map(im=>({c:im.count,v:im.geometry.attributes.position.count,vis:im.visible,hex:im.material.color.getHexString()}))}); },
   get errs(){ return window.RC_ERRS||[]; } };
 window.RC_READY=true;
 </script>
