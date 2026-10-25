@@ -189,10 +189,12 @@ export function installKit(ctx){
       let e = worldCars.get(c.i);
       if(c.pid && remotes.get(c.pid)) e = remotes.get(c.pid).e;
       if(!e){
-        e = newCar(c.ci|0, c.x, c.z, c.yaw, c.m === 'ai' ? 'ai' : 'net', c.i);
-        e.net = true; e.netWorld = true; e.pid = c.pid || '';
+        const mode = c.pid ? 'net' : (c.m==='parked' ? 'parked' : 'ai');
+        e = newCar(c.ci|0, c.x, c.z, c.yaw, mode, c.i);
+        e.net = true; e.netWorld = !c.pid; e.pid = c.pid || '';
         worldCars.set(c.i, e);
       }
+      e.sid = c.i;
       e.tx = c.x; e.ty = c.y; e.tz = c.z; e.tyaw = c.yaw; e.tfwd = c.fwd;
       e.crush = c.crush; e.hits = c.hits; e.fire = Math.max(e.fire||0, c.fire||0);
       e.pid = c.pid || e.pid;
@@ -216,9 +218,13 @@ export function installKit(ctx){
     if(ev.kind === 'game' && ev.game){ applyGame(ev.game); return; }
     if(ev.kind === 'hit' && isHost()){
       const me = getMe();
-      let e = ents.find(x => x.sid === ev.sid) || (me && me.sid === ev.sid ? me : null);
-      if(!e && ev.pid){ const r = remotes.get(ev.pid); if(r) e = r.e; }
+      let e = null;
+      if(ev.victimPid && net && ev.victimPid === net.id) e = me;
+      if(!e && ev.victimPid){ const r = remotes.get(ev.victimPid); if(r) e = r.e; }
+      if(!e) e = ents.find(x => x.sid === ev.sid) || (me && me.sid === ev.sid ? me : null);
+      if(!e && ev.pid && !ev.victimPid){ const r = remotes.get(ev.pid); if(r) e = r.e; }
       if(!e) return;
+      e.cd = Math.max(e.cd||0, .25);
       wreck(e, new V3(ev.px, ev.py||1, ev.pz), new V3(ev.dx, ev.dy||0, ev.dz), ev.sev, { seed: ev.seed, fromNet:true, n:ev.n });
       return;
     }
@@ -268,7 +274,13 @@ export function installKit(ctx){
 
   function noteHit(e, wpt, wdir, sev, seed){
     if(!netOn() || isHost() || !e) return;
-    net.sendEvent({ kind:'hit', sid:e.sid, pid:net.id, px:wpt.x, py:wpt.y, pz:wpt.z, dx:wdir.x, dy:wdir.y, dz:wdir.z, sev, seed });
+    const me = getMe();
+    net.sendEvent({
+      kind:'hit', sid:e.sid, pid:net.id,
+      victimPid: e.pid || (e===me ? net.id : ''),
+      px:wpt.x, py:wpt.y, pz:wpt.z, dx:wdir.x, dy:wdir.y, dz:wdir.z, sev, seed,
+      n: e.lastWreck && e.lastWreck.n,
+    });
   }
 
   function noteDerail(){
@@ -339,7 +351,8 @@ export function installKit(ctx){
         r.e.G.rotation.set(0, r.e.yaw, 0);
       }
       if(r.label) r.label.quaternion.copy(camera.quaternion);
-      for(const w of r.e.g.userData.wheels) w.userData.spin.rotation.x += dt * 4;
+      const rw = r.e.g.userData.wheels;
+      if(rw) for(const w of rw) if(w.userData && w.userData.spin) w.userData.spin.rotation.x += dt * 4;
     }
     if(!isHost()){
       for(const e of worldCars.values()){
@@ -352,7 +365,8 @@ export function installKit(ctx){
         e.yaw += d * lerp;
         e.G.rotation.set(0, e.yaw, 0);
         e.fwd = e.tfwd || 0;
-        for(const w of e.g.userData.wheels) w.userData.spin.rotation.x += (e.fwd||4)*dt/(w.userData.r||.35);
+        const ww = e.g.userData.wheels;
+        if(ww) for(const w of ww) if(w.userData && w.userData.spin) w.userData.spin.rotation.x += (e.fwd||4)*dt/(w.userData.r||.35);
       }
     }
   }
