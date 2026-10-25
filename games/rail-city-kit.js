@@ -1,4 +1,4 @@
-// Rail City 3D extras: play-together UI, remote cars, cat rescue cinematic.
+// Rail City 3D extras: play-together UI, shared host world, mini-games, remotes, cat rescue.
 import { makeCat } from '../shared/tabby-cat.js';
 import { PlayTogether, EMOJI, roomFromUrl } from '../shared/play-together.js';
 
@@ -7,12 +7,16 @@ export function installKit(ctx){
     THREE, $, scene, camera, ROSTER, TYPE, GX, CITY,
     newCar, removeCar, spawnPlayer, ents, say, popup, LINES,
     getMe, setMe, getMode, setCamOverride, GARAGE, meow,
+    wreck, packTrain, applyTrainSnap, resetWorld, firstScene,
   } = ctx;
   const V3 = THREE.Vector3;
 
-  // ---------- PLAY TOGETHER ----------
   const remotes = new Map();
-  let net = null, lastSend = 0, myName = localStorage.getItem('railCityWho') || 'Weston';
+  const worldCars = new Map();
+  let net = null, lastSend = 0, lastWorld = 0, worldSeq = 0;
+  let myName = localStorage.getItem('railCityWho') || 'Weston';
+  let game = { mode:'free', it:'', scores:{}, t:0, winner:'', host:'' };
+  let appliedSeq = 0;
 
   function setWho(n){
     myName = n === 'Dad' ? 'Dad' : 'Weston';
@@ -21,6 +25,9 @@ export function installKit(ctx){
     $('whoDad').classList.toggle('on', myName==='Dad');
     if(net) net.setName(myName);
   }
+
+  function netOn(){ return !!(net && net.code); }
+  function isHost(){ return !netOn() || net.isHost; }
 
   function showRoom(info){
     $('ptPanel').classList.remove('hidden');
@@ -32,29 +39,11 @@ export function installKit(ctx){
     $('ptMini').classList.remove('hidden');
     $('ptMini').textContent = 'ROOM '+info.code;
     try { history.replaceState(null, '', info.url); } catch {}
-    say(myName==='Dad' ? 'Dad is here! Drive drive together!' : 'Room is ready! Give Dad the code!');
-  }
-
-  function upsertRemote(peer){
-    if(!peer || peer.id === (net && net.id)) return;
-    if(peer.data && peer.data.hidden){ dropRemote(peer.id); return; }
-    let r = remotes.get(peer.id);
-    const ci = Math.max(0, Math.min(ROSTER.length-1, peer.data && peer.data.ci|0));
-    if(r && r.ci !== ci){ removeCar(r.e); r = null; }
-    if(!r){
-      const e = newCar(ci, peer.data?.x||0, peer.data?.z||0, peer.data?.yaw||0, 'net');
-      e.net = true; e.fwd = 0;
-      r = { id:peer.id, e, ci, name: peer.name || 'Friend', tx:0, tz:0, tyaw:0, label: makeLabel(peer.name || 'Friend') };
-      e.G.add(r.label);
-      remotes.set(peer.id, r);
-    }
-    r.name = peer.name || r.name;
-    if(r.label) r.label.userData.setText(r.name);
-    if(peer.data){
-      r.tx = +peer.data.x || r.e.G.position.x;
-      r.tz = +peer.data.z || r.e.G.position.z;
-      r.tyaw = +peer.data.yaw || r.e.yaw;
-      r.e.mode = peer.data.mode === 'tumble' ? 'tumble' : (peer.data.mode === 'wreck' ? 'wreck' : 'net');
+    say(myName==='Dad' ? 'Dad is here! Same city now!' : 'Room is ready! Give Dad the code!');
+    paintGameBtns();
+    if(!isHost()){
+      const mine = getMe();
+      for(const e of [...ents]) if(!e.isTrain && e!==mine && !e.net) removeCar(e);
     }
   }
 
@@ -74,6 +63,38 @@ export function installKit(ctx){
     return m;
   }
 
+  function upsertRemote(peer){
+    if(!peer || peer.id === (net && net.id)) return;
+    if(peer.data && peer.data.hidden){ dropRemote(peer.id); return; }
+    let r = remotes.get(peer.id);
+    const ci = Math.max(0, Math.min(ROSTER.length-1, peer.data && peer.data.ci|0));
+    if(r && r.ci !== ci){ removeCar(r.e); r = null; }
+    if(!r){
+      const e = newCar(ci, peer.data?.x||0, peer.data?.z||0, peer.data?.yaw||0, 'net');
+      e.net = true; e.fwd = 0; e.pid = peer.id;
+      r = { id:peer.id, e, ci, name: peer.name || 'Friend', tx:0, ty:0, tz:0, tyaw:0, label: makeLabel(peer.name || 'Friend') };
+      e.G.add(r.label);
+      remotes.set(peer.id, r);
+    }
+    r.name = peer.name || r.name;
+    r.e.pid = peer.id;
+    if(r.label) r.label.userData.setText(r.name);
+    if(peer.data){
+      r.tx = +peer.data.x || r.e.G.position.x;
+      r.ty = +peer.data.y || r.e.G.position.y;
+      r.tz = +peer.data.z || r.e.G.position.z;
+      r.tyaw = +peer.data.yaw || r.e.yaw;
+      if(isHost()){
+        r.e.G.position.x = r.tx; r.e.G.position.y = r.ty || r.e.com; r.e.G.position.z = r.tz;
+        r.e.yaw = r.tyaw; r.e.G.rotation.set(0, r.e.yaw, 0);
+        r.e.fwd = +peer.data.fwd || 0;
+        if(r.e.V) r.e.V.set(Math.sin(r.e.yaw)*r.e.fwd, 0, Math.cos(r.e.yaw)*r.e.fwd);
+      }
+      if(peer.data.mode === 'tumble' || peer.data.mode === 'wreck') r.e.mode = peer.data.mode;
+      else if(r.e.mode !== 'tumble' && r.e.mode !== 'wreck') r.e.mode = 'net';
+    }
+  }
+
   function dropRemote(id){
     const r = remotes.get(id); if(!r) return;
     removeCar(r.e); remotes.delete(id);
@@ -87,6 +108,175 @@ export function installKit(ctx){
   }
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 
+  function paintGameBtns(){
+    const host = isHost();
+    for(const [id, mode] of [['gmFree','free'],['gmTag','tag'],['gmDerail','derail']]){
+      const b = $(id); if(!b) continue;
+      b.classList.toggle('on', game.mode === mode);
+      b.disabled = !host;
+    }
+  }
+
+  function setGame(mode, fromNet){
+    if(game.mode === mode && fromNet) return;
+    game.mode = mode; game.winner = ''; game.t = mode==='free' ? 0 : 90;
+    game.scores = {}; game.it = '';
+    if(mode === 'tag'){
+      game.it = (net && net.hostId) || (net && net.id) || '';
+      if(net && net.id) game.scores[net.id] = 0;
+      for(const r of remotes.values()) game.scores[r.id] = 0;
+      say('TAG! Do not get tagged!');
+      popup('TAG!<small>bump the IT car to make them it</small>');
+    } else if(mode === 'derail'){
+      say('Derail race! Smash the train first!');
+      popup('DERAIL RACE!<small>first to crash the train wins</small>');
+    } else {
+      say('Free drive! Same city together!');
+    }
+    paintGameBtns();
+    if(!fromNet && net && isHost()) net.sendEvent({ kind:'game', game });
+  }
+
+  function applyGame(g){
+    if(!g) return;
+    game.mode = g.mode || 'free';
+    game.it = g.it || '';
+    game.scores = g.scores || {};
+    game.t = g.t || 0;
+    game.winner = g.winner || '';
+    paintGameBtns();
+  }
+
+  function packWorld(){
+    const me = getMe();
+    const cars = [];
+    for(const e of ents){
+      if(e.isTrain) continue;
+      const P = e.G.position;
+      cars.push({
+        i: e.sid, ci: e.ci, m: e.mode,
+        x:+P.x.toFixed(2), y:+P.y.toFixed(2), z:+P.z.toFixed(2),
+        yaw:+(e.yaw||0).toFixed(3), fwd:+(e.fwd||0).toFixed(2),
+        crush:+(e.crush||0).toFixed(3), hits:e.hits|0, fire:+(e.fire||0).toFixed(1),
+        pid: e.pid || (e===me && net ? net.id : ''),
+        w: e.lastWreck || null,
+      });
+    }
+    return { seq: ++worldSeq, game, train: packTrain(), cars };
+  }
+
+  function applyWorld(snap){
+    if(!snap || (snap.seq|0) < appliedSeq) return;
+    appliedSeq = snap.seq|0;
+    applyGame(snap.game);
+    if(applyTrainSnap) applyTrainSnap(snap.train);
+    const keep = new Set();
+    const me = getMe();
+    const myId = net && net.id;
+    for(const c of (snap.cars || [])){
+      keep.add(c.i);
+      if(c.pid && c.pid === myId){
+        if(me && c.w){
+          if(me.lastWreck && me.lastWreck.seed === c.w.seed) me.appliedWreck = Math.max(me.appliedWreck||0, c.w.n);
+          else if(!me.appliedWreck || c.w.n > me.appliedWreck){
+            wreck(me, new V3(c.w.px, c.w.py||1, c.w.pz), new V3(c.w.dx, c.w.dy||0, c.w.dz), c.w.sev, { seed:c.w.seed, n:c.w.n, fromNet:true });
+            me.appliedWreck = c.w.n;
+          }
+        }
+        if(me) me.crush = Math.max(me.crush||0, c.crush||0);
+        continue;
+      }
+      let e = worldCars.get(c.i);
+      if(c.pid && remotes.get(c.pid)) e = remotes.get(c.pid).e;
+      if(!e){
+        e = newCar(c.ci|0, c.x, c.z, c.yaw, c.m === 'ai' ? 'ai' : 'net', c.i);
+        e.net = true; e.netWorld = true; e.pid = c.pid || '';
+        worldCars.set(c.i, e);
+      }
+      e.tx = c.x; e.ty = c.y; e.tz = c.z; e.tyaw = c.yaw; e.tfwd = c.fwd;
+      e.crush = c.crush; e.hits = c.hits; e.fire = Math.max(e.fire||0, c.fire||0);
+      e.pid = c.pid || e.pid;
+      if(c.m === 'tumble' || c.m === 'wreck') e.mode = c.m;
+      else if(e.mode !== 'tumble') e.mode = e.netWorld ? 'ai' : e.mode;
+      if(c.w && (!e.appliedWreck || c.w.n > e.appliedWreck)){
+        if(e.lastWreck && e.lastWreck.seed === c.w.seed) e.appliedWreck = Math.max(e.appliedWreck||0, c.w.n);
+        else {
+          wreck(e, new V3(c.w.px, c.w.py||1, c.w.pz), new V3(c.w.dx, c.w.dy||0, c.w.dz), c.w.sev, { seed:c.w.seed, n:c.w.n, fromNet:true });
+          e.appliedWreck = c.w.n;
+        }
+      }
+    }
+    for(const [sid, e] of worldCars){
+      if(!keep.has(sid)){ removeCar(e); worldCars.delete(sid); }
+    }
+  }
+
+  function handleEvent(ev, from){
+    if(!ev) return;
+    if(ev.kind === 'game' && ev.game){ applyGame(ev.game); return; }
+    if(ev.kind === 'hit' && isHost()){
+      const me = getMe();
+      let e = ents.find(x => x.sid === ev.sid) || (me && me.sid === ev.sid ? me : null);
+      if(!e && ev.pid){ const r = remotes.get(ev.pid); if(r) e = r.e; }
+      if(!e) return;
+      wreck(e, new V3(ev.px, ev.py||1, ev.pz), new V3(ev.dx, ev.dy||0, ev.dz), ev.sev, { seed: ev.seed, fromNet:true, n:ev.n });
+      return;
+    }
+    if(ev.kind === 'tag' && isHost()){ tagPlayer(ev.who, ev.victim); return; }
+    if(ev.kind === 'derail' && isHost() && ctx.forceDerail) ctx.forceDerail(from);
+  }
+
+  function tagPlayer(it, victim){
+    if(game.mode !== 'tag' || game.winner) return;
+    if(it !== game.it || !victim || victim === it) return;
+    game.it = victim;
+    game.scores[it] = (game.scores[it]|0) + 1;
+    say('Tagged! New IT!');
+    popup('TAGGED!<small>new IT</small>');
+  }
+
+  function tickGame(dt){
+    if(!isHost() || !netOn()) return;
+    if(game.mode === 'tag' && !game.winner){
+      game.t = Math.max(0, game.t - dt);
+      const me = getMe();
+      const players = [];
+      if(me) players.push({ id: net.id, e: me });
+      for(const r of remotes.values()) players.push({ id: r.id, e: r.e });
+      const it = players.find(p => p.id === game.it);
+      if(it){
+        for(const p of players){
+          if(p.id === game.it) continue;
+          const dx = p.e.G.position.x - it.e.G.position.x;
+          const dz = p.e.G.position.z - it.e.G.position.z;
+          if(Math.hypot(dx,dz) < (p.e.L + it.e.L) * 0.45) tagPlayer(game.it, p.id);
+        }
+      }
+      if(game.t <= 0){
+        let best = '', bestS = -1;
+        for(const [id, s] of Object.entries(game.scores)) if(s > bestS){ bestS = s; best = id; }
+        game.winner = best || game.it;
+        popup('TAG OVER!<small>winner scored '+(bestS|0)+'</small>');
+      }
+    }
+    if(game.mode === 'derail' && !game.winner && ctx.train && ctx.train.derailed){
+      game.winner = ctx.train.lastHitter || net.id;
+      popup('DERAIL WIN!<small>the train jumped the tracks</small>');
+      say('Somebody wrecked the train! You win!');
+    }
+  }
+
+  function noteHit(e, wpt, wdir, sev, seed){
+    if(!netOn() || isHost() || !e) return;
+    net.sendEvent({ kind:'hit', sid:e.sid, pid:net.id, px:wpt.x, py:wpt.y, pz:wpt.z, dx:wdir.x, dy:wdir.y, dz:wdir.z, sev, seed });
+  }
+
+  function noteDerail(){
+    if(netOn() && isHost() && game.mode === 'derail' && !game.winner){
+      game.winner = (ctx.train && ctx.train.lastHitter) || net.id;
+    }
+  }
+
   function bootNet(){
     if(net) return net;
     net = PlayTogether({
@@ -97,8 +287,22 @@ export function installKit(ctx){
       onPeers: list => { const ids=new Set(list.map(p=>p.id)); for(const [id] of remotes) if(!ids.has(id)) dropRemote(id); list.forEach(upsertRemote); },
       onLeave: dropRemote,
       onChat: addChat,
+      onWorld: applyWorld,
+      onEvent: handleEvent,
+      onHost: info => {
+        paintGameBtns();
+        if(info.reset){
+          say('Host left! New shared city!');
+          popup('NEW HOST<small>city reset so both screens match</small>');
+          if(resetWorld) resetWorld();
+          worldCars.clear(); remotes.clear(); appliedSeq = 0; worldSeq = 0;
+          if(ctx.getMode && ctx.getMode()==='play' && spawnPlayer) spawnPlayer(ctx.getSel?ctx.getSel():10, -3.3, -45, 0);
+          if(isHost() && firstScene) firstScene();
+          setGame('free', true);
+        }
+      },
       onStatus: (s, extra)=>{
-        $('ptStatus').textContent = s==='online' ? 'Connected! Drive together.' : s==='reconnect' ? 'Reconnecting…' : s==='error' ? (extra && extra.message) || 'Hmm.' : 'Ready';
+        $('ptStatus').textContent = s==='online' ? (isHost() ? 'You are HOST. Same city!' : 'Connected! Shared world.') : s==='reconnect' ? 'Reconnecting…' : s==='error' ? (extra && extra.message) || 'Hmm.' : 'Ready';
       },
       onError: m => { $('ptStatus').textContent = m; say('Room no work. Try again, question?'); },
     });
@@ -108,27 +312,62 @@ export function installKit(ctx){
 
   function sendMine(now){
     if(!net || !net.code) return;
-    if(now - lastSend < 80) return;
+    if(now - lastSend < 70) return;
     lastSend = now;
     const me = getMe();
     if(!me){ net.sendState({ hidden:true }); return; }
     net.sendState({
       x: +me.G.position.x.toFixed(2), y: +me.G.position.y.toFixed(2), z: +me.G.position.z.toFixed(2),
-      yaw: +me.yaw.toFixed(3), ci: me.ci, mode: me.mode, crush: +me.crush.toFixed(2), name: myName,
+      yaw: +me.yaw.toFixed(3), fwd: +(me.fwd||0).toFixed(2), ci: me.ci, mode: me.mode, crush: +me.crush.toFixed(2), name: myName,
     });
+    if(isHost() && now - lastWorld > 70){
+      lastWorld = now;
+      net.sendWorld(packWorld());
+    }
   }
 
   function updateRemotes(dt){
+    const lerp = isHost() ? 0 : Math.min(1, dt*8);
     for(const r of remotes.values()){
-      const P = r.e.G.position;
-      P.x += (r.tx - P.x) * Math.min(1, dt*8);
-      P.z += (r.tz - P.z) * Math.min(1, dt*8);
-      P.y = r.e.com;
-      let d = r.tyaw - r.e.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
-      r.e.yaw += d * Math.min(1, dt*8);
-      r.e.G.rotation.set(0, r.e.yaw, 0);
+      if(!isHost()){
+        const P = r.e.G.position;
+        P.x += (r.tx - P.x) * lerp;
+        P.z += (r.tz - P.z) * lerp;
+        P.y = r.ty != null ? r.ty : r.e.com;
+        let d = r.tyaw - r.e.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
+        r.e.yaw += d * lerp;
+        r.e.G.rotation.set(0, r.e.yaw, 0);
+      }
       if(r.label) r.label.quaternion.copy(camera.quaternion);
       for(const w of r.e.g.userData.wheels) w.userData.spin.rotation.x += dt * 4;
+    }
+    if(!isHost()){
+      for(const e of worldCars.values()){
+        if(!e.tx && e.tx !== 0) continue;
+        const P = e.G.position;
+        P.x += (e.tx - P.x) * lerp;
+        P.z += (e.tz - P.z) * lerp;
+        P.y = e.ty != null ? e.ty : e.com;
+        let d = (e.tyaw||0) - e.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
+        e.yaw += d * lerp;
+        e.G.rotation.set(0, e.yaw, 0);
+        e.fwd = e.tfwd || 0;
+        for(const w of e.g.userData.wheels) w.userData.spin.rotation.x += (e.fwd||4)*dt/(w.userData.r||.35);
+      }
+    }
+  }
+
+  function updateHud(){
+    const el = $('gameHud'); if(!el) return;
+    if(!netOn() || game.mode === 'free'){ el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    if(game.mode === 'tag'){
+      const it = game.it === (net && net.id) ? myName : ([...remotes.values()].find(r=>r.id===game.it)?.name || 'IT');
+      el.innerHTML = game.winner
+        ? `TAG OVER · winner scored ${(game.scores[game.winner]|0)}`
+        : `TAG · IT: <b>${escapeHtml(it)}</b> · ${Math.ceil(game.t)}s`;
+    } else if(game.mode === 'derail'){
+      el.innerHTML = game.winner ? 'DERAIL RACE · somebody wrecked the train!' : 'DERAIL RACE · smash the train first!';
     }
   }
 
@@ -153,9 +392,7 @@ export function installKit(ctx){
   function roadPath(sx,sz,ex,ez){
     const ax=nearestGX(sx), az=nearestGX(sz), bx=nearestGX(ex), bz=nearestGX(ez);
     const pts=[[sx,sz],[ax,sz],[ax,az]];
-    if(Math.abs(bx-ax)+Math.abs(bz-az) > 1){
-      pts.push([bx,az]); pts.push([bx,bz]);
-    }
+    if(Math.abs(bx-ax)+Math.abs(bz-az) > 1){ pts.push([bx,az]); pts.push([bx,bz]); }
     pts.push([ex,ez]);
     const out=[];
     for(let i=0;i<pts.length-1;i++){
@@ -273,7 +510,6 @@ export function installKit(ctx){
     setCamOverride(null);
   }
 
-  // ---------- UI HOOKUP ----------
   function bind(){
     setWho(myName);
     $('whoWeston').onclick = ()=>setWho('Weston');
@@ -286,6 +522,9 @@ export function installKit(ctx){
     $('ptJoinBtn').onclick = ()=>{ setWho(myName); bootNet().join($('ptJoin').value); };
     $('ptJoin').addEventListener('keydown', ev=>{ if(ev.code==='Enter'){ ev.preventDefault(); bootNet().join($('ptJoin').value); } });
     $('ptCopy').onclick = copyLink;
+    $('gmFree').onclick = ()=>{ if(isHost()) setGame('free'); };
+    $('gmTag').onclick = ()=>{ if(isHost()) setGame('tag'); };
+    $('gmDerail').onclick = ()=>{ if(isHost()) setGame('derail'); };
     $('chatSend').onclick = ()=>{ const v=$('chatIn').value.trim(); if(!v||!net) return; net.chat(v); $('chatIn').value=''; };
     $('chatIn').addEventListener('keydown', ev=>{ if(ev.code==='Enter'){ ev.preventDefault(); $('chatSend').click(); } ev.stopPropagation(); });
     $('chatIn').addEventListener('keyup', ev=>ev.stopPropagation());
@@ -302,5 +541,8 @@ export function installKit(ctx){
   return {
     startRescue, updateRescue, skipRescue, endRescueCleanup, isRescue:()=>rescue.on,
     updateRemotes, sendMine, remotes, EMOJI,
+    netOn, isHost, tickGame, updateHud, noteHit, noteDerail, packWorld, applyWorld,
+    myId:()=>net && net.id, sendDerail:()=>{ if(netOn()) net.sendEvent({ kind:'derail' }); },
+    get game(){ return game; },
   };
 }
