@@ -18,7 +18,7 @@ let child = null;
 let out = '';
 if(!external){
   child = spawn(process.execPath, ['server/index.mjs'], {
-    env: { ...process.env, PORT: String(PORT), ARCADE_BUILD: 'play6' },
+    env: { ...process.env, PORT: String(PORT), ARCADE_BUILD: 'play7' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   child.stdout.on('data', d => { out += d; process.stdout.write(d); });
@@ -59,14 +59,16 @@ try {
 
   const health = await fetch(`${origin}/api/play/health`).then(r=>r.json());
   if(!health.ok) throw new Error('health failed');
-  if(health.build !== 'play6' && !external) throw new Error('expected play6 build header via health, got '+health.build);
+  if(health.build !== 'play7' && !external) throw new Error('expected play7 build header via health, got '+health.build);
 
   const html = await fetch(`${origin}/games/rail-city-3d.html`).then(r=>r.text());
   if(!html.includes('PLAY TOGETHER') || !html.includes('tabby-cat')) throw new Error('rail city page missing new features');
   if(!html.includes('gmTag') || !html.includes('gmDerail') || !html.includes('gameHud')) throw new Error('mini-game UI missing');
-  if(!html.includes('play6')) throw new Error('html not on play6');
+  if(!html.includes('play7')) throw new Error('html not on play7');
   if(!html.includes('addRamp') || !html.includes('groundY') || !html.includes('packTrain')) throw new Error('ramps / shared world helpers missing');
-  if(!html.includes('TBOX') || !html.includes('TBLOB') || !html.includes('InstancedMesh')) throw new Error('instanced traffic missing');
+  if(!html.includes('buildLodKit') || !html.includes('showDetail') || !html.includes('TBLOB') || !html.includes('InstancedMesh')) throw new Error('per-type car LOD missing');
+  if(!html.includes('classifyLod') || !html.includes('prepLodGeo') || !html.includes('instanceColor')) throw new Error('per-type part kits missing');
+  if(!html.includes('nearR') || !html.includes('detailCap')) throw new Error('near LOD radius missing');
   if(!html.includes('tickQuality') || !html.includes('applyQuality')) throw new Error('quality scaler missing');
   if(!html.includes('COLC') || !html.includes('collideNear')) throw new Error('spatial collide missing');
   if(!html.includes('if(!host && e!==me)') && !html.includes('if(!simHost())')) throw new Error('guest local hits missing');
@@ -74,7 +76,7 @@ try {
 
   const hdr = await fetch(`${origin}/games/rail-city-3d.html`);
   const buildHdr = hdr.headers.get('x-arcade-build');
-  if(buildHdr !== 'play6') throw new Error('X-Arcade-Build is '+buildHdr+' not play6');
+  if(buildHdr !== 'play7') throw new Error('X-Arcade-Build is '+buildHdr+' not play7');
 
   const kitSrc = fs.readFileSync(path.join(root, 'games/rail-city-kit.js'), 'utf8');
   if(!kitSrc.includes('sendWorld') || !kitSrc.includes('onWorld')) throw new Error('kit missing world snapshot API');
@@ -141,7 +143,7 @@ try {
   if(guestWorld) throw new Error('guest world snapshot was relayed');
 
   const page = await fetch(`${origin}/index.html`).then(r=>r.text());
-  if(!page.includes('rail-city-3d.html?v=play6')) throw new Error('arcade card not cache-busted to play6');
+  if(!page.includes('rail-city-3d.html?v=play7')) throw new Error('arcade card not cache-busted to play7');
   const rootPage = await fetch(`${origin}/`);
   if(rootPage.status !== 200) throw new Error('root not 200');
 
@@ -152,7 +154,7 @@ try {
   if(!hostMsg.reset || !hostMsg.id) throw new Error('host leave did not migrate with reset');
 
   b.close();
-  console.log('play-together ok code='+created.code+' crash A->B host='+(external?'docker':'node')+' build=play6');
+  console.log('play-together ok code='+created.code+' crash A->B host='+(external?'docker':'node')+' build=play7');
   stop();
   process.exit(0);
 } catch (err) {
