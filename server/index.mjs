@@ -9,7 +9,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const PORT = Number(process.env.PORT) || 8080;
-const BUILD = process.env.ARCADE_BUILD || 'play4';
+const BUILD = process.env.ARCADE_BUILD || 'play5';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -102,12 +102,18 @@ function broadcast(room, obj, except){
 function leaveRoom(client){
   const room = client.room;
   if(!room) return;
+  const wasHost = room.hostId === client.id;
   room.clients.delete(client.id);
   client.room = null;
   broadcast(room, { t:'leave', id: client.id });
   broadcast(room, { t:'peers', peers: roomPeers(room) });
   if(room.clients.size === 0){
     room.idle = setTimeout(()=> { if(rooms.get(room.code) === room && room.clients.size === 0) rooms.delete(room.code); }, 10 * 60 * 1000);
+    return;
+  }
+  if(wasHost){
+    room.hostId = room.clients.keys().next().value;
+    broadcast(room, { t:'host', id: room.hostId, reset: true });
   }
 }
 
@@ -121,7 +127,7 @@ function joinRoom(client, code, game){
   if(room.idle){ clearTimeout(room.idle); room.idle = null; }
   client.room = room; client.game = game || room.game;
   room.clients.set(client.id, client);
-  sendJSON(client.ws, { t:'joined', code: room.code, id: client.id, peers: roomPeers(room) });
+  sendJSON(client.ws, { t:'joined', code: room.code, id: client.id, host: room.hostId, peers: roomPeers(room) });
   broadcast(room, { t:'peer', peer: publicPeer(client) }, client);
   broadcast(room, { t:'peers', peers: roomPeers(room) });
   for(const line of room.chat.slice(-12)) sendJSON(client.ws, line);
@@ -130,11 +136,11 @@ function joinRoom(client, code, game){
 function createRoom(client, game){
   leaveRoom(client);
   const code = makeCode();
-  const room = { code, game: game || 'arcade', clients: new Map(), chat: [], idle: null };
+  const room = { code, game: game || 'arcade', clients: new Map(), chat: [], idle: null, hostId: client.id };
   rooms.set(code, room);
   client.room = room; client.game = room.game;
   room.clients.set(client.id, client);
-  sendJSON(client.ws, { t:'created', code, id: client.id, peers: roomPeers(room) });
+  sendJSON(client.ws, { t:'created', code, id: client.id, host: client.id, peers: roomPeers(room) });
 }
 
 function onMessage(client, raw){
@@ -158,6 +164,23 @@ function onMessage(client, raw){
   if(t === 'state'){
     client.data = msg.data && typeof msg.data === 'object' ? msg.data : null;
     if(client.room) broadcast(client.room, { t:'peer', peer: publicPeer(client) }, client);
+    return;
+  }
+  if(t === 'world'){
+    if(!client.room || client.room.hostId !== client.id) return;
+    if(!msg.world || typeof msg.world !== 'object') return;
+    const payload = { t:'world', from: client.id, world: msg.world };
+    const raw = JSON.stringify(payload);
+    if(raw.length > 180000) return;
+    for(const c of client.room.clients.values()){
+      if(c === client) continue;
+      if(c.ws.readyState === WebSocket.OPEN) c.ws.send(raw);
+    }
+    return;
+  }
+  if(t === 'event'){
+    if(!client.room || !msg.ev || typeof msg.ev !== 'object') return;
+    broadcast(client.room, { t:'event', from: client.id, ev: msg.ev }, client);
     return;
   }
   if(t === 'chat'){

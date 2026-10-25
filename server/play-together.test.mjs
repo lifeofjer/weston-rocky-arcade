@@ -1,19 +1,24 @@
-// Two fake clients join one room and exchange state + chat.
+// Two fake clients join one room and exchange state + chat + host world snapshots.
+// A crash on A must show on B. Host leave must hand off with reset.
 // Set ARCADE_EXTERNAL=1 to test an already-running host (e.g. the production Docker image).
 import { spawn } from 'node:child_process';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { WebSocket } from 'ws';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const PORT = Number(process.env.PORT) || 8765;
 const HOST = process.env.ARCADE_HOST || '127.0.0.1';
 const external = process.env.ARCADE_EXTERNAL === '1';
 const origin = `http://${HOST}:${PORT}`;
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 let child = null;
 let out = '';
 if(!external){
   child = spawn(process.execPath, ['server/index.mjs'], {
-    env: { ...process.env, PORT: String(PORT), ARCADE_BUILD: 'test' },
+    env: { ...process.env, PORT: String(PORT), ARCADE_BUILD: 'play5' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   child.stdout.on('data', d => { out += d; process.stdout.write(d); });
@@ -54,9 +59,20 @@ try {
 
   const health = await fetch(`${origin}/api/play/health`).then(r=>r.json());
   if(!health.ok) throw new Error('health failed');
+  if(health.build !== 'play5' && !external) throw new Error('expected play5 build header via health, got '+health.build);
 
   const html = await fetch(`${origin}/games/rail-city-3d.html`).then(r=>r.text());
   if(!html.includes('PLAY TOGETHER') || !html.includes('tabby-cat')) throw new Error('rail city page missing new features');
+  if(!html.includes('gmTag') || !html.includes('gmDerail') || !html.includes('gameHud')) throw new Error('mini-game UI missing');
+  if(!html.includes('play5')) throw new Error('html not on play5');
+  if(!html.includes('addRamp') || !html.includes('groundY') || !html.includes('packTrain')) throw new Error('ramps / shared world helpers missing');
+
+  const hdr = await fetch(`${origin}/games/rail-city-3d.html`);
+  const buildHdr = hdr.headers.get('x-arcade-build');
+  if(buildHdr !== 'play5') throw new Error('X-Arcade-Build is '+buildHdr+' not play5');
+
+  const kitSrc = fs.readFileSync(path.join(root, 'games/rail-city-kit.js'), 'utf8');
+  if(!kitSrc.includes('sendWorld') || !kitSrc.includes('onWorld')) throw new Error('kit missing world snapshot API');
 
   const a = new WebSocket(`ws://${HOST}:${PORT}/play`);
   await new Promise((res,rej)=>{ a.on('open', res); a.on('error', rej); });
@@ -65,6 +81,7 @@ try {
   a.send(JSON.stringify({ t:'create', game:'rail-city-3d', name:'Weston' }));
   const created = await once(a, 'created');
   if(!created.code) throw new Error('no room code');
+  if(!created.host) throw new Error('created missing host');
 
   const b = new WebSocket(`ws://${HOST}:${PORT}/play`);
   await new Promise((res,rej)=>{ b.on('open', res); b.on('error', rej); });
@@ -75,6 +92,7 @@ try {
   b.send(JSON.stringify({ t:'join', code: created.code, game:'rail-city-3d', name:'Dad' }));
   const joined = await joinedP;
   if(joined.code !== created.code) throw new Error('join mismatch');
+  if(joined.host !== created.host) throw new Error('guest host mismatch');
   await peerP;
 
   const chatP = once(b, 'chat');
@@ -87,13 +105,48 @@ try {
   const peer = await stateP;
   if(peer.peer.data.x !== 10) throw new Error('state mismatch');
 
-  const page = await fetch(`${origin}/index.html`).then(r=>r.text());
-  if(!page.includes('rail-city-3d.html?v=')) throw new Error('arcade card not cache-busted');
-  const root = await fetch(`${origin}/`);
-  if(root.status !== 200) throw new Error('root not 200');
+  // Crash on A (host world snapshot) must show on B.
+  const wreck = { n:1, px:12, py:1, pz:22, dx:1, dy:0, dz:0, sev:0.9, seed:4242 };
+  const worldP = once(b, 'world');
+  a.send(JSON.stringify({ t:'world', world:{
+    seq:1, game:{ mode:'free', it:'', scores:{}, t:0, winner:'' },
+    train:{ s:20, v:24, derailed:false, lastHitter:'', cars:[] },
+    cars:[{ i:7, ci:0, m:'wreck', x:12, y:1, z:22, yaw:0, fwd:0, crush:0.82, hits:2, fire:4, pid:'', w:wreck }],
+  }}));
+  const world = await worldP;
+  const crashed = world.world && world.world.cars && world.world.cars[0];
+  if(!crashed || crashed.crush !== 0.82 || !crashed.w || crashed.w.seed !== 4242){
+    throw new Error('crash on A did not show on B');
+  }
 
-  a.close(); b.close();
-  console.log('play-together ok code='+created.code+' host='+(external?'docker':'node'));
+  // Guest collision event is relayed to the host.
+  const evP = once(a, 'event');
+  b.send(JSON.stringify({ t:'event', ev:{ kind:'hit', sid:7, sev:0.5, seed:7, px:1, py:1, pz:1, dx:1, dy:0, dz:0 } }));
+  const ev = await evP;
+  if(!ev.ev || ev.ev.kind !== 'hit' || ev.ev.sid !== 7) throw new Error('guest hit not relayed to host');
+
+  // Guest cannot publish world snapshots.
+  let guestWorld = false;
+  const sneak = ev=>{ const msg=JSON.parse(ev.data); if(msg.t==='world') guestWorld=true; };
+  a.addEventListener('message', sneak);
+  b.send(JSON.stringify({ t:'world', world:{ seq:99, cars:[] } }));
+  await sleep(80);
+  a.removeEventListener('message', sneak);
+  if(guestWorld) throw new Error('guest world snapshot was relayed');
+
+  const page = await fetch(`${origin}/index.html`).then(r=>r.text());
+  if(!page.includes('rail-city-3d.html?v=play5')) throw new Error('arcade card not cache-busted to play5');
+  const rootPage = await fetch(`${origin}/`);
+  if(rootPage.status !== 200) throw new Error('root not 200');
+
+  // Host leave: guest becomes host and gets a reset so both screens match.
+  const hostP = once(b, 'host');
+  a.close();
+  const hostMsg = await hostP;
+  if(!hostMsg.reset || !hostMsg.id) throw new Error('host leave did not migrate with reset');
+
+  b.close();
+  console.log('play-together ok code='+created.code+' crash A->B host='+(external?'docker':'node')+' build=play5');
   stop();
   process.exit(0);
 } catch (err) {

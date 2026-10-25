@@ -1,6 +1,6 @@
 // Reusable arcade play-together client.
-// One room code / link, live peer state, and kid-simple chat.
-// Games send an opaque `data` blob; only Rail City 3D is wired today.
+// One room code / link, live peer state, kid-simple chat, and host world snapshots.
+// Games send opaque `data` / `world` / `ev` blobs; only Rail City 3D is wired today.
 
 const EMOJI = ['😀','😂','😍','🐱','🚗','🚂','💥','👍','❤️','🎉','👋','🤠'];
 
@@ -25,8 +25,12 @@ export function PlayTogether(opts){
     chat: opts.onChat || (()=>{}),
     status: opts.onStatus || (()=>{}),
     error: opts.onError || (()=>{}),
+    world: opts.onWorld || (()=>{}),
+    event: opts.onEvent || (()=>{}),
+    host: opts.onHost || (()=>{}),
   };
   let ws = null, id = null, code = '', name = opts.name || 'Weston', closed = false;
+  let hostId = null;
   let pingTimer = null, retry = 0, wantJoin = null, pendingCreate = false, reconnecting = false;
 
   function send(msg){
@@ -41,11 +45,16 @@ export function PlayTogether(opts){
     if(msg.t === 'welcome'){ id = msg.id; setStatus(code ? 'online' : 'ready'); return; }
     if(msg.t === 'created' || msg.t === 'joined'){
       code = msg.code; id = msg.id || id;
+      hostId = msg.host || (msg.t === 'created' ? id : hostId);
       const url = `${location.origin}${location.pathname}?room=${encodeURIComponent(code)}`;
-      on.room({ code, url, name, you: id, peers: msg.peers || [] });
+      on.room({ code, url, name, you: id, host: hostId, peers: msg.peers || [] });
+      on.host({ id: hostId, reset: false });
       setStatus('online', { code });
       return;
     }
+    if(msg.t === 'host'){ hostId = msg.id; on.host({ id: hostId, reset: !!msg.reset }); return; }
+    if(msg.t === 'world'){ on.world(msg.world, msg.from); return; }
+    if(msg.t === 'event'){ on.event(msg.ev, msg.from); return; }
     if(msg.t === 'peers'){ on.peers(msg.peers || []); return; }
     if(msg.t === 'peer'){ on.peer(msg.peer); return; }
     if(msg.t === 'leave'){ on.leave(msg.id); return; }
@@ -88,6 +97,8 @@ export function PlayTogether(opts){
     get id(){ return id; },
     get code(){ return code; },
     get name(){ return name; },
+    get hostId(){ return hostId; },
+    get isHost(){ return !!id && id === hostId; },
     connect,
     setName(n){ name = String(n || 'Weston').slice(0, 18); send({ t:'name', name }); },
     create(){
@@ -103,6 +114,8 @@ export function PlayTogether(opts){
       if(!ws || ws.readyState === 3) connect();
     },
     sendState(data){ send({ t:'state', data }); },
+    sendWorld(world){ send({ t:'world', world }); },
+    sendEvent(ev){ send({ t:'event', ev }); },
     chat(text){ const clean = String(text || '').slice(0, 140); if(!clean) return; send({ t:'chat', text: clean }); },
     disconnect(){ closed = true; clearInterval(pingTimer); try { ws && ws.close(); } catch {} },
   };
