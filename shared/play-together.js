@@ -27,7 +27,7 @@ export function PlayTogether(opts){
     error: opts.onError || (()=>{}),
   };
   let ws = null, id = null, code = '', name = opts.name || 'Weston', closed = false;
-  let pingTimer = null, retry = 0, wantJoin = null, reconnecting = false;
+  let pingTimer = null, retry = 0, wantJoin = null, pendingCreate = false, reconnecting = false;
 
   function send(msg){
     if(ws && ws.readyState === 1){ ws.send(JSON.stringify(msg)); return true; }
@@ -59,6 +59,7 @@ export function PlayTogether(opts){
       send({ t:'hello', game, name });
       if(wantJoin) send({ t:'join', code: wantJoin, game, name });
       else if(code) send({ t:'join', code, game, name });
+      else if(pendingCreate){ pendingCreate = false; send({ t:'create', game, name }); }
       clearInterval(pingTimer);
       pingTimer = setInterval(()=>send({ t:'ping' }), 5000);
     });
@@ -89,8 +90,18 @@ export function PlayTogether(opts){
     get name(){ return name; },
     connect,
     setName(n){ name = String(n || 'Weston').slice(0, 18); send({ t:'name', name }); },
-    create(){ wantJoin = null; if(!send({ t:'create', game, name })){ connect(); setTimeout(()=>send({ t:'create', game, name }), 200); } },
-    join(c){ wantJoin = String(c || '').trim().toUpperCase(); if(!wantJoin) return; if(!send({ t:'join', code: wantJoin, game, name })){ connect(); } },
+    create(){
+      wantJoin = null;
+      if(send({ t:'create', game, name })) return;
+      pendingCreate = true;
+      if(!ws || ws.readyState === 3) connect();
+    },
+    join(c){
+      wantJoin = String(c || '').trim().toUpperCase();
+      if(!wantJoin) return;
+      if(send({ t:'join', code: wantJoin, game, name })) return;
+      if(!ws || ws.readyState === 3) connect();
+    },
     sendState(data){ send({ t:'state', data }); },
     chat(text){ const clean = String(text || '').slice(0, 140); if(!clean) return; send({ t:'chat', text: clean }); },
     disconnect(){ closed = true; clearInterval(pingTimer); try { ws && ws.close(); } catch {} },
