@@ -1109,6 +1109,9 @@ window.CT={
   get report(){ return lastReport; }, get replay(){ return !!replay; }, endReplay, showReport,
   sim(sec){ for(let t=0;t<sec;t+=1/30) simStep(1/30); },
   look(p,t){ camera.position.set(...p); camera.lookAt(...t); },
+  go(mode,tgt){ testMode=mode; if(tgt) target=tgt; driveMode='auto'; paintModes(); startTest(null,{launch:true}); },
+  lab(){ return {train:{kind:train.kind,n:train.parts.length,lens:train.parts.map(p=>p.len),mass:train.parts.map(p=>p.mass),s:+train.s.toFixed(1),running:train.running,len:+train.len.toFixed(1)}, hang:HANG, wedge:WEDGE, trailer:TRAILER, track:TRACKX}; },
+  parkTrain(s){ train.s=s; placeTrain(); },
   get errs(){ return window.CT_ERRS||[]; },
 };
 window.CT_READY=true;
