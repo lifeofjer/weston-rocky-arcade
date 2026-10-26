@@ -201,12 +201,13 @@ try {
   await expectType('/og-image.png', 200, 'image/png');
   await expectType('/site.webmanifest', 200, 'application/manifest+json');
   await expectType('/og/rail-city-3d.jpg', 200, 'image/jpeg');
+  await expectType('/og/crash-test-3d.jpg', 200, 'image/jpeg');
   const rail = await fetch(`${origin}/games/rail-city-3d.html`).then(r=>r.text());
   if(!rail.includes('og/rail-city-3d.jpg') || !rail.includes('og:title')) throw new Error('rail city missing per-game OG');
   if(!rail.includes('Rail City 3D · Weston') || !rail.includes('og:site_name')) throw new Error('rail city missing branded og:title');
   if(!rail.includes('Join the room and play together')) throw new Error('rail city missing play-together description');
   const ctPage = await fetch(`${origin}/games/crash-test-3d.html`).then(r=>r.text());
-  if(!ctPage.includes('https://westonandrockysarcade.com/og-image.png')) throw new Error('crash test should fall back to arcade OG image');
+  if(!ctPage.includes('og/crash-test-3d.jpg') || !ctPage.includes('og:title')) throw new Error('crash test missing per-game OG');
   if(!ctPage.includes('/favicon.ico')) throw new Error('crash test missing favicon link');
   if(!ctPage.includes('Crash Test 3D · Weston') || !ctPage.includes('twitter:title')) throw new Error('crash test missing branded share title');
   if(!ctPage.includes('og:url" content="https://westonandrockysarcade.com/games/crash-test-3d.html"')) throw new Error('crash test og:url must be absolute arcade domain');

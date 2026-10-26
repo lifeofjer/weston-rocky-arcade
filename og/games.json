@@ -1,6 +1,6 @@
 {
   "site": "https://westonandrockysarcade.com",
-  "generated": "2026-10-26T17:57:51.842Z",
+  "generated": "2026-10-26T18:14:30.422Z",
   "games": [
     {
       "slug": "turbo-tap-racers",
@@ -59,14 +59,14 @@
     {
       "slug": "rail-city-3d",
       "title": "RAIL CITY 3D",
-      "href": "games/rail-city-3d.html?v=play8",
+      "href": "games/rail-city-3d.html?v=play9",
       "thumb": "og/rail-city-3d.jpg"
     },
     {
       "slug": "crash-test-3d",
       "title": "CRASH TEST 3D",
-      "href": "games/crash-test-3d.html?v=play8",
-      "thumb": null
+      "href": "games/crash-test-3d.html?v=play9",
+      "thumb": "og/crash-test-3d.jpg"
     }
   ]
 }
