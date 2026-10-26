@@ -1,5 +1,5 @@
 // Arcade host: static files + reusable play-together WebSocket rooms.
-// Other games can join later with { t:'hello', game:'<name>' }. Only Rail City 3D is wired today.
+// Games join with { t:'hello', game:'<name>' }. Rail City 3D and Crash Test 3D are wired.
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -9,7 +9,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const PORT = Number(process.env.PORT) || 8080;
-const BUILD = process.env.ARCADE_BUILD || 'play7';
+const BUILD = process.env.ARCADE_BUILD || 'play8';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',

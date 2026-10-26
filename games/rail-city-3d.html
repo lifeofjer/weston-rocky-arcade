@@ -41,6 +41,8 @@ button:hover,.btn:hover{border-color:#ff4040}
 #grid button small{display:block;color:#9ab;font-size:10px;margin-top:2px}
 #grid button.on{background:#ff4040;border-color:#fff}
 #grid button.on small{color:#fff}
+#grid button.dad{border-color:#c9a040;box-shadow:2px 2px 0 #5a3a00}
+#grid button.dad.on{background:#b01018;border-color:#ffd21e}
 #selName{position:fixed;right:28px;bottom:30px;z-index:5;text-align:right;font-weight:bold;font-size:clamp(24px,4vw,46px);text-shadow:4px 4px 0 #000;color:#fff}
 #selName small{display:block;font-size:16px;color:#ffd21e}
 #go{font-size:24px;padding:12px 26px;background:#ff4040;animation:pulse 1s infinite alternate}
@@ -153,7 +155,8 @@ window.addEventListener('error', function(ev){ (window.RC_ERRS = window.RC_ERRS 
 import * as THREE from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { installKit } from './rail-city-kit.js?v=play7'; // tabby-cat + shared world + per-type car LOD + guest collide
+import { installKit } from './rail-city-kit.js?v=play8'; // tabby-cat + shared world + per-type car LOD + guest collide
+import { makeRoster, TYPE as SHARED_TYPE, carKind as sharedKind, makeRamHead, powerWagonDecal } from './arcade-cars.js?v=play8';
 const $ = id => document.getElementById(id);
 const V3 = THREE.Vector3;
 const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -308,54 +311,7 @@ function bake(g){ g.updateMatrixWorld(true); const inv=new THREE.Matrix4().copy(
   return g; }
 
 // ================= VEHICLES =================
-const CLS={
- hyper:{L:4.6,W:2.05,r:.35,af:.32,ar:-.31,clr:.11,nose:.56,cowl:.2,belt:.82,beltRise:.05,rg:-.42,tail:.92,roof:1.14,rf:.04,rb:-.14,cw:.7,top:92,acc:23,turn:2.2,grip:9,mass:1.15,hl:'slim',tl:'twin',spoiler:'wing',intake:true,doors:1,rearGlass:false},
- sport:{L:4.52,W:1.9,r:.35,af:.34,ar:-.32,clr:.12,nose:.66,cowl:.18,belt:.9,beltRise:0,rg:-.4,tail:.98,roof:1.3,rf:0,rb:-.16,cw:.74,top:84,acc:20,turn:2.3,grip:8.5,mass:1.15,hl:'round',tl:'bar',spoiler:'duck',doors:1,rearGlass:true},
- sedan:{L:4.95,W:1.96,r:.36,af:.33,ar:-.31,clr:.14,nose:.7,cowl:.2,belt:.96,beltRise:.04,rg:-.36,tail:1.03,roof:1.44,rf:.04,rb:-.2,cw:.8,top:70,acc:16,turn:2.1,grip:7.5,mass:1.35,hl:'slim',tl:'twin',doors:2,rearGlass:true,grille:true},
- suv:{L:4.75,W:1.98,r:.39,af:.32,ar:-.31,clr:.2,nose:.85,cowl:.22,belt:1.06,beltRise:.04,rg:-.43,tail:1.14,roof:1.64,rf:.06,rb:-.32,cw:.82,top:62,acc:14,turn:2.0,grip:7,mass:1.6,hl:'slim',tl:'twin',doors:2,rearGlass:true,grille:true},
- muscle:{L:4.8,W:1.92,r:.37,af:.34,ar:-.31,clr:.13,nose:.72,cowl:.15,belt:.95,beltRise:0,rg:-.3,tail:1.0,roof:1.36,rf:-.02,rb:-.15,cw:.78,top:76,acc:18,turn:2.1,grip:7.5,mass:1.4,hl:'slim',tl:'twin',doors:1,rearGlass:true,grille:true,spoiler:'duck'},
- pickup:{L:5.9,W:2.2,r:.46,af:.36,ar:-.3,clr:.36,nose:1.22,cowl:.22,belt:1.28,beltRise:0,rg:-.06,tail:1.28,roof:2.0,rf:.11,rb:-.04,cw:.9,top:52,acc:12,turn:1.9,grip:6.5,mass:2.2,hl:'slim',tl:'twin',doors:2,rearGlass:true,grille:true,bed:true,flares:true},
- jeep:{L:4.4,W:1.94,r:.43,af:.34,ar:-.32,clr:.32,nose:1.08,cowl:.2,belt:1.16,beltRise:0,rg:-.47,tail:1.16,roof:1.86,rf:.13,rb:-.45,cw:.94,top:48,acc:12,turn:2.1,grip:6.5,mass:1.8,hl:'round',tl:'twin',doors:2,rearGlass:true,grille:true,spare:true,flares:true},
- gwagon:{L:4.85,W:1.98,r:.43,af:.33,ar:-.31,clr:.3,nose:1.12,cowl:.2,belt:1.2,beltRise:0,rg:-.47,tail:1.2,roof:1.96,rf:.14,rb:-.45,cw:.94,top:58,acc:13,turn:2.0,grip:6.8,mass:2.2,hl:'round',tl:'twin',doors:2,rearGlass:true,grille:true,spare:true},
- police:{L:5.05,W:1.96,r:.37,af:.33,ar:-.31,clr:.14,nose:.74,cowl:.19,belt:.98,beltRise:.02,rg:-.33,tail:1.05,roof:1.45,rf:.03,rb:-.2,cw:.8,top:72,acc:17,turn:2.1,grip:7.5,mass:1.45,hl:'slim',tl:'twin',doors:2,rearGlass:true,grille:true,cab2:0xf2f2f2,bar:true},
- monster:{L:4.9,W:2.1,r:.4,af:.34,ar:-.3,clr:.1,nose:.85,cowl:.22,belt:.95,beltRise:0,rg:-.06,tail:.95,roof:1.6,rf:.11,rb:-.04,cw:.9,top:50,acc:15,turn:2.0,grip:6.5,mass:3,hl:'slim',tl:'twin',doors:1,rearGlass:true,grille:true,bed:true,lift:1.25,mr:1.0,noArch:true},
- cyber:{L:5.68,W:2.2,r:.45,af:.34,ar:-.32,clr:.38,top:58,acc:17,turn:1.9,grip:7,mass:2.6},
- semi:{L:16.4,W:2.55,r:.52,top:36,acc:6,turn:1.3,grip:6,mass:7,big:true},
- tsemi:{L:16.4,W:2.55,r:.52,top:42,acc:9,turn:1.3,grip:6,mass:7,big:true,ev:true},
- fire:{L:10.8,W:2.55,r:.55,top:40,acc:8,turn:1.5,grip:6,mass:5,big:true,siren:true},
-};
-const ROSTER=[
- ['TESLA CYBERTRUCK','cyber',0xb8bcc0,{ev:true}],
- ['TESLA MODEL S','sedan',0xb0101c,{L:5.0,roof:1.43,rb:-.24,rg:-.42,tesla:true,top:90,acc:26}],
- ['TESLA MODEL 3','sedan',0xf2f2f2,{L:4.72,roof:1.44,rb:-.22,rg:-.4,tesla:true,top:72,acc:20}],
- ['TESLA MODEL Y','suv',0x1b3f8b,{rb:-.28,rg:-.42,roof:1.62,tesla:true,top:70,acc:19}],
- ['TESLA MODEL X','suv',0x121316,{L:5.04,roof:1.68,rb:-.3,rg:-.43,tesla:true,top:72,acc:20}],
- ['TESLA ROADSTER','sport',0xd0101a,{L:4.3,roof:1.2,rb:-.08,rg:-.32,tesla:true,hl:'slim',spoiler:null,top:110,acc:30}],
- ['TESLA SEMI','tsemi',0xe9ebee,{}],
- ['LAMBORGHINI AVENTADOR','hyper',0xff7f00,{L:4.94,W:2.1,rf:.07,rb:-.12,top:97}],
- ['LAMBORGHINI HURACAN','hyper',0x7bd321,{L:4.52,roof:1.17,spoiler:'duck',top:90}],
- ['LAMBORGHINI URUS','suv',0xffc300,{L:5.11,W:2.02,roof:1.62,rb:-.25,rg:-.4,clr:.17,top:85,acc:20,rim:'dark'}],
- ['FERRARI SF90 STRADALE','hyper',0xd40000,{L:4.71,W:1.97,roof:1.19,rf:.06,spoiler:'duck',top:95,acc:26}],
- ['FERRARI LAFERRARI','hyper',0xb80d0d,{L:4.7,roof:1.11,spoiler:'duck',top:97}],
- ['FERRARI F8 TRIBUTO','hyper',0xffd000,{roof:1.2,rg:-.38,spoiler:'duck',top:94}],
- ['PORSCHE 911 TURBO S','sport',0xb9bcc1,{top:92,acc:25}],
- ['PORSCHE 911 GT3 RS','sport',0x3fd06a,{spoiler:'wing',top:88,rim:'dark'}],
- ['BUGATTI CHIRON','hyper',0x1a3fb5,{L:4.54,W:2.04,roof:1.21,cab2:0x0d0f14,spoiler:'duck',top:115,acc:28}],
- ['McLAREN P1','hyper',0xff7a00,{roof:1.17,top:98}],
- ['CORVETTE C8','hyper',0x1d6fe0,{roof:1.24,top:86,spoiler:'duck'}],
- ['FORD MUSTANG GT','muscle',0x1f2d6b,{}],
- ['POLICE INTERCEPTOR','police',0x111114,{}],
- ['FORD F-150 RAPTOR','pickup',0x2b5aa6,{}],
- ['JEEP WRANGLER','jeep',0x2e7d32,{}],
- ['MERCEDES G-WAGON','gwagon',0x18191b,{rim:'dark'}],
- ['PETERBILT 579','semi',0xc4141c,{aero:true}],
- ['KENWORTH W900','semi',0x1a3c8c,{}],
- ['FIRE TRUCK','fire',0xc8101a,{}],
- ['MONSTER TRUCK','monster',0x2ea3ff,{}],
- ['TOYOTA CAMRY','sedan',0x8a8f96,{}],
- ['HONDA CIVIC','sedan',0x2b2b30,{L:4.6,roof:1.41}],
- ['POLICE CYBERTRUCK','cyber',0x16181c,{ev:true,police:true,bar:true}],
-].map(([name,type,color,o])=>({name,type,color,...CLS[type],...o}));
+const ROSTER=makeRoster();
 const POLICE_CYBER=ROSTER.findIndex(d=>d.name==='POLICE CYBERTRUCK');
 const TRAFFIC=ROSTER.map((d,i)=>i).filter(i=>!ROSTER[i].big && ROSTER[i].type!=='monster');
 const BIGS=ROSTER.map((d,i)=>i).filter(i=>ROSTER[i].big);
@@ -408,15 +364,28 @@ function buildVehicle(d){
     if(d.doors===2) B(cw+.03,H-b-.08,.09,MAT.black,0,(H+b)/2-.02,(zF+zB)/2+.15,P);
     const hy=d.nose-.06, hz=zf-.1;
     if(d.hl==='round') for(const s of [-1,1]) C(.12,.12,.08,16,MAT.head,s*(W/2-.34),hy+.04,hz-.04,'z',P);
+    else if(d.hl==='stack' || d.ram){ for(const s of [-1,1]){ B(.42,.12,.12,MAT.head,s*(W/2-.4),hy+.08,hz,{...P}); B(.42,.1,.12,MAT.amber,s*(W/2-.4),hy-.08,hz,{...P}); } }
     else for(const s of [-1,1]) B(.46,.07,.16,MAT.head,s*(W/2-.36),hy,hz,{...P, ry:-s*.15});
     if(d.tl==='bar' || d.tesla) B(W*.86,.06,.06,MAT.tail,0,d.tail-.16,zr+.03,P); else for(const s of [-1,1]) B(.42,.1,.06,MAT.tail,s*(W/2-.3),d.tail-.16,zr+.03,P);
-    if(d.grille && !d.tesla){ const tall=['pickup','jeep','gwagon','monster'].includes(t); B(W*(tall?.62:.5),tall?.42:.22,.06,tall?MAT.chrome:MAT.black,0,tall?d.nose-.3:d.clr+.32,zf+.005,P);
+    if(d.ram){
+      const gh=d.powerWagon?.62:.5, gy=d.nose-.28;
+      B(W*(d.powerWagon?.72:.66),gh,.1,MAT.chrome,0,gy,zf+.03,{...P,part:'grille'});
+      B(W*.62,.07,.05,MAT.black,0,gy,zf+.08,P);
+      B(.08,gh*.88,.05,MAT.black,0,gy,zf+.08,P);
+      const head=makeRamHead(THREE,MAT.chrome); head.position.set(0,gy,zf+.12); head.scale.setScalar(d.powerWagon?.9:.7); hold.add(head);
+    } else if(d.grille && !d.tesla){ const tall=['pickup','jeep','gwagon','monster'].includes(t); B(W*(tall?.62:.5),tall?.42:.22,.06,tall?MAT.chrome:MAT.black,0,tall?d.nose-.3:d.clr+.32,zf+.005,P);
       if(t==='jeep') for(let i=-3;i<=3;i++) B(.07,.36,.07,MAT.black,i*.15,d.nose-.3,zf+.03,P); }
     B(W*.7,.12,.05,MAT.black,0,d.clr+.17,zf-.03,P);
     B(W*.78,.16,.12,MAT.black,0,d.clr+.1,zr+.08,P);
     if(d.intake) for(const s of [-1,1]) B(.04,.28,.6,MAT.black,s*(W/2+.005),d.belt-.25,d.ar*L+d.r+.55,P);
     if(!d.tesla) for(const s of (t==='hyper'?[-.15,.15]:[-1,1])) C(.05,.05,.2,10,MAT.chrome,s*.45,d.clr+.17,zr+.04,'z',P);
-    B(W*.92,.2,.18,t==='police'||t==='pickup'||t==='jeep'||t==='monster'?MAT.black:paint,0,d.clr+.24,zf-.03,{...P,part:'bumper',seg:true});
+    if(d.winch || d.powerWagon){
+      B(W*.98,.36,.42,MAT.black,0,d.clr+.2,zf+.12,{...P,part:'bumper',seg:true});
+      B(W*.7,.14,.16,paint,0,d.clr+.36,zf+.16,{...P,part:'bumper'});
+      C(.11,.11,.28,10,MAT.steel,0,d.clr+.18,zf+.34,'x',{...P,part:'winch'});
+      B(.22,.16,.16,MAT.black,0,d.clr+.18,zf+.28,{...P,part:'winch'});
+      B(.08,.1,.14,MAT.chrome,0,d.clr+.08,zf+.46,{...P,part:'hook'});
+    } else B(W*.92,.2,.18,t==='police'||t==='pickup'||t==='jeep'||t==='monster'?MAT.black:paint,0,d.clr+.24,zf-.03,{...P,part:'bumper',seg:true});
     B(W*.92,.2,.16,t==='pickup'||t==='jeep'||t==='gwagon'||t==='monster'?MAT.black:paint,0,d.clr+.3,zr+.1,{...P,part:'bumper',seg:true});
     const AF=d.af*L, AR=d.ar*L, R=d.r+.06, dz0=AR+R+.1, dz1=AF-R-.1, y0=d.clr+.2, y1=d.belt-.06;
     if(dz1-dz0>.6 && y1-y0>.2){ const n=d.doors||1; for(const s of [-1,1]) for(let k=0;k<n;k++){ const a=dz0+(dz1-dz0)*k/n, c=dz0+(dz1-dz0)*(k+1)/n;
@@ -426,12 +395,22 @@ function buildVehicle(d){
     else if(d.spoiler==='duck') B(W*.8,.05,.16,paint,0,d.tail+.02,zr+.12,{...P,rx:-.3});
     if(d.bar){ const rb=MAT.red.clone(), bb=MAT.blue.clone(); lightBars=[rb,bb]; B(.62,.13,.3,rb,-.32,H+.07,(zF+zB)/2,{...P,part:'lightbar'}); B(.62,.13,.3,bb,.32,H+.07,(zF+zB)/2,{...P,part:'lightbar'}); B(W*.6,.35,.08,MAT.black,0,d.clr+.35,zf+.08,{...P,part:'bumper'}); }
     if(d.bed){ B(W*.84,.03,(zg-zr)-.35,MAT.black,0,d.belt+.03,(zg+zr)/2-.05,P); }
-    if(d.flares) for(const s of [-1,1]) for(const a of [AF,AR]) B(.09,.12,R*2.3,MAT.black,s*(W/2+.03),2*d.r+.1,a,P);
+    if(d.flares || d.dually || d.powerWagon) for(const s of [-1,1]){ B(.12,.16,R*2.3,MAT.black,s*(W/2+.05),2*d.r+.12,AF,P); B(d.dually?.24:.16,d.dually?.28:.18,R*2.6,MAT.black,s*(W/2+(d.dually?.12:.06)),2*d.r+.14,AR,{...P,part:'flare'}); }
+    if(d.powerWagon){
+      const ptex=powerWagonDecal(THREE, ANISO);
+      const pmat=new THREE.MeshStandardMaterial({map:ptex, transparent:true, roughness:.55});
+      for(const s of [-1,1]){ const pl=new THREE.Mesh(new THREE.PlaneGeometry(2.4,.38), pmat); pl.position.set(s*(W/2+.03),d.belt+.05,(zg+zr)/2); pl.rotation.y=s*Math.PI/2; hold.add(pl); }
+    }
     if(d.spare) C(d.r*.95,d.r*.95,.26,20,MAT.tire,0,d.belt-.15,zr-.15,'z',{...P,part:'spare'});
     top=H+(d.lift||0)+(d.bar?.15:0);
     if(t==='monster'){ B(1.1,.3,3.4,MAT.black,0,d.mr+.15,0); for(const s of [-1,1]) for(const a of [1.5,-1.5]) C(.08,.08,1.3,8,MAT.chrome,s*.75,d.mr+.6,a,null,{rz:s*.35});
       for(const z of [1.55,-1.55]) for(const s of [-1,1]) wheel(s*(W/2+.25),z,d.mr,.85,{front:z>0}); }
-    else { const ww=t==='hyper'?.32:t==='pickup'||t==='jeep'?.34:.27; for(const a of [AF,AR]) for(const s of [-1,1]) wheel(s*(W/2-ww/2-.03),a,d.r,ww,{front:a>0}); }
+    else {
+      const ww=t==='hyper'?.32:t==='pickup'||t==='jeep'||d.ram?.36:.27;
+      for(const s of [-1,1]) wheel(s*(W/2-ww/2-.03),AF,d.r,ww,{front:true});
+      if(d.dually){ const inner=W/2-ww-.06, outer=W/2+ww*.2; for(const s of [-1,1]){ wheel(s*inner,AR,d.r,ww); wheel(s*outer,AR,d.r,ww); } }
+      else for(const s of [-1,1]) wheel(s*(W/2-ww/2-.03),AR,d.r,ww);
+    }
   } else if(t==='cyber'){
     const r=d.r, R=r+.08, AF=d.af*L, AR=d.ar*L, clr=d.clr, belt=1.3, zap=-.05*L, ap=1.92;
     const P=[[zr+.02,.62],[zr+.12,clr]];
@@ -1292,11 +1271,11 @@ function hud(){ const sp=me&&me.mode==='drive'?me.V.length():0, mph=Math.round(s
   $('st').textContent=train.derailed?'DERAILED!':X.active?'AT CROSSING!':Math.round(d/Math.max(1,train.v))+'s away'; }
 
 // ================= CAR SELECT =================
-const SHOW=new V3(70,0,462); let preview=null, sel=+(localStorage.getItem('railCitySel')||10); if(!(sel>=0&&sel<ROSTER.length)) sel=10;
+const SHOW=new V3(70,0,462); const POWER_WAGON=ROSTER.findIndex(d=>d.powerWagon); let preview=null, sel=+(localStorage.getItem('railCitySel')); if(!(sel>=0&&sel<ROSTER.length)) sel=POWER_WAGON>=0?POWER_WAGON:10;
 { const disc=new THREE.Mesh(new THREE.CylinderGeometry(7,7.3,.3,48), new THREE.MeshPhysicalMaterial({color:0x202226, metalness:.6, roughness:.25, clearcoat:1})); disc.position.set(SHOW.x,.15,SHOW.z); disc.receiveShadow=true; scene.add(disc); addOb(SHOW.x,SHOW.z,1,1); }
-const TYPE={hyper:'SUPERCAR',sport:'SPORTS CAR',sedan:'SEDAN',suv:'SUV',muscle:'MUSCLE CAR',pickup:'PICKUP',jeep:'4x4',gwagon:'4x4',police:'POLICE',monster:'MONSTER TRUCK',cyber:'TESLA TRUCK',semi:'SEMI TRUCK',tsemi:'ELECTRIC SEMI',fire:'FIRE TRUCK'};
-function carKind(d){ return d.police&&d.type==='cyber'?'POLICE TRUCK':TYPE[d.type]; }
-function buildGrid(){ const gr=$('grid'); gr.innerHTML=''; ROSTER.forEach((d,i)=>{ const b=document.createElement('button'); b.className='pe'+(i===sel?' on':''); b.innerHTML=`${d.name}<small>${carKind(d)} · ${Math.round(d.top*2.237)} MPH</small>`; b.onclick=()=>{ audio(); setSel(i); }; b.ondblclick=()=>startPlay(); gr.appendChild(b); }); }
+const TYPE=SHARED_TYPE;
+function carKind(d){ return sharedKind(d); }
+function buildGrid(){ const gr=$('grid'); gr.innerHTML=''; ROSTER.forEach((d,i)=>{ const b=document.createElement('button'); b.className='pe'+(i===sel?' on':'')+(d.powerWagon?' dad':''); b.innerHTML=`${d.name}<small>${carKind(d)} · ${Math.round(d.top*2.237)} MPH${d.powerWagon?" · DAD'S TRUCK":''}</small>`; b.onclick=()=>{ audio(); setSel(i); }; b.ondblclick=()=>startPlay(); gr.appendChild(b); }); }
 function setSel(i){ sel=(i+ROSTER.length)%ROSTER.length; localStorage.setItem('railCitySel',sel); [...$('grid').children].forEach((b,k)=>b.classList.toggle('on',k===sel)); $('grid').children[sel].scrollIntoView({block:'nearest'});
   if(preview){ scene.remove(preview); preview.traverse(o=>{ if(o.isMesh && !SHARED.has(o.geometry)) o.geometry.dispose(); }); }
   const d=ROSTER[sel]; preview=buildVehicle(d); preview.position.copy(SHOW).setY(.3); preview.userData.L=d.L; scene.add(preview);
