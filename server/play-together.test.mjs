@@ -18,7 +18,7 @@ let child = null;
 let out = '';
 if(!external){
   child = spawn(process.execPath, ['server/index.mjs'], {
-    env: { ...process.env, PORT: String(PORT), ARCADE_BUILD: 'play8' },
+    env: { ...process.env, PORT: String(PORT), ARCADE_BUILD: 'play9' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   child.stdout.on('data', d => { out += d; process.stdout.write(d); });
@@ -59,12 +59,12 @@ try {
 
   const health = await fetch(`${origin}/api/play/health`).then(r=>r.json());
   if(!health.ok) throw new Error('health failed');
-  if(health.build !== 'play8' && !external) throw new Error('expected play8 build header via health, got '+health.build);
+  if(health.build !== 'play9' && !external) throw new Error('expected play9 build header via health, got '+health.build);
 
   const html = await fetch(`${origin}/games/rail-city-3d.html`).then(r=>r.text());
   if(!html.includes('PLAY TOGETHER') || !html.includes('tabby-cat')) throw new Error('rail city page missing new features');
   if(!html.includes('gmTag') || !html.includes('gmDerail') || !html.includes('gameHud')) throw new Error('mini-game UI missing');
-  if(!html.includes('play8')) throw new Error('html not on play8');
+  if(!html.includes('play9')) throw new Error('html not on play9');
   if(!html.includes('2015 RAM POWER WAGON') && !html.includes('arcade-cars.js')) throw new Error('rail city missing shared Ram roster');
   if(!html.includes('addRamp') || !html.includes('groundY') || !html.includes('packTrain')) throw new Error('ramps / shared world helpers missing');
   if(!html.includes('buildLodKit') || !html.includes('showDetail') || !html.includes('TBLOB') || !html.includes('InstancedMesh')) throw new Error('per-type car LOD missing');
@@ -77,7 +77,7 @@ try {
 
   const hdr = await fetch(`${origin}/games/rail-city-3d.html`);
   const buildHdr = hdr.headers.get('x-arcade-build');
-  if(buildHdr !== 'play8') throw new Error('X-Arcade-Build is '+buildHdr+' not play8');
+  if(buildHdr !== 'play9') throw new Error('X-Arcade-Build is '+buildHdr+' not play9');
 
   const crash = await fetch(`${origin}/games/crash-test-3d.html`).then(r=>r.text());
   if(!crash.includes('PLAY TOGETHER') || !crash.includes('tabby-cat')) throw new Error('crash test missing play-together / cat');
@@ -88,13 +88,28 @@ try {
   if(!crash.includes('RAM 3500 DUALLY') && !crash.includes('dually')) throw new Error('crash test missing Ram 3500 dually');
   if(!crash.includes('makeDummy') || !crash.includes('gash') || !crash.includes('CRASH REPORT')) throw new Error('crash test missing dummies / gash / report');
   if(!crash.includes('HEAD-ON') || !crash.includes('SPIKES') || !crash.includes('FREE DRIVE')) throw new Error('crash test modes missing');
-  if(!crash.includes('play8')) throw new Error('crash test html not on play8');
+  if(!crash.includes('play9')) throw new Error('crash test html not on play9');
+  if(!crash.includes('createVehicleSystem') || !crash.includes('wreckDeform') || !crash.includes('WRECK_HEAVY')) throw new Error('crash test missing shared Rail City builder / heavy wreck');
+  if(crash.includes('buildBlockyVehicle')) throw new Error('crash test still uses blocky cars');
+  if(!crash.includes('function rideOver') || !crash.includes('chassisY') || !crash.includes('roofTo')) throw new Error('crash test missing height-aware ride-over crush');
+  if(!crash.includes('const HANG') || !crash.includes('TRACKX') || !crash.includes('Indoor crash hangar')) throw new Error('crash test missing indoor hangar / through-track');
+  if(!crash.includes('tWedge') || !crash.includes("kind==='wedge'") || !crash.includes('split:')) throw new Error('crash test missing B-2 wedge target');
+  if(!crash.includes('tTrailer') || !crash.includes("kind==='icc'") || !crash.includes('trailerSide') || !crash.includes('under')) throw new Error('crash test missing trailer ICC / side underride');
+  if(!crash.includes('tDiesel') || !crash.includes('tFront') || !crash.includes('buildLoco') || !crash.includes('buildFrontRunnerLoco') || !crash.includes('assembleTrain')) throw new Error('crash test missing diesel / FrontRunner trains');
+  if(!crash.includes('kickImpact') || !crash.includes('stepPitch') || !crash.includes('popHood') || !crash.includes('roofLand')) throw new Error('crash test missing rear-kick / hood / rollover');
+  if(!crash.includes("kind==='train'")) throw new Error('crash test missing train plow exception');
   const crashHdr = await fetch(`${origin}/games/crash-test-3d.html`);
-  if(crashHdr.headers.get('x-arcade-build') !== 'play8') throw new Error('crash test X-Arcade-Build not play8');
+  if(crashHdr.headers.get('x-arcade-build') !== 'play9') throw new Error('crash test X-Arcade-Build not play9');
 
   const cars = fs.readFileSync(path.join(root, 'games/arcade-cars.js'), 'utf8');
   if(!cars.includes('2015 RAM POWER WAGON') || !cars.includes('powerWagon') || !cars.includes('dually')) throw new Error('arcade-cars missing Ram trucks');
   if(!cars.includes('makeRamHead') || !cars.includes('powerWagonDecal') || !cars.includes('winch')) throw new Error('arcade-cars missing Power Wagon details');
+  if(!cars.includes('createVehicleSystem') || !cars.includes('sideExtrude') || !cars.includes('wreckDeform')) throw new Error('arcade-cars missing shared Rail City builder / wreck');
+  if(!cars.includes('roofTo') || !cars.includes('hoodTo') || !cars.includes('split>0')) throw new Error('wreckDeform missing height crush / split');
+  if(!cars.includes('buildLoco') || !cars.includes('buildFrontRunnerLoco') || !cars.includes('buildBilevel') || !cars.includes('part:\'hood\'')) throw new Error('arcade-cars missing shared trains / hood');
+  if(cars.includes('buildBlockyVehicle')) throw new Error('blocky vehicle builder should be gone');
+  if(!html.includes('buildLoco') || !html.includes('buildRailCar')) throw new Error('rail city not using shared train kit');
+  if(!html.includes('createVehicleSystem')) throw new Error('rail city not using shared vehicle kit');
   const ctKit = fs.readFileSync(path.join(root, 'games/crash-test-kit.js'), 'utf8');
   if(!ctKit.includes('crash-test-3d') || !ctKit.includes('sendWorld') || !ctKit.includes('noteCrash')) throw new Error('crash-test kit missing host world / crash seed');
 
@@ -163,8 +178,8 @@ try {
   if(guestWorld) throw new Error('guest world snapshot was relayed');
 
   const page = await fetch(`${origin}/index.html`).then(r=>r.text());
-  if(!page.includes('rail-city-3d.html?v=play8')) throw new Error('arcade card not cache-busted to play8');
-  if(!page.includes('crash-test-3d.html?v=play8')) throw new Error('crash test arcade card missing');
+  if(!page.includes('rail-city-3d.html?v=play9')) throw new Error('arcade card not cache-busted to play9');
+  if(!page.includes('crash-test-3d.html?v=play9')) throw new Error('crash test arcade card missing');
   if(!page.includes('og:image') || !page.includes('https://westonandrockysarcade.com/og-image.png')) throw new Error('index missing arcade OG image');
   if(!page.includes('rel="canonical"') || !page.includes('twitter:card')) throw new Error('index missing canonical/twitter card');
   if(!page.includes('/favicon.svg') || !page.includes('/site.webmanifest')) throw new Error('index missing favicon links');
@@ -186,12 +201,13 @@ try {
   await expectType('/og-image.png', 200, 'image/png');
   await expectType('/site.webmanifest', 200, 'application/manifest+json');
   await expectType('/og/rail-city-3d.jpg', 200, 'image/jpeg');
+  await expectType('/og/crash-test-3d.jpg', 200, 'image/jpeg');
   const rail = await fetch(`${origin}/games/rail-city-3d.html`).then(r=>r.text());
   if(!rail.includes('og/rail-city-3d.jpg') || !rail.includes('og:title')) throw new Error('rail city missing per-game OG');
   if(!rail.includes('Rail City 3D · Weston') || !rail.includes('og:site_name')) throw new Error('rail city missing branded og:title');
   if(!rail.includes('Join the room and play together')) throw new Error('rail city missing play-together description');
   const ctPage = await fetch(`${origin}/games/crash-test-3d.html`).then(r=>r.text());
-  if(!ctPage.includes('https://westonandrockysarcade.com/og-image.png')) throw new Error('crash test should fall back to arcade OG image');
+  if(!ctPage.includes('og/crash-test-3d.jpg') || !ctPage.includes('og:title')) throw new Error('crash test missing per-game OG');
   if(!ctPage.includes('/favicon.ico')) throw new Error('crash test missing favicon link');
   if(!ctPage.includes('Crash Test 3D · Weston') || !ctPage.includes('twitter:title')) throw new Error('crash test missing branded share title');
   if(!ctPage.includes('og:url" content="https://westonandrockysarcade.com/games/crash-test-3d.html"')) throw new Error('crash test og:url must be absolute arcade domain');
@@ -225,7 +241,7 @@ try {
   if(!ctWorld.world || !ctWorld.world.cars || ctWorld.world.cars[0].w.seed !== 99) throw new Error('crash-test wreck seed did not sync');
   c.close(); d.close();
 
-  console.log('play-together ok code='+created.code+' crash A->B host='+(external?'docker':'node')+' build=play8 ct='+createdCT.code);
+  console.log('play-together ok code='+created.code+' crash A->B host='+(external?'docker':'node')+' build=play9 ct='+createdCT.code);
   stop();
   process.exit(0);
 } catch (err) {
