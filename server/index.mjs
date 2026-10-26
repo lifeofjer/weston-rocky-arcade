@@ -25,10 +25,11 @@ const MIME = {
   '.ico': 'image/x-icon',
   '.woff2': 'font/woff2',
   '.map': 'application/json',
+  '.webmanifest': 'application/manifest+json',
 };
 
 const NO_STORE = 'no-cache, no-store, must-revalidate';
-const SAFE = new Set(['.html', '.js', '.mjs', '.css', '.json', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff2', '.map']);
+const SAFE = new Set(['.html', '.js', '.mjs', '.css', '.json', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff2', '.map', '.webmanifest']);
 
 function safeJoin(root, urlPath){
   const decoded = decodeURIComponent((urlPath || '/').split('?')[0].split('#')[0]);
@@ -197,7 +198,6 @@ function onMessage(client, raw){
 
 const server = http.createServer((req, res)=>{
   const url = req.url || '/';
-  if(url.startsWith('/favicon.ico')) return send(res, 204, '');
   if(url.startsWith('/api/play/health') || url === '/healthz'){
     return send(res, 200, JSON.stringify({ ok:true, build:BUILD, rooms: rooms.size }), { 'Content-Type': 'application/json; charset=utf-8' });
   }

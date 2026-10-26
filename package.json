@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "start": "node server/index.mjs",
-    "test:play": "node server/play-together.test.mjs"
+    "test:play": "node server/play-together.test.mjs",
+    "icons": "node scripts/make-icons.mjs",
+    "og": "node scripts/make-og.mjs"
   },
   "dependencies": {
     "three": "0.160.0",

@@ -165,8 +165,31 @@ try {
   const page = await fetch(`${origin}/index.html`).then(r=>r.text());
   if(!page.includes('rail-city-3d.html?v=play8')) throw new Error('arcade card not cache-busted to play8');
   if(!page.includes('crash-test-3d.html?v=play8')) throw new Error('crash test arcade card missing');
+  if(!page.includes('og:image') || !page.includes('https://westonandrockysarcade.com/og-image.png')) throw new Error('index missing arcade OG image');
+  if(!page.includes('rel="canonical"') || !page.includes('twitter:card')) throw new Error('index missing canonical/twitter card');
+  if(!page.includes('/favicon.svg') || !page.includes('/site.webmanifest')) throw new Error('index missing favicon links');
   const rootPage = await fetch(`${origin}/`);
   if(rootPage.status !== 200) throw new Error('root not 200');
+
+  async function expectType(urlPath, status, type){
+    const r = await fetch(`${origin}${urlPath}`);
+    const ct = r.headers.get('content-type') || '';
+    if(r.status !== status) throw new Error(urlPath+' status '+r.status);
+    if(!ct.includes(type)) throw new Error(urlPath+' type '+ct+' expected '+type);
+  }
+  await expectType('/favicon.ico', 200, 'image/');
+  await expectType('/favicon.svg', 200, 'image/svg+xml');
+  await expectType('/apple-touch-icon.png', 200, 'image/png');
+  await expectType('/icon-192.png', 200, 'image/png');
+  await expectType('/icon-512.png', 200, 'image/png');
+  await expectType('/og-image.png', 200, 'image/png');
+  await expectType('/site.webmanifest', 200, 'application/manifest+json');
+  await expectType('/og/rail-city-3d.jpg', 200, 'image/jpeg');
+  const rail = await fetch(`${origin}/games/rail-city-3d.html`).then(r=>r.text());
+  if(!rail.includes('og/rail-city-3d.jpg') || !rail.includes('og:title')) throw new Error('rail city missing per-game OG');
+  const ctPage = await fetch(`${origin}/games/crash-test-3d.html`).then(r=>r.text());
+  if(!ctPage.includes('https://westonandrockysarcade.com/og-image.png')) throw new Error('crash test should fall back to arcade OG image');
+  if(!ctPage.includes('/favicon.ico')) throw new Error('crash test missing favicon link');
 
   // Host leave: guest becomes host and gets a reset so both screens match.
   const hostP = once(b, 'host');

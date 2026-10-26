@@ -1,0 +1,72 @@
+{
+  "site": "https://westonandrockysarcade.com",
+  "generated": "2026-10-26T17:57:51.842Z",
+  "games": [
+    {
+      "slug": "turbo-tap-racers",
+      "title": "TURBO TAP RACERS",
+      "href": "games/turbo-tap-racers.html",
+      "thumb": "og/turbo-tap-racers.png"
+    },
+    {
+      "slug": "train-crash",
+      "title": "TRAIN CRASH",
+      "href": "games/train-crash.html",
+      "thumb": "og/train-crash.png"
+    },
+    {
+      "slug": "asteroid-dodge",
+      "title": "ASTEROID DODGE",
+      "href": "games/asteroid-dodge.html",
+      "thumb": "og/asteroid-dodge.png"
+    },
+    {
+      "slug": "xenonite-builder",
+      "title": "XENONITE BUILDER",
+      "href": "games/xenonite-builder.html",
+      "thumb": "og/xenonite-builder.jpg"
+    },
+    {
+      "slug": "crash-derby",
+      "title": "CRASH DERBY",
+      "href": "games/crash-derby.html",
+      "thumb": "og/crash-derby.png"
+    },
+    {
+      "slug": "big-load",
+      "title": "ROCKY'S MEGA GAME",
+      "href": "games/big-load.html",
+      "thumb": "og/big-load.png"
+    },
+    {
+      "slug": "crash-ten",
+      "title": "CRASH 10",
+      "href": "games/crash-ten.html",
+      "thumb": "og/crash-ten.png"
+    },
+    {
+      "slug": "cat-city",
+      "title": "CAT CITY CRASH",
+      "href": "games/cat-city.html",
+      "thumb": "og/cat-city.jpg"
+    },
+    {
+      "slug": "train-crash-3d",
+      "title": "TRAIN CRASH 3D",
+      "href": "games/train-crash-3d.html",
+      "thumb": "og/train-crash-3d.jpg"
+    },
+    {
+      "slug": "rail-city-3d",
+      "title": "RAIL CITY 3D",
+      "href": "games/rail-city-3d.html?v=play8",
+      "thumb": "og/rail-city-3d.jpg"
+    },
+    {
+      "slug": "crash-test-3d",
+      "title": "CRASH TEST 3D",
+      "href": "games/crash-test-3d.html?v=play8",
+      "thumb": null
+    }
+  ]
+}
