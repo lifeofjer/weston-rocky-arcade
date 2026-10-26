@@ -321,6 +321,10 @@ export function createVehicleSystem(THREE, mergeGeometries, opts={}){
         for(const s of [-1,1]){ const pl=new THREE.Mesh(new THREE.PlaneGeometry(2.4,.38), pmat); pl.position.set(s*(W/2+.03),d.belt+.05,(zg+zr)/2); pl.rotation.y=s*Math.PI/2; hold.add(pl); }
       }
       if(d.spare) C(d.r*.95,d.r*.95,.26,20,MAT.tire,0,d.belt-.15,zr-.15,'z',{...P,part:'spare'});
+      { const hoodL=Math.max(.62, zf-zc-.1), hoodY=(d.nose+d.belt)*.5+(d.lift?0:.02);
+        const hg=new THREE.Group(); hg.position.set(0,hoodY,zc+.05); hg.userData.part='hood'; hg.userData.hood=true;
+        const hm=new THREE.Mesh(new THREE.BoxGeometry(W*.76,.045,hoodL,1,1,seg(hoodL)), paint);
+        hm.position.set(0,.02,hoodL/2); hg.add(hm); hold.add(hg); }
       top=H+(d.lift||0)+(d.bar?.15:0);
       if(t==='monster'){ B(1.1,.3,3.4,MAT.black,0,d.mr+.15,0); for(const s of [-1,1]) for(const a of [1.5,-1.5]) C(.08,.08,1.3,8,MAT.chrome,s*.75,d.mr+.6,a,null,{rz:s*.35});
         for(const z of [1.55,-1.55]) for(const s of [-1,1]) wheel(s*(W/2+.25),z,d.mr,.85,{front:z>0}); }
@@ -346,6 +350,8 @@ export function createVehicleSystem(THREE, mergeGeometries, opts={}){
       for(const s of [-1,1]) B(.03,.55,1.5,paint,s*(W/2+.012),.95,AF-R-.95,{part:'door',seg:true});
       for(const s of [-1,1]) B(.03,.55,1.2,paint,s*(W/2+.012),.95,AR+R+.75,{part:'door',seg:true});
       B(W*.9,.25,.2,MAT.black,0,clr+.2,zf-.05,{part:'bumper',seg:true});
+      { const hg=new THREE.Group(); hg.position.set(0,1.08,zf*.18); hg.userData.part='hood'; hg.userData.hood=true;
+        const hm=new THREE.Mesh(new THREE.BoxGeometry(W*.72,.04,zf*.28), paint); hm.position.set(0,.02,zf*.12); hg.add(hm); g.add(hg); }
       for(const s of [-1,1]) B(.18,.1,.16,MAT.black,s*(W*.45+.12),belt+.18,zf*.38,{part:'mirror'});
       for(const a of [AF,AR]) for(const s of [-1,1]) wheel(s*(W/2-.2),a,r,.34,{front:a>0,rim:MAT.rimDark});
       if(d.police || d.bar){
@@ -367,8 +373,8 @@ export function createVehicleSystem(THREE, mergeGeometries, opts={}){
         B(2.3,.05,.06,MAT.head,0,1.76,zf+.03); B(2.2,.4,.06,MAT.black,0,1.2,zf+.01); zc=zf-3.75; cabTop=4.02;
         B(2.5,.36,.32,MAT.black,0,.75,zf-.1,{part:'bumper',seg:true}); }
       else { const hoodL=aero?2.4:3.1; zc=zf-.35-hoodL;
-        if(aero){ B(2.0,1.15,hoodL,paint,0,1.72,zf-.35-hoodL/2,{seg:true}); B(2.0,.25,hoodL+.1,paint,0,2.35,zf-.35-hoodL/2,{rx:-.1}); B(1.5,1.05,.08,MAT.chrome,0,1.65,zf-.33); }
-        else { B(1.45,1.25,hoodL,paint,0,1.85,zf-.35-hoodL/2,{seg:true}); B(1.3,1.2,.08,MAT.chrome,0,1.85,zf-.33); C(.08,.08,.5,8,MAT.chrome,0,2.6,zf-.5,'z'); }
+        if(aero){ B(2.0,1.15,hoodL,paint,0,1.72,zf-.35-hoodL/2,{seg:true,part:'hood'}); B(2.0,.25,hoodL+.1,paint,0,2.35,zf-.35-hoodL/2,{rx:-.1,part:'hood'}); B(1.5,1.05,.08,MAT.chrome,0,1.65,zf-.33); }
+        else { B(1.45,1.25,hoodL,paint,0,1.85,zf-.35-hoodL/2,{seg:true,part:'hood'}); B(1.3,1.2,.08,MAT.chrome,0,1.85,zf-.33); C(.08,.08,.5,8,MAT.chrome,0,2.6,zf-.5,'z'); }
         for(const s of [-1,1]){ if(aero) B(.4,.16,.12,MAT.head,s*.82,1.35,zf-.3); else C(.16,.16,.1,14,MAT.head,s*1.0,1.45,zf-.55,'z'); B(.55,.15,1.6,paint,s*1.0,1.2,zf-1.3); }
         B(2.5,.38,.32,MAT.chrome,0,.75,zf-.16,{part:'bumper',seg:true});
         const cabH=aero?2.0:1.85; B(2.45,cabH,2.1,paint,0,1.3+cabH/2,zc-1.05,{seg:true});
@@ -406,7 +412,74 @@ export function createVehicleSystem(THREE, mergeGeometries, opts={}){
     return g;
   }
 
-  return { MAT, SHARED, bake, buildVehicle, carProfile, cabinProfile, sideExtrude, mkPaint:(c)=>mkPaint(THREE,c) };
+  // Rail City diesel freight + UTA FrontRunner commuter, shared so Crash Test matches.
+  const TM={ orange:new THREE.MeshPhysicalMaterial({color:0xe2611a, metalness:.25, roughness:.42, clearcoat:.5}), black:new THREE.MeshStandardMaterial({color:0x17181b, roughness:.6, metalness:.3}),
+    dark:new THREE.MeshStandardMaterial({color:0x2b2d31, roughness:.7, metalness:.4}), yellow:new THREE.MeshStandardMaterial({color:0xf4c20d, roughness:.5}), steel:new THREE.MeshStandardMaterial({color:0x5a5d62, metalness:.8, roughness:.45}),
+    wheel:new THREE.MeshStandardMaterial({color:0x3a3633, metalness:.85, roughness:.4}), grill:new THREE.MeshStandardMaterial({color:0x101114, metalness:.6, roughness:.4}),
+    silver:new THREE.MeshPhysicalMaterial({color:0xc8ccd2, metalness:.55, roughness:.35, clearcoat:.4}), red:new THREE.MeshStandardMaterial({color:0xb01018, roughness:.45, metalness:.2}) };
+  function TB(g,w,h,l,mat,x,y,z,rx){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,l),mat); m.position.set(x,y,z); if(rx) m.rotation.x=rx; g.add(m); return m; }
+  function TC(g,r,h,n,mat,x,y,z,axis){ const geo=new THREE.CylinderGeometry(r,r,h,n); if(axis==='x') geo.rotateZ(Math.PI/2); if(axis==='z') geo.rotateX(Math.PI/2); const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); g.add(m); return m; }
+  function truck(g,z,axles,r){ TB(g,2.5,.55,axles===3?4.6:3.0,TM.dark,0,.66,z); for(let k=0;k<axles;k++){ const az=z+(k-(axles-1)/2)*(axles===3?1.65:1.9); for(const s of [-1,1]) TC(g,r,.14,16,TM.wheel,s*.76,r,az,'x'); TB(g,1.7,.14,.14,TM.steel,0,r,az); }
+    for(const s of [-1,1]) TB(g,.14,.4,axles===3?4.2:2.6,TM.black,s*1.2,.7,z); }
+  function letter(g,text,col,w,h,y,z){ const tex=canvasTex(THREE, ANISO, 512,64,(c,W,H)=>{ c.font='bold 46px Arial Black,Arial'; c.fillStyle=col; c.textAlign='center'; c.textBaseline='middle'; c.fillText(text,W/2,H/2+2); });
+    const m=new THREE.MeshStandardMaterial({map:tex, transparent:true, roughness:.5}); for(const s of [-1,1]){ const p=new THREE.Mesh(new THREE.PlaneGeometry(w,h), m); p.position.set(s*1.24,y,z); p.rotation.y=s*Math.PI/2; g.add(p); } }
+  function buildLoco(num){ const g=new THREE.Group(), L=22.4, hz=L/2, o=TM.orange, k=TM.black;
+    TB(g,3.1,.38,L,k,0,1.42,0); TB(g,3.14,.12,L-.2,TM.yellow,0,1.36,0);
+    for(const s of [-1,1]){ TB(g,3.0,1.0,.35,k,0,.95,s*(hz-.15)); TB(g,2.6,.28,.5,TM.yellow,0,.5,s*(hz-.05)); TB(g,.4,.3,.6,k,0,1.0,s*(hz+.2)); }
+    truck(g,7.2,3,.52); truck(g,-7.2,3,.52);
+    { const geo=new THREE.CylinderGeometry(.78,.78,6.6,18).rotateX(Math.PI/2); geo.scale(1.65,1,1); const m=new THREE.Mesh(geo,TM.dark); m.position.set(0,.85,0); g.add(m); }
+    TB(g,2.45,2.55,13.0,o,0,2.9,-4.4);
+    for(let z=-9.6; z<1.5; z+=1.45) for(const s of [-1,1]) TB(g,.03,2.1,.05,k,s*1.235,2.85,z);
+    TB(g,2.52,.9,3.4,TM.grill,0,3.55,-9.0); TB(g,3.0,.75,3.6,o,0,4.4,-9.0);
+    for(const z of [-8.2,-9.8]) TC(g,.6,.12,16,TM.grill,0,4.83,z);
+    TB(g,2.3,.55,3.2,o,0,4.45,-1.6); TB(g,2.32,.3,2.6,TM.grill,0,4.47,-1.6); TB(g,.5,.5,1.0,TM.dark,0,4.42,-4.8);
+    g.add(new THREE.Mesh(sideExtrude([[2.1,1.6],[8.0,1.6],[8.0,2.95],[7.55,3.2],[5.8,3.42],[5.62,4.36],[2.1,4.36]],3.05,.05,2), o));
+    TB(g,3.15,.18,3.7,k,0,4.45,4.0);
+    for(const s of [-1,1]){ TB(g,1.15,.78,.05,MAT.glass,s*.66,3.9,5.74,-.18); TB(g,.06,.8,1.3,MAT.glass,s*1.53,3.75,4.5); TB(g,.06,.8,.9,MAT.glass,s*1.53,3.75,2.9);
+      TB(g,.3,.24,.06,MAT.head,s*.38,2.7,8.03); TB(g,.24,.24,.1,MAT.head,s*1.2,1.85,hz+.02); TB(g,.05,.05,L-1.0,TM.yellow,s*1.5,2.55,0); for(let z=-hz+.6; z<hz; z+=2.2) TB(g,.05,.95,.05,TM.yellow,s*1.5,2.1,z); }
+    TB(g,2.62,.14,.06,TM.yellow,0,2.0,8.03); TB(g,2.62,.14,.06,TM.yellow,0,2.3,8.03); TB(g,.9,.28,.05,TM.black,0,3.12,7.75,-.5);
+    TC(g,.1,.5,8,TM.dark,.4,4.72,3.4,'z'); TC(g,.08,.4,8,TM.dark,.15,4.72,3.4,'z');
+    bake(g); letter(g,'RAIL CITY '+num,'#111',8.5,1.0,3.05,-4.4); return {g, len:L, mass:70, H:4.9, loco:true}; }
+  function buildRailCar(kind,col,len){ const g=new THREE.Group(), hz=len/2, mat=new THREE.MeshStandardMaterial({color:col, metalness:.3, roughness:.6}), k=TM.black, dk=new THREE.MeshStandardMaterial({color:new THREE.Color(col).multiplyScalar(.6), metalness:.3, roughness:.6}); let H=4.8;
+    TB(g,2.9,.35,len,k,0,1.25,0); for(const s of [-1,1]) TB(g,.4,.3,.6,k,0,1.05,s*(hz+.2));
+    truck(g,hz-2.4,2,.45); truck(g,-hz+2.4,2,.45);
+    if(kind==='box'){ TB(g,3.12,3.6,len-.4,mat,0,3.2,0); for(let z=-hz+.8; z<hz-.6; z+=1.0) for(const s of [-1,1]) TB(g,.06,3.4,.09,dk,s*1.57,3.15,z); TB(g,3.2,3.1,3.0,dk,0,3.0,0); TB(g,3.2,.14,len-.3,dk,0,5.04,0); for(const s of [-1,1]) TB(g,3.24,.1,4,TM.steel,0,1.55+s*0,0); H=5.1; }
+    else if(kind==='tank'){ TC(g,1.5,len-2.2,22,mat,0,3.0,0,'z'); for(const s of [-1,1]){ const e=new THREE.Mesh(new THREE.SphereGeometry(1.5,20,10,0,Math.PI*2,0,Math.PI/2),mat); e.rotation.x=s*Math.PI/2; e.scale.y=.45; e.position.set(0,3.0,s*(hz-1.1)); g.add(e); }
+      TC(g,.55,.5,14,dk,0,4.6,0); TB(g,3.1,.08,2.2,TM.steel,0,4.4,0); TB(g,3.04,.22,len-2,dk,0,3.0,0); H=4.7; }
+    else if(kind==='hop'){ const a=hz-.5, w=(2*a)/3, P=[[a,4.8],[a,2.5]]; for(let b=0;b<3;b++){ const z0=a-b*w; P.push([z0-w*.32,1.3],[z0-w*.68,1.3],[z0-w,2.5]); } P.push([-a,4.8]); g.add(new THREE.Mesh(sideExtrude(P,3.05,.04,2),mat));
+      for(let z=-a+.9; z<a; z+=1.8) for(const s of [-1,1]) TB(g,.06,2.2,.12,dk,s*1.53,3.7,z); TB(g,2.4,.1,len-1.2,dk,0,4.85,0); H=4.9; }
+    else if(kind==='well'){ const cA=new THREE.MeshStandardMaterial({color:col, metalness:.4, roughness:.55}), cB=new THREE.MeshStandardMaterial({color:0x1f5ba8, metalness:.4, roughness:.55});
+      TB(g,2.5,2.6,12.2,cA,0,2.75,0); TB(g,2.5,2.6,15.6,cB,0,5.37,0); for(let z=-7.5; z<7.6; z+=.5) for(const s of [-1,1]) TB(g,.04,2.5,.12,(z>-6.1&&z<6.1)?cA:cB,s*1.26,(z>-6.1&&z<6.1)?2.75:5.37,z); H=6.7; }
+    else { TB(g,3.1,2.0,len-.4,mat,0,2.45,0); for(let z=-hz+1; z<hz-.6; z+=1.4) for(const s of [-1,1]) TB(g,.08,1.9,.12,dk,s*1.56,2.45,z); const coal=new THREE.Mesh(new THREE.BoxGeometry(2.8,.6,len-1,1,1,8), new THREE.MeshStandardMaterial({color:0x151515, roughness:1, flatShading:true})); coal.position.y=3.5; g.add(coal); H=3.9; }
+    bake(g); return {g, len, mass:35, H}; }
+  function buildFrontRunnerLoco(num){ const g=new THREE.Group(), L=20.2, hz=L/2, sil=TM.silver, k=TM.black;
+    TB(g,3.05,.36,L,k,0,1.38,0); TB(g,3.08,.1,L-.3,TM.red,0,1.32,0);
+    truck(g,6.4,3,.5); truck(g,-6.2,3,.5);
+    TB(g,3.0,2.35,8.4,sil,0,2.85,-2.8); TB(g,3.02,.22,8.4,k,0,4.12,-2.8);
+    TB(g,2.95,.28,8.4,TM.red,0,2.05,-2.8);
+    g.add(new THREE.Mesh(sideExtrude([[3.2,1.55],[8.6,1.55],[8.6,2.7],[8.15,3.05],[6.4,3.2],[6.2,4.15],[3.2,4.15]],3.02,.05,2), sil));
+    TB(g,3.04,.16,3.6,k,0,4.22,4.9);
+    for(const s of [-1,1]){ TB(g,1.1,.7,.05,MAT.glass,s*.62,3.75,6.55,-.16); TB(g,.06,.72,1.2,MAT.glass,s*1.52,3.55,5.3);
+      TB(g,.28,.2,.06,MAT.head,s*.4,2.55,hz-.08); TB(g,.2,.2,.08,MAT.head,s*1.15,1.8,hz+.02); TB(g,.05,.05,L-1.2,TM.red,s*1.48,2.4,0); }
+    TB(g,2.5,.12,.06,TM.yellow,0,1.95,hz-.05); TB(g,2.2,.55,2.6,TM.grill,0,3.2,-8.4);
+    bake(g); letter(g,'UTA '+num,'#111',7.2,.7,2.85,-2.6); return {g, len:L, mass:62, H:4.4, loco:true, commuter:true}; }
+  function buildBilevel(cab){ const g=new THREE.Group(), L=25.2, hz=L/2, sil=TM.silver, k=TM.black;
+    TB(g,3.05,.32,L,k,0,1.22,0); truck(g,hz-3.0,2,.42); truck(g,-hz+3.0,2,.42);
+    TB(g,3.12,3.55,L-.5,sil,0,3.15,0); TB(g,3.16,.18,L-.4,k,0,4.96,0);
+    TB(g,3.14,.22,L-.5,TM.red,0,1.95,0);
+    for(let z=-hz+2.2; z<hz-2.0; z+=1.7) for(const s of [-1,1]){
+      TB(g,.04,.42,.7,MAT.glass,s*1.57,2.55,z); TB(g,.04,.42,.7,MAT.glass,s*1.57,3.85,z);
+    }
+    for(const z of [-hz+6.2, hz-6.2]) TB(g,3.16,2.1,.9,k,0,2.55,z);
+    if(cab){
+      TB(g,3.0,1.6,.2,sil,0,3.4,-hz+.15);
+      for(const s of [-1,1]){ TB(g,1.05,.7,.05,MAT.glass,s*.6,3.7,-hz+.22,-.12); TB(g,.22,.18,.06,MAT.head,s*.45,2.15,-hz+.05); }
+    }
+    bake(g); if(!cab) letter(g,'FRONTRUNNER','#111',8.4,.55,2.85,0);
+    return {g, len:L, mass:cab?50:46, H:5.05, cab:!!cab}; }
+
+  return { MAT, SHARED, bake, buildVehicle, carProfile, cabinProfile, sideExtrude, mkPaint:(c)=>mkPaint(THREE,c),
+    buildLoco, buildRailCar, buildFrontRunnerLoco, buildBilevel, TM };
 }
 
 // Rail City crush/wreck kernel. Crash Test passes heavy>1 and fold>0 for smash-lab dents.
@@ -488,7 +561,7 @@ export function wreckDeform(THREE, ctx, e, wpt, wdir, sev, opts={}){
 
 export function popChance(part, sev, dist, isW, wheelCount, heavy=1){
   let ch=isW?(sev>.55?.7:sev>.28?.4:sev*.25):(sev>.35?.95:sev>.18?.7:sev*.7);
-  if(part==='door' || part==='bumper' || part==='mirror' || part==='grille') ch=Math.min(1, ch*(1.15+heavy*.35));
+  if(part==='door' || part==='bumper' || part==='mirror' || part==='grille' || part==='hood') ch=Math.min(1, ch*(1.15+heavy*.35));
   if(dist<2.4) ch*=1.55; else if(dist>4.5) ch*=.55;
   if(isW && wheelCount<=2) ch=0;
   return Math.min(1, ch);

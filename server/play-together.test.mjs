@@ -95,6 +95,9 @@ try {
   if(!crash.includes('const HANG') || !crash.includes('TRACKX') || !crash.includes('Indoor crash hangar')) throw new Error('crash test missing indoor hangar / through-track');
   if(!crash.includes('tWedge') || !crash.includes("kind==='wedge'") || !crash.includes('split:')) throw new Error('crash test missing B-2 wedge target');
   if(!crash.includes('tTrailer') || !crash.includes("kind==='icc'") || !crash.includes('trailerSide') || !crash.includes('under')) throw new Error('crash test missing trailer ICC / side underride');
+  if(!crash.includes('tDiesel') || !crash.includes('tFront') || !crash.includes('buildLoco') || !crash.includes('buildFrontRunnerLoco') || !crash.includes('assembleTrain')) throw new Error('crash test missing diesel / FrontRunner trains');
+  if(!crash.includes('kickImpact') || !crash.includes('stepPitch') || !crash.includes('popHood') || !crash.includes('roofLand')) throw new Error('crash test missing rear-kick / hood / rollover');
+  if(!crash.includes("kind==='train'")) throw new Error('crash test missing train plow exception');
   const crashHdr = await fetch(`${origin}/games/crash-test-3d.html`);
   if(crashHdr.headers.get('x-arcade-build') !== 'play9') throw new Error('crash test X-Arcade-Build not play9');
 
@@ -103,7 +106,9 @@ try {
   if(!cars.includes('makeRamHead') || !cars.includes('powerWagonDecal') || !cars.includes('winch')) throw new Error('arcade-cars missing Power Wagon details');
   if(!cars.includes('createVehicleSystem') || !cars.includes('sideExtrude') || !cars.includes('wreckDeform')) throw new Error('arcade-cars missing shared Rail City builder / wreck');
   if(!cars.includes('roofTo') || !cars.includes('hoodTo') || !cars.includes('split>0')) throw new Error('wreckDeform missing height crush / split');
+  if(!cars.includes('buildLoco') || !cars.includes('buildFrontRunnerLoco') || !cars.includes('buildBilevel') || !cars.includes('part:\'hood\'')) throw new Error('arcade-cars missing shared trains / hood');
   if(cars.includes('buildBlockyVehicle')) throw new Error('blocky vehicle builder should be gone');
+  if(!html.includes('buildLoco') || !html.includes('buildRailCar')) throw new Error('rail city not using shared train kit');
   if(!html.includes('createVehicleSystem')) throw new Error('rail city not using shared vehicle kit');
   const ctKit = fs.readFileSync(path.join(root, 'games/crash-test-kit.js'), 'utf8');
   if(!ctKit.includes('crash-test-3d') || !ctKit.includes('sendWorld') || !ctKit.includes('noteCrash')) throw new Error('crash-test kit missing host world / crash seed');
