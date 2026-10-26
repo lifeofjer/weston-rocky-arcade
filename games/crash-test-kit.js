@@ -260,7 +260,11 @@ export function installKit(ctx){
     const emos = $('chatEmo');
     if(emos){ emos.innerHTML=''; EMOJI.forEach(e=>{ const b=document.createElement('button'); b.type='button'; b.textContent=e; b.onclick=()=>{ if(net) net.chat(e); }; emos.appendChild(b); }); }
     const preset = roomFromUrl();
-    if(preset){ $('ptPanel').classList.remove('hidden'); bootNet().join(preset); }
+    if(preset){
+      const joinRoom = ()=>{ $('ptPanel').classList.remove('hidden'); bootNet().join(preset); };
+      if(typeof window.arcadeWhenReady === 'function') window.arcadeWhenReady(joinRoom);
+      else joinRoom();
+    }
     ensureCat();
   }
 

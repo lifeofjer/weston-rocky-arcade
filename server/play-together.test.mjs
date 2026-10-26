@@ -112,10 +112,12 @@ try {
   if(!html.includes('createVehicleSystem')) throw new Error('rail city not using shared vehicle kit');
   const ctKit = fs.readFileSync(path.join(root, 'games/crash-test-kit.js'), 'utf8');
   if(!ctKit.includes('crash-test-3d') || !ctKit.includes('sendWorld') || !ctKit.includes('noteCrash')) throw new Error('crash-test kit missing host world / crash seed');
+  if(!ctKit.includes('arcadeWhenReady')) throw new Error('crash-test kit must wait for age YES before joining ?room=');
 
   const kitSrc = fs.readFileSync(path.join(root, 'games/rail-city-kit.js'), 'utf8');
   if(!kitSrc.includes('sendWorld') || !kitSrc.includes('onWorld')) throw new Error('kit missing world snapshot API');
   if(!kitSrc.includes('victimPid')) throw new Error('kit missing guest hit victimPid');
+  if(!kitSrc.includes('arcadeWhenReady')) throw new Error('rail-city kit must wait for age YES before joining ?room=');
 
   const a = new WebSocket(`ws://${HOST}:${PORT}/play`);
   await new Promise((res,rej)=>{ a.on('open', res); a.on('error', rej); });
@@ -184,6 +186,7 @@ try {
   if(!page.includes('rel="canonical"') || !page.includes('twitter:card')) throw new Error('index missing canonical/twitter card');
   if(!page.includes('/favicon.svg') || !page.includes('/site.webmanifest')) throw new Error('index missing favicon links');
   if(!page.includes('og:site_name') || !page.includes('og:url" content="https://westonandrockysarcade.com/')) throw new Error('index missing site_name or absolute og:url');
+  if(!page.includes('Rated 6+') || !page.includes('/shared/age-rating.js')) throw new Error('index missing 6+ rating snippet');
   const rootPage = await fetch(`${origin}/`);
   if(rootPage.status !== 200) throw new Error('root not 200');
 
@@ -202,6 +205,7 @@ try {
   await expectType('/site.webmanifest', 200, 'application/manifest+json');
   await expectType('/og/rail-city-3d.jpg', 200, 'image/jpeg');
   await expectType('/og/crash-test-3d.jpg', 200, 'image/jpeg');
+  await expectType('/shared/age-rating.js', 200, 'javascript');
   const rail = await fetch(`${origin}/games/rail-city-3d.html`).then(r=>r.text());
   if(!rail.includes('og/rail-city-3d.jpg') || !rail.includes('og:title')) throw new Error('rail city missing per-game OG');
   if(!rail.includes('Rail City 3D · Weston') || !rail.includes('og:site_name')) throw new Error('rail city missing branded og:title');
@@ -211,6 +215,11 @@ try {
   if(!ctPage.includes('/favicon.ico')) throw new Error('crash test missing favicon link');
   if(!ctPage.includes('Crash Test 3D · Weston') || !ctPage.includes('twitter:title')) throw new Error('crash test missing branded share title');
   if(!ctPage.includes('og:url" content="https://westonandrockysarcade.com/games/crash-test-3d.html"')) throw new Error('crash test og:url must be absolute arcade domain');
+  if(!ctPage.includes('/shared/age-rating.js') || !ctPage.includes('Rated 6+')) throw new Error('crash test missing 6+ age snippet');
+  const ageJs = await fetch(`${origin}/shared/age-rating.js`).then(r=>r.text());
+  if(!ageJs.includes('ARE YOU 6 OR OLDER') || !ageJs.includes('Come back when you\'re 6') || !ageJs.includes('arcadeAge6plus')) {
+    throw new Error('age-rating snippet missing dialog or localStorage key');
+  }
 
   // Host leave: guest becomes host and gets a reset so both screens match.
   const hostP = once(b, 'host');

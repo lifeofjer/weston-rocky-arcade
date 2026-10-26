@@ -547,7 +547,11 @@ export function installKit(ctx){
     $('gGo').onclick = ()=>takeCar(rescue.pickCi);
     $('gCat').onclick = catBring;
     const preset = roomFromUrl();
-    if(preset){ $('ptPanel').classList.remove('hidden'); bootNet().join(preset); }
+    if(preset){
+      const joinRoom = ()=>{ $('ptPanel').classList.remove('hidden'); bootNet().join(preset); };
+      if(typeof window.arcadeWhenReady === 'function') window.arcadeWhenReady(joinRoom);
+      else joinRoom();
+    }
   }
 
   bind();
