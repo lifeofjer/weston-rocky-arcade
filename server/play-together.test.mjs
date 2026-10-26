@@ -18,7 +18,7 @@ let child = null;
 let out = '';
 if(!external){
   child = spawn(process.execPath, ['server/index.mjs'], {
-    env: { ...process.env, PORT: String(PORT), ARCADE_BUILD: 'play7' },
+    env: { ...process.env, PORT: String(PORT), ARCADE_BUILD: 'play8' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   child.stdout.on('data', d => { out += d; process.stdout.write(d); });
@@ -59,12 +59,13 @@ try {
 
   const health = await fetch(`${origin}/api/play/health`).then(r=>r.json());
   if(!health.ok) throw new Error('health failed');
-  if(health.build !== 'play7' && !external) throw new Error('expected play7 build header via health, got '+health.build);
+  if(health.build !== 'play8' && !external) throw new Error('expected play8 build header via health, got '+health.build);
 
   const html = await fetch(`${origin}/games/rail-city-3d.html`).then(r=>r.text());
   if(!html.includes('PLAY TOGETHER') || !html.includes('tabby-cat')) throw new Error('rail city page missing new features');
   if(!html.includes('gmTag') || !html.includes('gmDerail') || !html.includes('gameHud')) throw new Error('mini-game UI missing');
-  if(!html.includes('play7')) throw new Error('html not on play7');
+  if(!html.includes('play8')) throw new Error('html not on play8');
+  if(!html.includes('2015 RAM POWER WAGON') && !html.includes('arcade-cars.js')) throw new Error('rail city missing shared Ram roster');
   if(!html.includes('addRamp') || !html.includes('groundY') || !html.includes('packTrain')) throw new Error('ramps / shared world helpers missing');
   if(!html.includes('buildLodKit') || !html.includes('showDetail') || !html.includes('TBLOB') || !html.includes('InstancedMesh')) throw new Error('per-type car LOD missing');
   if(!html.includes('classifyLod') || !html.includes('prepLodGeo') || !html.includes('instanceColor')) throw new Error('per-type part kits missing');
@@ -76,7 +77,26 @@ try {
 
   const hdr = await fetch(`${origin}/games/rail-city-3d.html`);
   const buildHdr = hdr.headers.get('x-arcade-build');
-  if(buildHdr !== 'play7') throw new Error('X-Arcade-Build is '+buildHdr+' not play7');
+  if(buildHdr !== 'play8') throw new Error('X-Arcade-Build is '+buildHdr+' not play8');
+
+  const crash = await fetch(`${origin}/games/crash-test-3d.html`).then(r=>r.text());
+  if(!crash.includes('PLAY TOGETHER') || !crash.includes('tabby-cat')) throw new Error('crash test missing play-together / cat');
+  if(!crash.includes('tickQuality') || !crash.includes('applyQuality')) throw new Error('crash test quality scaler missing');
+  if(!crash.includes("ev.code==='KeyF'")) throw new Error('crash test FPS key missing');
+  if(!crash.includes('InstancedMesh') || !crash.includes('class Pool')) throw new Error('crash test instanced pools missing');
+  if(!crash.includes('2015 RAM POWER WAGON') && !crash.includes('POWER WAGON')) throw new Error('crash test missing Power Wagon');
+  if(!crash.includes('RAM 3500 DUALLY') && !crash.includes('dually')) throw new Error('crash test missing Ram 3500 dually');
+  if(!crash.includes('makeDummy') || !crash.includes('gash') || !crash.includes('CRASH REPORT')) throw new Error('crash test missing dummies / gash / report');
+  if(!crash.includes('HEAD-ON') || !crash.includes('SPIKES') || !crash.includes('FREE DRIVE')) throw new Error('crash test modes missing');
+  if(!crash.includes('play8')) throw new Error('crash test html not on play8');
+  const crashHdr = await fetch(`${origin}/games/crash-test-3d.html`);
+  if(crashHdr.headers.get('x-arcade-build') !== 'play8') throw new Error('crash test X-Arcade-Build not play8');
+
+  const cars = fs.readFileSync(path.join(root, 'games/arcade-cars.js'), 'utf8');
+  if(!cars.includes('2015 RAM POWER WAGON') || !cars.includes('powerWagon') || !cars.includes('dually')) throw new Error('arcade-cars missing Ram trucks');
+  if(!cars.includes('makeRamHead') || !cars.includes('powerWagonDecal') || !cars.includes('winch')) throw new Error('arcade-cars missing Power Wagon details');
+  const ctKit = fs.readFileSync(path.join(root, 'games/crash-test-kit.js'), 'utf8');
+  if(!ctKit.includes('crash-test-3d') || !ctKit.includes('sendWorld') || !ctKit.includes('noteCrash')) throw new Error('crash-test kit missing host world / crash seed');
 
   const kitSrc = fs.readFileSync(path.join(root, 'games/rail-city-kit.js'), 'utf8');
   if(!kitSrc.includes('sendWorld') || !kitSrc.includes('onWorld')) throw new Error('kit missing world snapshot API');
@@ -143,7 +163,8 @@ try {
   if(guestWorld) throw new Error('guest world snapshot was relayed');
 
   const page = await fetch(`${origin}/index.html`).then(r=>r.text());
-  if(!page.includes('rail-city-3d.html?v=play7')) throw new Error('arcade card not cache-busted to play7');
+  if(!page.includes('rail-city-3d.html?v=play8')) throw new Error('arcade card not cache-busted to play8');
+  if(!page.includes('crash-test-3d.html?v=play8')) throw new Error('crash test arcade card missing');
   const rootPage = await fetch(`${origin}/`);
   if(rootPage.status !== 200) throw new Error('root not 200');
 
@@ -154,7 +175,29 @@ try {
   if(!hostMsg.reset || !hostMsg.id) throw new Error('host leave did not migrate with reset');
 
   b.close();
-  console.log('play-together ok code='+created.code+' crash A->B host='+(external?'docker':'node')+' build=play7');
+  // Crash Test rooms are a separate game key.
+  const c = new WebSocket(`ws://${HOST}:${PORT}/play`);
+  await new Promise((res,rej)=>{ c.on('open', res); c.on('error', rej); });
+  c.send(JSON.stringify({ t:'hello', game:'crash-test-3d', name:'Weston' }));
+  await once(c, 'welcome');
+  c.send(JSON.stringify({ t:'create', game:'crash-test-3d', name:'Weston' }));
+  const createdCT = await once(c, 'created');
+  if(!createdCT.code) throw new Error('crash-test room missing code');
+  const d = new WebSocket(`ws://${HOST}:${PORT}/play`);
+  await new Promise((res,rej)=>{ d.on('open', res); d.on('error', rej); });
+  d.send(JSON.stringify({ t:'hello', game:'crash-test-3d', name:'Dad' }));
+  await once(d, 'welcome');
+  const ctJoinP = once(d, 'joined');
+  d.send(JSON.stringify({ t:'join', code: createdCT.code, game:'crash-test-3d', name:'Dad' }));
+  const ctJoined = await ctJoinP;
+  if(ctJoined.code !== createdCT.code) throw new Error('crash-test join mismatch');
+  const ctWorldP = once(d, 'world');
+  c.send(JSON.stringify({ t:'world', world:{ seq:1, cars:[{ i:1, ci:0, m:'wreck', crush:0.9, w:{ seed:99, sev:0.8 } }], test:{ mode:'head' } } }));
+  const ctWorld = await ctWorldP;
+  if(!ctWorld.world || !ctWorld.world.cars || ctWorld.world.cars[0].w.seed !== 99) throw new Error('crash-test wreck seed did not sync');
+  c.close(); d.close();
+
+  console.log('play-together ok code='+created.code+' crash A->B host='+(external?'docker':'node')+' build=play8 ct='+createdCT.code);
   stop();
   process.exit(0);
 } catch (err) {

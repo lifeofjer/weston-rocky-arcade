@@ -1,6 +1,6 @@
 // Reusable arcade play-together client.
 // One room code / link, live peer state, kid-simple chat, and host world snapshots.
-// Games send opaque `data` / `world` / `ev` blobs; only Rail City 3D is wired today.
+// Games send opaque `data` / `world` / `ev` blobs. Rail City 3D and Crash Test 3D are wired.
 
 const EMOJI = ['😀','😂','😍','🐱','🚗','🚂','💥','👍','❤️','🎉','👋','🤠'];
 
