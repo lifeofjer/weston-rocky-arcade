@@ -30,7 +30,13 @@ export const ROSTER_RAW = [
   ['TESLA MODEL 3','sedan',0xf2f2f2,{L:4.72,roof:1.44,rb:-.22,rg:-.4,tesla:true,top:72,acc:20}],
   ['TESLA MODEL Y','suv',0x1b3f8b,{rb:-.28,rg:-.42,roof:1.62,tesla:true,top:70,acc:19}],
   ['TESLA MODEL X','suv',0x121316,{L:5.04,roof:1.68,rb:-.3,rg:-.43,tesla:true,top:72,acc:20}],
-  ['TESLA ROADSTER','sport',0xd0101a,{L:4.3,roof:1.2,rb:-.08,rg:-.32,tesla:true,hl:'slim',spoiler:null,top:110,acc:30}],
+  ['TESLA ROADSTER','hyper',0xf4f6f8,{
+    L:4.52, W:2.06, roof:1.06, rf:.12, rb:-.02, rg:-.24, tesla:true,
+    hl:'strip', spoiler:'wing', top:128, acc:34, turn:2.35, grip:9.4, mass:1.05,
+    belt:.74, nose:.38, clr:.08, cowl:.16, wedge:true, roadster:true, featured:true,
+    fly:true, rockets:true, envBoost:1.6,
+  }],
+  ['TESLA ROADSTER RED','sport',0xd0101a,{L:4.3,roof:1.2,rb:-.08,rg:-.32,tesla:true,hl:'slim',spoiler:null,top:110,acc:30}],
   ['TESLA SEMI','tsemi',0xe9ebee,{}],
   ['LAMBORGHINI AVENTADOR','hyper',0xff7f00,{L:4.94,W:2.1,rf:.07,rb:-.12,top:97}],
   ['LAMBORGHINI HURACAN','hyper',0x7bd321,{L:4.52,roof:1.17,spoiler:'duck',top:90}],
@@ -72,6 +78,7 @@ export function makeRoster(){
 
 export function carKind(d){
   if(d.powerWagon) return "DAD'S TRUCK";
+  if(d.roadster) return 'FLYING ROADSTER';
   if(d.dually) return 'RAM DUALLY';
   if(d.ram) return 'RAM PICKUP';
   if(d.police && d.type==='cyber') return 'POLICE TRUCK';
@@ -93,14 +100,16 @@ export function canvasTex(THREE, ANISO, w, h, draw){
 export function createMats(THREE){
   const DS = THREE.DoubleSide;
   return {
-    tire:new THREE.MeshStandardMaterial({color:0x141416, roughness:.85, side:DS}),
-    rim:new THREE.MeshStandardMaterial({color:0xc9cdd2, metalness:1, roughness:.2, side:DS}),
-    rimDark:new THREE.MeshStandardMaterial({color:0x2a2c30, metalness:.9, roughness:.3, side:DS}),
-    rimGold:new THREE.MeshStandardMaterial({color:0xc9a040, metalness:1, roughness:.25, side:DS}),
-    glass:new THREE.MeshPhysicalMaterial({color:0x0b131b, metalness:.1, roughness:.03, clearcoat:1, envMapIntensity:1.5, side:DS}),
+    tire:new THREE.MeshStandardMaterial({color:0x121214, roughness:.92, metalness:.04, side:DS}),
+    rim:new THREE.MeshStandardMaterial({color:0xd6dbe0, metalness:1, roughness:.18, envMapIntensity:1.2, side:DS}),
+    rimDark:new THREE.MeshStandardMaterial({color:0x2a2c30, metalness:.95, roughness:.28, envMapIntensity:1.1, side:DS}),
+    rimGold:new THREE.MeshStandardMaterial({color:0xc9a040, metalness:1, roughness:.22, envMapIntensity:1.2, side:DS}),
+    glass:new THREE.MeshPhysicalMaterial({color:0x0b131b, metalness:.15, roughness:.02, transmission:.18, thickness:.4, clearcoat:1, envMapIntensity:1.8, side:DS}),
     black:new THREE.MeshStandardMaterial({color:0x111214, roughness:.55, side:DS}),
-    gloss:new THREE.MeshPhysicalMaterial({color:0x050607, metalness:.3, roughness:.08, clearcoat:1, side:DS}),
-    chrome:new THREE.MeshStandardMaterial({color:0xe6e9ed, metalness:1, roughness:.1, side:DS}),
+    gloss:new THREE.MeshPhysicalMaterial({color:0x050607, metalness:.35, roughness:.06, clearcoat:1, envMapIntensity:1.4, side:DS}),
+    chrome:new THREE.MeshStandardMaterial({color:0xe8ecf0, metalness:1, roughness:.08, envMapIntensity:1.4, side:DS}),
+    disc:new THREE.MeshStandardMaterial({color:0x8a9098, metalness:.95, roughness:.28, side:DS}),
+    caliper:new THREE.MeshStandardMaterial({color:0xb01018, metalness:.4, roughness:.4, side:DS}),
     head:new THREE.MeshStandardMaterial({color:0xffffff, emissive:0xfff4d6, emissiveIntensity:2.4, side:DS}),
     tail:new THREE.MeshStandardMaterial({color:0x550000, emissive:0xff1010, emissiveIntensity:1.8, side:DS}),
     amber:new THREE.MeshStandardMaterial({color:0x553300, emissive:0xff9000, emissiveIntensity:1.6, side:DS}),
@@ -115,8 +124,12 @@ export function createMats(THREE){
   };
 }
 
-export function mkPaint(THREE, c){
-  return new THREE.MeshPhysicalMaterial({color:c, metalness:.55, roughness:.3, clearcoat:1, clearcoatRoughness:.04, side:THREE.DoubleSide});
+export function mkPaint(THREE, c, boost=1){
+  return new THREE.MeshPhysicalMaterial({
+    color:c, metalness:.7, roughness:.18, clearcoat:1, clearcoatRoughness:.03,
+    envMapIntensity:1.45*boost, sheen:0.12, sheenRoughness:.4, sheenColor:0xffffff,
+    side:THREE.DoubleSide,
+  });
 }
 
 export function makeRamHead(THREE, chrome){
@@ -188,25 +201,65 @@ export function createVehicleSystem(THREE, mergeGeometries, opts={}){
   function sideExtrude(pts,width,bevel=.05,steps=6){
     const sh=new THREE.Shape(resample(pts,.2));
     const depth=Math.max(.01,width-2*bevel);
-    const geo=new THREE.ExtrudeGeometry(sh,{depth, steps, bevelEnabled:bevel>0, bevelThickness:bevel, bevelSize:bevel, bevelSegments:2, curveSegments:2});
+    const geo=new THREE.ExtrudeGeometry(sh,{depth, steps, bevelEnabled:bevel>0, bevelThickness:bevel, bevelSize:bevel, bevelSegments:3, curveSegments:4});
     geo.rotateY(-Math.PI/2); geo.translate(depth/2,0,0);
     return geo;
   }
   function tireGeo(r,w){
     const k=r+'_'+w;
-    if(!TIRE[k]){ TIRE[k]=new THREE.CylinderGeometry(r,r,w,26,1).rotateZ(Math.PI/2); SHARED.add(TIRE[k]); }
+    if(!TIRE[k]){
+      const parts=[new THREE.CylinderGeometry(r,r,w,32,2).rotateZ(Math.PI/2)];
+      const tread=new THREE.TorusGeometry(r*.97, w*.16, 8, 28).rotateZ(Math.PI/2);
+      parts.push(tread);
+      TIRE[k]=mergeGeometries(parts.map(g=>g.index?g.toNonIndexed():g)) || parts[0];
+      SHARED.add(TIRE[k]);
+    }
     return TIRE[k];
   }
   function rimGeo(r,w){
     const k=r+'_'+w; if(RIM[k]) return RIM[k];
-    const parts=[new THREE.CylinderGeometry(r*.64,r*.64,w+.02,22).rotateZ(Math.PI/2)];
-    for(const s of [-1,1]) for(let i=0;i<5;i++){
-      const b=new THREE.BoxGeometry(.035,r*.62,r*.17); b.translate(0,r*.31,0); b.rotateX(i*Math.PI*2/5); b.translate(s*(w/2+.014),0,0); parts.push(b);
+    const parts=[new THREE.CylinderGeometry(r*.62,r*.62,w+.02,28).rotateZ(Math.PI/2)];
+    const barrel=new THREE.CylinderGeometry(r*.78,r*.74,w*.55,28).rotateZ(Math.PI/2);
+    parts.push(barrel);
+    for(const s of [-1,1]) for(let i=0;i<8;i++){
+      const b=new THREE.BoxGeometry(.032,r*.7,r*.13); b.translate(0,r*.32,0); b.rotateX(i*Math.PI*2/8); b.translate(s*(w/2+.012),0,0); parts.push(b);
     }
     for(const s of [-1,1]){
-      const hub=new THREE.CylinderGeometry(r*.13,r*.13,.05,10).rotateZ(Math.PI/2); hub.translate(s*(w/2+.03),0,0); parts.push(hub);
+      const hub=new THREE.CylinderGeometry(r*.14,r*.14,.06,12).rotateZ(Math.PI/2); hub.translate(s*(w/2+.03),0,0); parts.push(hub);
+      const lip=new THREE.TorusGeometry(r*.82,.03,6,24); lip.rotateZ(Math.PI/2); lip.translate(s*(w/2+.01),0,0); parts.push(lip);
     }
     RIM[k]=mergeGeometries(parts.map(g=>g.index?g.toNonIndexed():g)); SHARED.add(RIM[k]); return RIM[k];
+  }
+  function densifyGeo(geo){
+    const src = geo.index ? geo.toNonIndexed() : geo;
+    const pos = src.attributes.position;
+    const np=[], nu=[];
+    const hasU = !!src.attributes.uv;
+    const uv = src.attributes.uv;
+    for(let i=0;i<pos.count;i+=3){
+      const ax=pos.getX(i), ay=pos.getY(i), az=pos.getZ(i);
+      const bx=pos.getX(i+1), by=pos.getY(i+1), bz=pos.getZ(i+1);
+      const cx=pos.getX(i+2), cy=pos.getY(i+2), cz=pos.getZ(i+2);
+      const mx=(ax+bx)/2, my=(ay+by)/2, mz=(az+bz)/2;
+      const nx=(bx+cx)/2, ny=(by+cy)/2, nz=(bz+cz)/2;
+      const ox=(cx+ax)/2, oy=(cy+ay)/2, oz=(cz+az)/2;
+      const tri=(x0,y0,z0,x1,y1,z1,x2,y2,z2)=>{ np.push(x0,y0,z0,x1,y1,z1,x2,y2,z2); };
+      tri(ax,ay,az, mx,my,mz, ox,oy,oz);
+      tri(mx,my,mz, bx,by,bz, nx,ny,nz);
+      tri(ox,oy,oz, nx,ny,nz, cx,cy,cz);
+      tri(mx,my,mz, nx,ny,nz, ox,oy,oz);
+      if(hasU){
+        const ua=uv.getX(i), va=uv.getY(i), ub=uv.getX(i+1), vb=uv.getY(i+1), uc=uv.getX(i+2), vc=uv.getY(i+2);
+        const um=(ua+ub)/2, vm=(va+vb)/2, un=(ub+uc)/2, vn=(vb+vc)/2, uo=(uc+ua)/2, vo=(vc+va)/2;
+        const uvi=(u0,v0,u1,v1,u2,v2)=>{ nu.push(u0,v0,u1,v1,u2,v2); };
+        uvi(ua,va, um,vm, uo,vo); uvi(um,vm, ub,vb, un,vn); uvi(uo,vo, un,vn, uc,vc); uvi(um,vm, un,vn, uo,vo);
+      }
+    }
+    const out=new THREE.BufferGeometry();
+    out.setAttribute('position', new THREE.Float32BufferAttribute(np,3));
+    if(nu.length) out.setAttribute('uv', new THREE.Float32BufferAttribute(nu,2));
+    out.computeVertexNormals();
+    return out;
   }
   function bake(g){
     g.updateMatrixWorld(true);
@@ -225,6 +278,12 @@ export function createVehicleSystem(THREE, mergeGeometries, opts={}){
     for(const [mat,list] of by){
       let merged=mergeGeometries(list);
       merged=weldGeometry(THREE, merged, mergeVertices);
+      const paintLike = mat && (mat.clearcoat>0 || mat.metalness>.4) && !mat.transparent;
+      if(paintLike && merged && merged.attributes.position.count<2500){
+        const dense=densifyGeo(merged);
+        merged.dispose();
+        merged=weldGeometry(THREE, dense, mergeVertices);
+      }
       const m=new THREE.Mesh(merged, mat);
       if(mat && mat.side!==THREE.DoubleSide) mat.side=THREE.DoubleSide;
       g.add(m);
@@ -255,7 +314,7 @@ export function createVehicleSystem(THREE, mergeGeometries, opts={}){
   }
 
   function buildVehicle(d){
-    const g=new THREE.Group(); const wheels=[]; const paint=d.type==='cyber'? (d.police? mkPaint(THREE,d.color) : MAT.steel.clone()) : mkPaint(THREE,d.color); const body=[paint];
+    const g=new THREE.Group(); const wheels=[]; const paint=d.type==='cyber'? (d.police? mkPaint(THREE,d.color,d.envBoost||1) : MAT.steel.clone()) : mkPaint(THREE,d.color,d.envBoost||1); const body=[paint];
     let lightBars=null;
     const mk=(geo,mat,x,y,z,o={})=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); if(o.rx) m.rotation.x=o.rx; if(o.ry) m.rotation.y=o.ry; if(o.rz) m.rotation.z=o.rz;
       if(o.part){ m.userData.part=o.part; if(o.part==='lightbar') m.userData.keep=true; } if(o.glass){ m.userData.glass=true; m.userData.keep=true; } (o.parent||g).add(m); return m; };
@@ -263,6 +322,10 @@ export function createVehicleSystem(THREE, mergeGeometries, opts={}){
     const C=(r1,r2,h,n,mat,x,y,z,axis,o={})=>{ const geo=new THREE.CylinderGeometry(r1,r2,h,n); if(axis==='x') geo.rotateZ(Math.PI/2); if(axis==='z') geo.rotateX(Math.PI/2); return mk(geo,mat,x,y,z,o); };
     const rimM=d.rim==='dark'?MAT.rimDark:d.rim==='gold'?MAT.rimGold:MAT.rim;
     const wheel=(x,z,r,w,o={})=>{ const pv=new THREE.Group(); pv.position.set(x,r,z); const sp=new THREE.Group(); pv.add(sp); sp.add(new THREE.Mesh(tireGeo(r,w),MAT.tire)); sp.add(new THREE.Mesh(rimGeo(r,w),o.rim||rimM));
+      const disc=new THREE.Mesh(new THREE.CylinderGeometry(r*.55,r*.55,.04,20).rotateZ(Math.PI/2), MAT.disc||MAT.steel);
+      disc.userData.noDent=true; disc.userData.keep=true; sp.add(disc);
+      const cal=new THREE.Mesh(new THREE.BoxGeometry(.08,r*.28,.16), MAT.caliper||MAT.red);
+      cal.position.set(0, r*.22, 0); cal.userData.noDent=true; cal.userData.keep=true; pv.add(cal);
       pv.userData={wheel:true, front:!!o.front, r, spin:sp, keep:true, noDent:true}; sp.traverse(c=>{ c.userData.noDent=true; c.userData.keep=true; }); g.add(pv); wheels.push(pv); return pv; };
     const slope=(z0,y0,z1,y1,w,mat,o={})=>{ const dz=z1-z0, dy=y1-y0, l=Math.hypot(dz,dy), off=o.off??.025; return B(w,.03,l*(o.k??.9),mat,0,(y0+y1)/2-dz/l*off,(z0+z1)/2+dy/l*off,{...o, rx:Math.atan2(-dy,dz)}); };
     const L=d.L, W=d.W, zf=L/2, zr=-L/2; let top=1.4;
@@ -284,8 +347,29 @@ export function createVehicleSystem(THREE, mergeGeometries, opts={}){
       const hy=d.nose-.06, hz=zf-.1;
       if(d.hl==='round') for(const s of [-1,1]) C(.12,.12,.08,16,MAT.head,s*(W/2-.34),hy+.04,hz-.04,'z',P);
       else if(d.hl==='stack' || d.ram){ for(const s of [-1,1]){ B(.42,.12,.12,MAT.head,s*(W/2-.4),hy+.08,hz,{...P}); B(.42,.1,.12,MAT.amber,s*(W/2-.4),hy-.08,hz,{...P}); } }
+      else if(d.hl==='strip' || d.wedge){
+        B(W*.92,.05,.1,MAT.head,0,hy-.02,hz+.02,{...P,part:'light'});
+        for(const s of [-1,1]){
+          B(.55,.07,.14,MAT.head,s*(W/2-.42),hy+.02,hz,{...P, ry:-s*.28, part:'light'});
+          B(.18,.04,.08,MAT.glass,s*(W/2-.28),hy+.08,hz+.04,{...P, glass:true});
+        }
+      }
       else for(const s of [-1,1]) B(.46,.07,.16,MAT.head,s*(W/2-.36),hy,hz,{...P, ry:-s*.15});
-      if(d.tl==='bar' || d.tesla) B(W*.86,.06,.06,MAT.tail,0,d.tail-.16,zr+.03,P); else for(const s of [-1,1]) B(.42,.1,.06,MAT.tail,s*(W/2-.3),d.tail-.16,zr+.03,P);
+      if(d.tl==='bar' || d.tesla || d.roadster) B(W*.94,.055,.07,MAT.tail,0,d.tail-.14,zr+.02,P); else for(const s of [-1,1]) B(.42,.1,.06,MAT.tail,s*(W/2-.3),d.tail-.16,zr+.03,P);
+      if(d.wedge || d.roadster){
+        B(W*.55,.04,1.15,paint,0,d.nose*.42,zf-.55,{...P, rx:.38, part:'hood'});
+        for(const s of [-1,1]){
+          B(.22,.03,.55,paint,s*(W/2-.18),d.clr+.16,zf-.42,{...P, rz:s*.45, part:'canard'});
+          B(.08,.04,.7,MAT.black,s*(W/2+.01),d.clr+.08,zr+.4,P);
+        }
+        B(W*.7,.05,.28,MAT.black,0,d.clr+.12,zr+.08,{...P, part:'diffuser'});
+        if(d.rockets){
+          for(const s of [-1,1]){
+            C(.07,.09,.55,10,MAT.chrome,s*(W/2-.28),d.clr+.22,zr+.22,'z',{...P, part:'rocket'});
+            C(.05,.05,.08,8,MAT.tail,s*(W/2-.28),d.clr+.22,zr-.08,'z',{...P, part:'rocket'});
+          }
+        }
+      }
       if(d.ram){
         const gh=d.powerWagon?.62:.5, gy=d.nose-.28;
         B(W*(d.powerWagon?.72:.66),gh,.1,MAT.chrome,0,gy,zf+.03,{...P,part:'grille'});
@@ -304,11 +388,18 @@ export function createVehicleSystem(THREE, mergeGeometries, opts={}){
         C(.11,.11,.28,10,MAT.steel,0,d.clr+.18,zf+.34,'x',{...P,part:'winch'});
         B(.22,.16,.16,MAT.black,0,d.clr+.18,zf+.28,{...P,part:'winch'});
         B(.08,.1,.14,MAT.chrome,0,d.clr+.08,zf+.46,{...P,part:'hook'});
-      } else B(W*.92,.2,.18,t==='police'||t==='pickup'||t==='jeep'||t==='monster'?MAT.black:paint,0,d.clr+.24,zf-.03,{...P,part:'bumper',seg:true});
-      B(W*.92,.2,.16,t==='pickup'||t==='jeep'||t==='gwagon'||t==='monster'?MAT.black:paint,0,d.clr+.3,zr+.1,{...P,part:'bumper',seg:true});
+      } else B(W*(t==='hyper'||t==='sport'?.78:.92), t==='hyper'?.1:.2, t==='hyper'?.12:.18,t==='police'||t==='pickup'||t==='jeep'||t==='monster'?MAT.black:paint,0,d.clr+(t==='hyper'?.14:.24),zf-.03,{...P,part:'bumper',seg:true});
+      B(W*(t==='hyper'||t==='sport'?.8:.92), t==='hyper'?.1:.2, t==='hyper'?.1:.16,t==='pickup'||t==='jeep'||t==='gwagon'||t==='monster'?MAT.black:paint,0,d.clr+(t==='hyper'?.16:.3),zr+.08,{...P,part:'bumper',seg:true});
       const AF=d.af*L, AR=d.ar*L, R=d.r+.06, dz0=AR+R+.1, dz1=AF-R-.1, y0=d.clr+.2, y1=d.belt-.06;
       if(dz1-dz0>.6 && y1-y0>.2){ const n=d.doors||1; for(const s of [-1,1]) for(let k=0;k<n;k++){ const a=dz0+(dz1-dz0)*k/n, c=dz0+(dz1-dz0)*(k+1)/n;
         B(.03,y1-y0,c-a-.04,t==='police'?body[1]:paint,s*(W/2+.012),(y0+y1)/2,(a+c)/2,{...P,part:'door',seg:true}); } }
+      // Panel lines / shut lines so the body reads like stamped metal, not one blob.
+      B(W*.018,.018,Math.max(.8, zf-zc-.2), MAT.black, 0, (d.nose+d.belt)*.5+.02, (zf+zc)*.5, P);
+      B(W*.92,.016,.016, MAT.black, 0, d.belt-.02, zc+.02, P);
+      for(const s of [-1,1]){
+        B(.016,.018, L*.42, MAT.black, s*(W/2+.01), d.clr+.28, (AF+AR)*.15, P);
+        B(.016, Math.max(.12, d.belt-d.clr-.2), .016, MAT.black, s*(W/2+.01), (d.clr+d.belt)*.5, AF*.08, P);
+      }
       for(const s of [-1,1]) B(.2,.11,.16,t==='police'?MAT.black:paint,s*(cw/2+.13),b+.13,zc-.18,{...P,part:'mirror'});
       if(d.spoiler==='wing'){ for(const s of [-1,1]) B(.05,.26,.08,MAT.black,s*.5,d.tail+.1,zr+.36,P); B(W*.88,.04,.32,MAT.gloss,0,d.tail+.24,zr+.34,{...P,part:'spoiler'}); }
       else if(d.spoiler==='duck') B(W*.8,.05,.16,paint,0,d.tail+.02,zr+.12,{...P,rx:-.3});
@@ -321,10 +412,12 @@ export function createVehicleSystem(THREE, mergeGeometries, opts={}){
         for(const s of [-1,1]){ const pl=new THREE.Mesh(new THREE.PlaneGeometry(2.4,.38), pmat); pl.position.set(s*(W/2+.03),d.belt+.05,(zg+zr)/2); pl.rotation.y=s*Math.PI/2; hold.add(pl); }
       }
       if(d.spare) C(d.r*.95,d.r*.95,.26,20,MAT.tire,0,d.belt-.15,zr-.15,'z',{...P,part:'spare'});
-      { const hoodL=Math.max(.62, zf-zc-.1), hoodY=(d.nose+d.belt)*.5+(d.lift?0:.02);
+      if(!d.wedge && !d.roadster){
+        const hoodL=Math.max(.62, zf-zc-.1), hoodY=(d.nose+d.belt)*.5+(d.lift?0:.02);
         const hg=new THREE.Group(); hg.position.set(0,hoodY,zc+.05); hg.userData.part='hood'; hg.userData.hood=true;
         const hm=new THREE.Mesh(new THREE.BoxGeometry(W*.76,.045,hoodL,1,1,seg(hoodL)), paint);
-        hm.position.set(0,.02,hoodL/2); hg.add(hm); hold.add(hg); }
+        hm.position.set(0,.02,hoodL/2); hg.add(hm); hold.add(hg);
+      }
       top=H+(d.lift||0)+(d.bar?.15:0);
       if(t==='monster'){ B(1.1,.3,3.4,MAT.black,0,d.mr+.15,0); for(const s of [-1,1]) for(const a of [1.5,-1.5]) C(.08,.08,1.3,8,MAT.chrome,s*.75,d.mr+.6,a,null,{rz:s*.35});
         for(const z of [1.55,-1.55]) for(const s of [-1,1]) wheel(s*(W/2+.25),z,d.mr,.85,{front:z>0}); }
@@ -388,7 +481,14 @@ export function createVehicleSystem(THREE, mergeGeometries, opts={}){
       B(2.4,.25,tLen,MAT.black,0,1.33,tFront-tLen/2); B(2.5,.1,.08,MAT.tail,0,1.55,zr-.02); for(const s of [-1,1]) B(.08,2.6,.06,MAT.black,s*.02,2.88,zr-.02);
       for(const s of [-1,1]) C(.06,.06,1,6,MAT.black,s*.9,.75,tFront-2.5);
       const fa=t==='tsemi'?zf-1.2:zf-1.35, da=t==='tsemi'?zf-5.0:zc-.2;
-      for(const s of [-1,1]){ wheel(s*1.02,fa,.52,.32,{front:true}); for(const a of [da,da-1.35]) wheel(s*.95,a,.52,.55); for(const a of [zr+1.4,zr+2.7]) wheel(s*.95,a,.52,.55); }
+      // Tandem axles: one axle directly behind another on tractor AND trailer (not side-by-side duallies).
+      for(const s of [-1,1]){
+        wheel(s*1.02,fa,.52,.32,{front:true});
+        for(const a of [da, da-1.28]) wheel(s*.98,a,.52,.34);
+        for(const a of [zr+1.32, zr+2.6]) wheel(s*.98,a,.52,.34);
+      }
+      B(1.96,.08,1.42,MAT.steel,0,.52,da-.64);
+      B(1.96,.08,1.42,MAT.steel,0,.52,zr+1.96);
       top=1.3+2.85+.15;
     } else if(t==='fire'){
       const white=MAT.white;
@@ -502,10 +602,16 @@ export function wreckDeform(THREE, ctx, e, wpt, wdir, sev, opts={}){
   const frontHit=Math.max(0, -dd.z);
   const rearHit=Math.max(0, dd.z);
   const roofTo=opts.roofTo, hoodTo=opts.hoodTo, split=opts.split||0;
+  // BeamNG-style: vertices near the impact point move most; far panels stay put.
+  const rad=1.15+k*2.35*heavy;
   const deform=v=>{
-    const rx=v.x-p.x, rz=v.z-p.z, t=rx*dd.x+rz*dd.z, s=rx*q.x+rz*q.z, lat=Math.exp(-2*(s/span)*(s/span)), tt=clamp(1-t/ext,0,1);
+    const rx=v.x-p.x, ry=v.y-p.y, rz=v.z-p.z;
+    const dist=Math.hypot(rx,ry,rz)+1e-4;
+    const local=Math.exp(-(dist*dist)/(2*rad*rad));
+    const t=rx*dd.x+rz*dd.z, s=rx*q.x+rz*q.z, lat=Math.exp(-2*(s/span)*(s/span)), tt=clamp(1-t/ext,0,1);
+    const fall=Math.max(local, tt*lat*.38);
     const n1=h3(v.x*1.3,v.y*1.6,v.z*1.2)-.5, n2=h3(v.z*1.1,v.x*1.4,v.y*1.7)-.5, n3=h3(v.y*1.2,v.z*1.5,v.x*.9)-.5;
-    const push=C*Math.pow(tt,1.15)*(.35+.65*lat)+Bd*lat, jit=k*(.05+.16*tt*lat)*Math.min(1.4, heavy);
+    const push=(C*Math.pow(tt,1.15)*(.35+.65*lat)+Bd*lat)*fall, jit=k*(.05+.16*tt*lat)*Math.min(1.4, heavy)*fall;
     v.x+=dd.x*push+n1*jit; v.z+=dd.z*push+n3*jit;
     let dy=n2*jit*.7; if(v.y>belt) dy-=roofDrop*(.4+.6*lat)*clamp((v.y-belt)/(H-belt+.01),0,1);
     dy+=up*tt*lat*Math.max(0,1-t/1.8)*(v.y>belt*.6?1:.3);
@@ -543,6 +649,8 @@ export function wreckDeform(THREE, ctx, e, wpt, wdir, sev, opts={}){
       dy-=(v.y-hoodTo)*hood*(0.7+0.55*k*heavy);
       v.z-=hood*k*heavy*1.1;
     }
+    // Panel buckle / crease wrinkles at the hit, not a uniform squash.
+    dy += Math.sin(t*7.5+s*5)*local*k*heavy*.14;
     v.y=Math.max(.04, v.y+dy);
     if(roofTo!=null) v.y=Math.min(v.y, roofTo+Math.max(.02,(v.y-roofTo)*0.18));
     if(hoodTo!=null && v.z>L*.08) v.y=Math.min(v.y, hoodTo+Math.max(.04,(v.y-hoodTo)*0.22));
