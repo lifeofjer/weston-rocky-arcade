@@ -80,7 +80,7 @@ await page.evaluateOnNewDocument(() => {
   try { localStorage.setItem('arcadeAge6plus', 'yes'); } catch {}
 });
 
-const url = `http://127.0.0.1:${PORT}/games/race-city-3d.html?v=race4`;
+const url = `http://127.0.0.1:${PORT}/games/race-city-3d.html?v=race5`;
 await page.goto(url, { waitUntil: 'load', timeout: 60000 });
 await page.waitForFunction(() => window.RACE_READY === true, { timeout: 90000 });
 
@@ -98,6 +98,7 @@ const R = () => page.evaluate(() => {
     inv: r.inv, me: r.me, cat: r.cat, train: r.train, race: r.race, stats: r.stats,
     errs: r.errs, roadster: r.ROADSTER, wagon: r.POWER_WAGON,
     picker: r.picker, prompt: r.prompt, remotes: r.remotes, mineNet: r.mineNet,
+    pads: r.pads,
     gltf: typeof r.gltf==='function'? r.gltf() : r.gltf,
   };
 });
@@ -137,9 +138,164 @@ let st = await R();
 check(st.me && (st.me.air || st.me.y > 1.2 || st.me.mph > 5), `fly/boost moved the roadster y=${st.me && st.me.y} mph=${st.me && st.me.mph} air=${st.me && st.me.air}`);
 await shot('race-city-fly.jpg');
 
+// Hold-altitude flight: F toggles, stays up, climb/dive/flip, glide, wheel landing
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.pickMap('utah');
+  R.chooseCar(R.ROADSTER);
+  R.startPlay('free');
+  R.pose(0, -80, 0);
+  R.setVel(18);
+  R.setFly(true);
+  R.sim(0.4);
+});
+st = await R();
+check(st.me && st.me.flying && st.me.air, `fly toggle on flying=${st.me && st.me.flying} air=${st.me && st.me.air} y=${st.me && st.me.y}`);
+const y0 = st.me && st.me.y;
+await page.evaluate(() => window.RACE.sim(2.2));
+st = await R();
+check(st.me && st.me.flying, `still flying after 2.2s flying=${st.me && st.me.flying}`);
+check(st.me && st.me.y > (y0 - 1.5), `holds altitude y0=${y0} y=${st.me && st.me.y}`);
+await shot('race-city-fly-hold.jpg');
+
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.holdAir('climb', true);
+  R.sim(1.1);
+  R.holdAir('climb', false);
+});
+st = await R();
+const yClimb = st.me && st.me.y;
+check(st.me && yClimb > y0 + 4, `climb raised altitude y0=${y0} y=${yClimb}`);
+await page.evaluate(() => window.RACE.sim(1.0));
+st = await R();
+check(st.me && Math.abs(st.me.y - yClimb) < 4, `holds after climb yClimb=${yClimb} y=${st.me && st.me.y}`);
+
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.holdAir('dive', true);
+  R.sim(0.8);
+  R.holdAir('dive', false);
+});
+st = await R();
+check(st.me && st.me.y < yClimb - 2 && st.me.flying, `dive lowered y=${st.me && st.me.y} still flying`);
+
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.holdAir('flip', true);
+  R.sim(0.7);
+  R.holdAir('flip', false);
+});
+st = await R();
+check(st.me && Math.abs(st.me.flipX) > 0.8, `flip spun pitch flipX=${st.me && st.me.flipX}`);
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.holdAir('rollR', true);
+  R.sim(0.5);
+  R.holdAir('rollR', false);
+});
+st = await R();
+check(st.me && Math.abs(st.me.flipZ) > 0.4, `roll spun flipZ=${st.me && st.me.flipZ}`);
+await shot('race-city-fly-flip.jpg');
+
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.holdAir('flip', false); R.holdAir('rollR', false); R.holdAir('climb', false); R.holdAir('dive', false);
+  R.setFlip(0, 0);
+  R.setFly(false);
+  R.sim(0.8); // glide
+  const y = (window.RACE.me && window.RACE.me.y) || 20;
+  return y;
+});
+st = await R();
+check(st.me && !st.me.flying && st.me.air, `glide after F off flying=${st.me && st.me.flying} air=${st.me && st.me.air} y=${st.me && st.me.y}`);
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.setFlip(0, 0);
+  R.dropFrom(5, -4);
+  R.sim(1.4);
+});
+st = await R();
+check(st.me && !st.me.flying && !st.me.air, `landed flying=${st.me && st.me.flying} air=${st.me && st.me.air} y=${st.me && st.me.y} mode=${st.me && st.me.m}`);
+check(st.me && st.me.m === 'drive', `wheel landing kept driving mode=${st.me && st.me.m}`);
+check(st.me && (st.me.crush||0) < 0.2, `wheel landing no crash crush=${st.me && st.me.crush}`);
+await shot('race-city-fly-landing.jpg');
+
+// Bad landing (upside down) may still crash
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.pickMap('utah');
+  R.chooseCar(R.ROADSTER);
+  R.startPlay('free');
+  R.pose(20, -80, 0);
+  R.setVel(12);
+  R.setFly(true);
+  R.sim(0.25);
+  R.setFlip(Math.PI, 1.4);
+  R.holdAir('flip', true);
+  R.dropFrom(10, -16);
+  R.sim(0.9);
+  R.holdAir('flip', false);
+});
+st = await R();
+check(st.me && (st.me.crush > 0.08 || st.me.m === 'tumble' || st.me.m === 'wreck'), `bad landing crashed mode=${st.me && st.me.m} crush=${st.me && st.me.crush}`);
+await shot('race-city-fly-crash-land.jpg');
+
+// Rockets never run out: boost twice in the air
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.pickMap('utah');
+  R.chooseCar(R.ROADSTER);
+  R.startPlay('free');
+  R.pose(0, -80, 0);
+  R.setFly(true);
+  R.boost();
+  R.sim(1.2);
+  R.unboost();
+  R.sim(0.2);
+  R.boost();
+  R.sim(1.2);
+});
+st = await R();
+check(st.me && st.me.flying && st.me.mph > 20, `rockets still boost in air mph=${st.me && st.me.mph} flying=${st.me && st.me.flying}`);
+await page.evaluate(() => window.RACE.unboost());
+
+// Touch / iPad buttons
+const pads = await page.evaluate(() => window.RACE.showPads() && window.RACE.pads);
+check(pads && pads.fly && pads.climb && pads.dive && pads.steerL && pads.steerR && pads.flip && pads.rollL && pads.rollR, `touch pads present ${JSON.stringify(pads)}`);
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.showPads();
+  R.pickMap('utah');
+  R.chooseCar(R.ROADSTER);
+  R.startPlay('free');
+  R.pose(0, -80, 0);
+  R.tapPad('padFly');
+  R.sim(0.5);
+});
+st = await R();
+check(st.me && st.me.flying, `padFly toggle on flying=${st.me && st.me.flying}`);
+check(st.pads && st.pads.flyOn, `FLY button shows ON`);
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.holdAir('climb', true);
+  R.sim(0.8);
+  R.holdAir('climb', false);
+  R.holdAir('steerR', true);
+  R.sim(0.4);
+  R.holdAir('steerR', false);
+  R.tapPad('padFly');
+});
+st = await R();
+check(st.me && !st.me.flying && st.me.air, `padFly toggle off starts glide flying=${st.me && st.me.flying} air=${st.me && st.me.air}`);
+await shot('race-city-fly-touch.jpg');
+
 // Crash with damage + wheel kick
 await page.evaluate(() => {
   const R = window.RACE;
+  R.pickMap('utah');
+  R.chooseCar(R.ROADSTER);
+  R.startPlay('free');
   R.pose(0, -40, 0);
   R.setVel(28);
   R.smashWall();
