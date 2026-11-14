@@ -1,6 +1,6 @@
 {
   "site": "https://westonandrockysarcade.com",
-  "generated": "2026-10-26T18:14:30.422Z",
+  "generated": "2026-11-14T03:25:12.482Z",
   "games": [
     {
       "slug": "turbo-tap-racers",
@@ -67,6 +67,12 @@
       "title": "CRASH TEST 3D",
       "href": "games/crash-test-3d.html?v=play9",
       "thumb": "og/crash-test-3d.jpg"
+    },
+    {
+      "slug": "race-city-3d",
+      "title": "RACE CITY 3D",
+      "href": "games/race-city-3d.html?v=race1",
+      "thumb": "og/race-city-3d.jpg"
     }
   ]
 }
