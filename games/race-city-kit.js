@@ -92,9 +92,13 @@ export function installKit(ctx){
       r.ty = +peer.data.y || r.e.G.position.y;
       r.tz = +peer.data.z || r.e.G.position.z;
       r.tyaw = +peer.data.yaw || r.e.yaw;
+      r.tflipX = +peer.data.flipX || 0;
+      r.tflipZ = +peer.data.flipZ || 0;
+      r.e.air = !!peer.data.air; r.e.flying = !!peer.data.flying;
       if(isHost()){
         r.e.G.position.x = r.tx; r.e.G.position.y = r.ty || r.e.com; r.e.G.position.z = r.tz;
-        r.e.yaw = r.tyaw; r.e.G.rotation.set(0, r.e.yaw, 0);
+        r.e.yaw = r.tyaw; r.e.flipX = r.tflipX; r.e.flipZ = r.tflipZ;
+        r.e.G.rotation.set(r.tflipX||0, r.e.yaw, r.tflipZ||0);
         r.e.fwd = +peer.data.fwd || 0;
         if(r.e.V) r.e.V.set(Math.sin(r.e.yaw)*r.e.fwd, 0, Math.cos(r.e.yaw)*r.e.fwd);
       }
@@ -248,6 +252,8 @@ export function installKit(ctx){
       fwd: +((me && me.fwd) || 0).toFixed(2), ci: me ? me.ci : 0,
       mode: me ? me.mode : 'cat', crush: +((me && me.crush) || 0).toFixed(2),
       name: myName, form: getForm ? getForm() : 'car',
+      air: !!(me && me.air), flying: !!(me && me.flying),
+      flipX: +((me && me.flipX) || 0).toFixed(3), flipZ: +((me && me.flipZ) || 0).toFixed(3),
     });
     if(isHost() && now - lastWorld > 70){
       lastWorld = now;
@@ -265,7 +271,7 @@ export function installKit(ctx){
         P.y = r.ty != null ? r.ty : r.e.com;
         let d = r.tyaw - r.e.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
         r.e.yaw += d * lerp;
-        r.e.G.rotation.set(0, r.e.yaw, 0);
+        r.e.G.rotation.set(r.tflipX||0, r.e.yaw, r.tflipZ||0);
       }
       if(r.label) r.label.quaternion.copy(camera.quaternion);
       const rw = r.e.g && r.e.g.userData.wheels;

@@ -93,7 +93,12 @@ button.on{background:#ff4040;border-color:#fff}
 #nub{position:absolute;left:45px;top:45px;width:40px;height:40px;border-radius:50%;background:#ffd21e;border:3px solid #000}
 #padBtns{position:absolute;right:14px;bottom:190px;display:flex;flex-direction:column;gap:8px;pointer-events:auto}
 #padBtns button{min-width:88px}
-@media (min-width:901px){#pads{display:none}}
+#padAir{display:flex;flex-direction:column;gap:6px}
+#padAir .row{display:flex;gap:6px;justify-content:flex-end}
+#padAir button{min-width:64px;font-size:12px;padding:8px 6px}
+body.touch #pads, #pads.show{display:block!important}
+@media (hover:hover) and (pointer:fine){#pads{display:none}}
+@media (hover:none), (pointer:coarse){#pads{display:block}}
 </style>
 <script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
 </head><body>
@@ -121,7 +126,7 @@ button.on{background:#ff4040;border-color:#fff}
 <div id="maps" class="pe">
   <h1>RACE CITY 3D</h1>
   <div class="by">by Weston and Rocky · for ages 8–9 (Weston is 7 and getting fast!)</div>
-  <p>Open-world racing like Asphalt + Fortnite. Pick a map, then a car. The white Tesla Roadster can FLY and has rockets that never run out. Crash, become the orange tabby, and shop at Target with pretend coins.</p>
+  <p>Open-world racing like Asphalt + Fortnite. Pick a map, then a car. The white Tesla Roadster can FLY as long as you want (press F to toggle) and has rockets that never run out. In the air: climb, dive, steer, and flip/roll. Press F again to glide — land on your wheels to keep driving. Crash, become the orange tabby, and shop at Target with pretend coins.</p>
   <p style="color:#ffd21e"><b>Hint:</b> boost on straights, brake before corners.</p>
   <div id="mapGrid"></div>
   <div><button id="mapGo" class="pe" style="background:#ff4040;font-size:20px">▶ PICK THIS MAP</button> <button id="ptOpen" class="pe">PLAY TOGETHER</button> <a href="../index.html" style="color:#7cf;margin-left:12px">← arcade</a></div>
@@ -174,7 +179,9 @@ button.on{background:#ff4040;border-color:#fff}
   <h3>Crashes like BeamNG</h3>
   <p>Soft-body damage: when you hit something we push the vertices near the impact point. Panels crumple, hoods fly off, glass shatters. Off-center hits spin you. Big hits can roll you (tall trucks roll more). Train hits plow you — no wheel kick.</p>
   <h3>Keeping iPad smooth</h3>
-  <p>LOD + instancing: far-away cars become simpler shapes, and the game lowers extra shine if frames drop.</p>
+  <p>LOD + instancing: far-away cars become simpler shapes, and the game lowers extra shine if frames drop. On iPad, fly/climb/dive/steer/flip buttons sit on the right so you can fly without a keyboard.</p>
+  <h3>Flying the Roadster</h3>
+  <p>F toggles rockets on. While flying, the car holds altitude until you climb, dive, or turn fly off. Then it glides. A wheels-down landing keeps driving; a bad landing can still crash.</p>
   <h3>Car models</h3>
   <p>Real glTF cars, credited in the repo: Ferrari 458 from three.js examples (sports / Roadster stand-in), Khronos Car Concept CC-BY (sedan / SUV / pickup), Cesium Milk Truck CC-BY (truck / semi cab). Crash damage still crumples the actual body mesh from the hit point. Semis, Cybertruck, monster, and fire truck stay procedural when no matching CC0/CC-BY mesh fit.</p>
   <h3>City lighting</h3>
@@ -202,6 +209,21 @@ button.on{background:#ff4040;border-color:#fff}
     <button id="padBoost">BOOST</button>
     <button id="padBrake">BRAKE</button>
     <button id="padHorn">HORN</button>
+    <div id="padAir">
+      <div class="row">
+        <button id="padClimb">CLIMB</button>
+        <button id="padDive">DIVE</button>
+      </div>
+      <div class="row">
+        <button id="padSteerL">◀ STEER</button>
+        <button id="padSteerR">STEER ▶</button>
+      </div>
+      <div class="row">
+        <button id="padFlip">FLIP</button>
+        <button id="padRollL">ROLL L</button>
+        <button id="padRollR">ROLL R</button>
+      </div>
+    </div>
   </div>
 </div>
 <div id="loading">Rocky is building Race City... wait wait</div>
@@ -215,10 +237,10 @@ window.addEventListener('unhandledrejection', function(ev){ (window.RACE_ERRS = 
 import * as THREE from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
-import { makeRoster, carKind, findRosterIndex, createVehicleSystem, wreckDeform, popChance } from './arcade-cars.js?v=race4';
-import { installKit } from './race-city-kit.js?v=race4';
-import { loadCarKit } from './race-city-gltf.js?v=race4';
-import { makeWorldMats, decorateRoads, loadHdris, setupLook } from './race-city-look.js?v=race4';
+import { makeRoster, carKind, findRosterIndex, createVehicleSystem, wreckDeform, popChance } from './arcade-cars.js?v=race5';
+import { installKit } from './race-city-kit.js?v=race5';
+import { loadCarKit } from './race-city-gltf.js?v=race5';
+import { makeWorldMats, decorateRoads, loadHdris, setupLook } from './race-city-look.js?v=race5';
 import { makeCat } from '../shared/tabby-cat.js';
 
 const $ = id => document.getElementById(id);
@@ -587,7 +609,7 @@ function newCar(ci,x,z,yaw,mode,sid){
   g.traverse(o=>{ if(o.isMesh){ o.castShadow=mode==='drive'&&Q.level>=1; o.receiveShadow=mode==='drive'; } });
   scene.add(G);
   const W=def.W;
-  const e={sid:sid!=null?sid:nextSid++,ci,def,G,g,mode,yaw,L:def.L,W,fwd:0,lat:0,V:new V3(),v:new V3(),w:new V3(),com,top,crush:0,dmg:0,cd:0,landCd:0,sleepT:0,hits:0,fire:0,smokeT:0,corners:[],ai:null,steer:0,mass:def.mass,mu:.6,born:performance.now(),vy:0,air:false,pitch:0,pitchVel:0,yawVel:0,squash:0};
+  const e={sid:sid!=null?sid:nextSid++,ci,def,G,g,mode,yaw,L:def.L,W,fwd:0,lat:0,V:new V3(),v:new V3(),w:new V3(),com,top,crush:0,dmg:0,cd:0,landCd:0,sleepT:0,hits:0,fire:0,smokeT:0,corners:[],ai:null,steer:0,mass:def.mass,mu:.6,born:performance.now(),vy:0,air:false,flying:false,flipX:0,flipZ:0,flyPitch:0,pitch:0,pitchVel:0,yawVel:0,squash:0};
   if(sid!=null && sid>=nextSid) nextSid=sid+1;
   for(const cx of [-W/2,W/2]) for(const cy of [-com,top-com]) for(const cz of [-e.L/2,e.L/2]) e.corners.push(new V3(cx,cy,cz));
   e.I=e.mass*(e.L*e.L+W*W+top*top)/14; ents.push(e); return e;
@@ -666,8 +688,58 @@ function popHood(e, dir, speed){
   for(const h of hoods){ if(sev>.42) popOff(e,h,dir.clone().add(new V3(0,1,0)), speed); else if(sev>.16) h.userData.hinge=Math.min(1.5,(h.userData.hinge||0)+.75+sev); }
 }
 function stepHoods(e, dt){ e.g.traverse(o=>{ if(o.userData.part!=='hood' || o.userData.hinge==null) return; o.rotation.x+=( -o.userData.hinge - o.rotation.x)*Math.min(1,dt*9); }); }
+function wrapPi(a){ return Math.atan2(Math.sin(a||0), Math.cos(a||0)); }
+function wheelsDown(e){
+  return Math.abs(wrapPi(e.flipX))<.55 && Math.abs(wrapPi(e.flipZ))<.6 && Math.abs(e.pitch||0)<.35 && Math.abs(e.flyPitch||0)<.45;
+}
+function canFlyDef(d){ return !!(d && (d.fly||d.rockets||d.roadster)); }
+function paintFlyPad(){
+  const el=$('padFly'); if(!el) return;
+  const on=!!(me && me.flying);
+  el.classList.toggle('on', on);
+  el.textContent=on?'FLY ON':'FLY';
+}
+function setFlight(e, on){
+  if(!e || !canFlyDef(e.def) || e.mode!=='drive') return;
+  e.flying=!!on;
+  if(e.flying){
+    e.air=true;
+    if(e.G.position.y<e.com+1.5) e.vy=Math.max(e.vy||0, 14);
+    if(Math.abs(e.fwd)<12){ e.fwd=16; e.V.set(Math.sin(e.yaw)*e.fwd,0,Math.cos(e.yaw)*e.fwd); }
+    popup('FLYING!<small>W/S climb dive · A/D steer · Q/E roll · X flip · F to glide</small>');
+    say('Fly fly! Stay in the sky!');
+  } else if(e.air){
+    popup('GLIDE!<small>land on your wheels to keep driving</small>');
+  }
+  paintFlyPad(); setHelp();
+}
+function toggleFlight(e){ if(e) setFlight(e, !e.flying); }
+function tryLand(e, land){
+  const wheels=wheelsDown(e), good=wheels && land<18;
+  e.air=false; e.flying=false; e.vy=0; e.G.position.y=e.com;
+  if(good){
+    e.flipX=0; e.flipZ=0; e.flyPitch=0; e.pitch=0; e.pitchVel=0;
+    paintFlyPad(); setHelp();
+    popup('NICE LANDING!<small>still driving!</small>');
+    return true;
+  }
+  const bad=!wheels;
+  e.flipX=0; e.flipZ=0; e.flyPitch=0;
+  if(e.landCd<=0){
+    e.landCd=.35;
+    smash(e, e.G.position.clone().setY(.2), new V3(0,1,0), Math.max(land, 12), {kind:'wall'});
+    if(land>14 || bad) tumble(e);
+  }
+  paintFlyPad(); setHelp();
+  return false;
+}
 function stepPitch(e, dt){
   if(e.mode==='tumble' || e.mode==='wreck') return;
+  if(e.air){
+    e.G.rotation.set((e.pitch||0)+(e.flipX||0)+(e.flyPitch||0), e.yaw, e.flipZ||0);
+    stepHoods(e, dt);
+    return;
+  }
   e.pitch=e.pitch||0; e.pitchVel=e.pitchVel||0; e.yawVel=e.yawVel||0; e.squash=e.squash||0;
   e.pitchVel-=e.pitch*48*dt; e.pitchVel-=16*dt; e.pitchVel*=Math.exp(-2.4*dt);
   const prev=e.pitch;
@@ -677,8 +749,8 @@ function stepPitch(e, dt){
   if(e.pitch<.012 && Math.abs(e.pitchVel)<.28){ e.pitch=0; e.pitchVel=0; }
   e.squash=Math.max(0, e.squash-dt*2.1);
   const lift=Math.sin(Math.max(0,e.pitch))*e.L*.32;
-  if(!e.air) e.G.position.y=e.com*(1-e.squash)+lift;
-  e.G.rotation.set(e.pitch + (e.air?e.flipX||0:0), e.yaw, e.air?(e.flipZ||0):0);
+  e.G.position.y=e.com*(1-e.squash)+lift;
+  e.G.rotation.set(e.pitch, e.yaw, 0);
   e.g.scale.set(1, 1-e.squash*.8, 1);
   stepHoods(e, dt);
 }
@@ -789,6 +861,7 @@ function confirmNewCar(){
 function becomeCat(){
   if(form==='cat') return;
   form='cat';
+  if(me){ me.flying=false; me.air=false; me.vy=0; paintFlyPad(); }
   if(!cat){ cat=makeCat(THREE); cat.scale.setScalar(1.8); scene.add(cat); }
   cat.visible=true;
   const P=me?me.G.position:new V3();
@@ -820,38 +893,81 @@ function buyItem(id, cost){
 }
 
 const keys={}; let touchSteer=0, touchGas=0;
+let padBoost=false, padBrake=false, padClimb=false, padDive=false, padSteerL=false, padSteerR=false, padFlip=false, padRollL=false, padRollR=false;
 function drivePlayer(e,dt){
   const d=e.def, inp=screen==='play' && form==='car';
-  const up=inp&&(keys.ArrowUp||keys.KeyW||touchGas>0.2), dn=inp&&(keys.ArrowDown||keys.KeyS||keys.Space||padBrake), lf=inp&&(keys.ArrowLeft||keys.KeyA||touchSteer<-.2), rt=inp&&(keys.ArrowRight||keys.KeyD||touchSteer>.2);
+  const flying=!!(e.flying && canFlyDef(d));
+  const climb=inp&&(keys.ArrowUp||keys.KeyW||touchGas>0.2||padClimb);
+  const dive=inp&&(keys.ArrowDown||keys.KeyS||touchGas<-.2||padDive);
+  const lf=inp&&(keys.ArrowLeft||keys.KeyA||touchSteer<-.2||padSteerL);
+  const rt=inp&&(keys.ArrowRight||keys.KeyD||touchSteer>.2||padSteerR);
   const boost=inp&&(keys.ShiftLeft||keys.ShiftRight||padBoost);
-  const fly=inp&&(keys.KeyF||padFly) && (d.fly||d.rockets||d.roadster);
+  const brake=inp&&(keys.Space||padBrake);
+  const flipOn=inp&&e.air&&(keys.KeyX||padFlip);
+  const rollL=inp&&e.air&&(keys.KeyQ||padRollL);
+  const rollR=inp&&e.air&&(keys.KeyE||padRollR);
   const wl=e.g.userData.wheels.length, crip=wl>=4?1:wl>=3?.6:.3, dmgK=1-Math.min(.5,e.crush*.4);
   let top=d.top*dmgK*crip, acc=d.acc*crip;
+  // Rockets never run out — boost is always available.
   if(boost && (d.rockets||d.roadster||true)){ top*=1.45; acc*=1.8; }
+  if(flying && boost){ top*=1.12; acc*=1.15; }
   const st=((lf?1:0)-(rt?1:0)) + (-touchSteer);
   e.steer+=(clamp(st,-1,1)-e.steer)*Math.min(1,dt*7);
-  const sp0=Math.abs(e.fwd), turn=d.turn*clamp(sp0/5,0,1)/(1+sp0/45)*((keys.Space||padBrake)?1.5:1);
-  e.yaw+=e.steer*turn*Math.sign(e.fwd||1)*dt;
+  const sp0=Math.abs(e.fwd), turn=d.turn*clamp(sp0/5,0,1)/(1+sp0/45)*((brake&&!flying)?1.5:1);
+  e.yaw+=e.steer*(flying?d.turn*1.15:turn)*Math.sign(e.fwd||1)*dt;
   const F=new V3(Math.sin(e.yaw),0,Math.cos(e.yaw)), R=new V3(-F.z,0,F.x);
   let vf=e.V.dot(F), vl=e.V.dot(R);
-  if(up){ if(vf<-.5) vf+=28*dt; else vf+=acc*dt*Math.max(.06,1-Math.max(0,vf)/top); }
-  else if(dn){ if(vf>.5) vf-=30*dt; else vf=Math.max(-14,vf-acc*.6*dt); }
-  else vf-=Math.sign(vf)*Math.min(Math.abs(vf),(1.6+Math.abs(vf)*.012)*dt);
+  if(flying){
+    if(boost){ if(vf<-.5) vf+=28*dt; else vf+=acc*dt*Math.max(.06,1-Math.max(0,vf)/top); }
+    else vf-=Math.sign(vf)*Math.min(Math.abs(vf),(0.28+Math.abs(vf)*.005)*dt);
+    if(vf<10) vf+=(10-vf)*Math.min(1,dt*.8);
+    if(brake) vf-=Math.sign(vf)*Math.min(Math.abs(vf),18*dt);
+  } else {
+    if(climb){ if(vf<-.5) vf+=28*dt; else vf+=acc*dt*Math.max(.06,1-Math.max(0,vf)/top); }
+    else if(dive||brake){ if(vf>.5) vf-=30*dt; else vf=Math.max(-14,vf-acc*.6*dt); }
+    else vf-=Math.sign(vf)*Math.min(Math.abs(vf),(1.6+Math.abs(vf)*.012)*dt);
+  }
   if(vf>top) vf-=(vf-top)*Math.min(1,dt*2);
-  vl*=Math.exp(-((keys.Space||padBrake)?1.0:d.grip*(wl>=4?1:.5))*dt);
+  vl*=Math.exp(-((brake&&!flying)?1.0:d.grip*(wl>=4?1:.5))*dt);
   e.V.copy(F).multiplyScalar(vf).addScaledVector(R,vl); e.fwd=vf; e.lat=vl;
   const P=e.G.position;
-  if(fly && !e.air){ e.air=true; e.vy=18; e.flipX=0; e.flipZ=0; popup('ROCKET JUMP!<small>hold F to flip</small>'); }
+  e.flipX=e.flipX||0; e.flipZ=e.flipZ||0; e.flyPitch=e.flyPitch||0;
   if(e.air){
-    e.vy-=22*dt; P.addScaledVector(e.V,dt); P.y+=e.vy*dt;
-    if(fly){ e.flipX=(e.flipX||0)+dt*4.2; e.flipZ=(e.flipZ||0)+e.steer*dt*3; }
-    if(P.y<=e.com){ const land=-e.vy; P.y=e.com; e.air=false; e.vy=0; e.flipX=0; e.flipZ=0;
-      if(land>12 && e.landCd<=0){ e.landCd=.3; smash(e,P.clone().setY(.2), new V3(0,1,0), land, {kind:'wall'}); if(land>22) tumble(e); } }
+    if(flying){
+      if(climb) e.vy+=22*dt;
+      else if(dive) e.vy-=22*dt;
+      else e.vy=0;
+      e.vy=clamp(e.vy,-28,28);
+    } else {
+      e.vy-=9*dt;
+      e.vy=Math.max(e.vy,-14);
+      if(wheelsDown(e) && P.y<e.com+7) e.vy=Math.max(e.vy,-8);
+      if(climb) e.vy+=5*dt;
+      if(dive) e.vy-=6*dt;
+    }
+    if(flipOn) e.flipX+=dt*4.6;
+    if(rollL) e.flipZ-=dt*4.4;
+    if(rollR) e.flipZ+=dt*4.4;
+    if(!flipOn && !rollL && !rollR){
+      e.flipX+= (0-wrapPi(e.flipX))*Math.min(1,dt*2.1);
+      const bank=flying? -e.steer*.5 : 0;
+      e.flipZ+= (bank-wrapPi(e.flipZ))*Math.min(1,dt*2.4);
+    }
+    const wantPitch=flying?(climb?-.38:dive?.42:0):0;
+    e.flyPitch+=(wantPitch-e.flyPitch)*Math.min(1,dt*5);
+    P.addScaledVector(e.V,dt); P.y+=e.vy*dt;
+    if(flying){
+      if(P.y<e.com+1.2){ P.y=e.com+1.2; if(e.vy<0) e.vy=0; }
+      if(P.y>70){ P.y=70; if(e.vy>0) e.vy=0; }
+    } else if(P.y<=e.com){
+      tryLand(e, Math.max(0,-e.vy));
+    }
   } else {
     P.addScaledVector(e.V,dt); P.y=e.com;
   }
-  if(boost && (d.rockets||d.roadster)){
-    SMOKE.add(P.clone().addScaledVector(F,-e.L*.5).setY(P.y+.3), F.clone().multiplyScalar(-8).add(new V3(rand(-1,1),2,rand(-1,1))), pick([0xff7a00,0xffc000]), .4, .7, -1, 2);
+  if((boost||flying) && (d.rockets||d.roadster)){
+    const pow=boost?8:4;
+    SMOKE.add(P.clone().addScaledVector(F,-e.L*.5).setY(P.y+.3), F.clone().multiplyScalar(-pow).add(new V3(rand(-1,1),2,rand(-1,1))), pick([0xff7a00,0xffc000]), .4, boost?.7:.5, -1, 2);
   }
   if(!e.air){
     for(const c of circlesInto(e,_circA)){ const po=pushOut(c.x,c.z,c.r,e); if(!(po.dx||po.dz)) continue; P.x+=po.dx; P.z+=po.dz; const l=Math.hypot(po.dx,po.dz)||1, nx=po.dx/l, nzz=po.dz/l, vn=e.V.x*nx+e.V.z*nzz;
@@ -1004,6 +1120,7 @@ function spawnPlayer(ci,x,z,yaw){
   if(me && me.mode==='drive'){ me.mode='parked'; me.fwd=0; }
   me=newCar(ci,x,z,yaw,'drive'); me.fwd=0; form='car';
   $('prompt').classList.add('hidden'); $('vname').textContent='🚗 '+ROSTER[ci].name;
+  paintFlyPad(); setHelp();
   camera.position.copy(me.G.position).add(new V3(-Math.sin(yaw)*12,5,-Math.cos(yaw)*12));
 }
 
@@ -1029,10 +1146,11 @@ function setPlayMode(mode, opts={}){
 
 function setHelp(){
   if(form==='cat') $('help').innerHTML='<b>WASD</b> walk · <b>ENTER</b> Target shop or hop in a car · pretend coins only';
-  else $('help').innerHTML='<b>WASD / arrows</b> drive · <b>SPACE</b> brake · <b>SHIFT</b> rocket boost (never runs out) · <b>F</b> fly/jump · <b>H</b> horn · <b>C</b> camera · <b>R</b> NEW CAR<br>Hint: <b>boost on straights, brake before corners</b> · after a crash: NEW CAR or be the cat and walk to Target';
+  else if(me && canFlyDef(me.def)) $('help').innerHTML='<b>WASD / arrows</b> drive · <b>SPACE</b> brake · <b>SHIFT</b> rocket boost (never runs out) · <b>F</b> toggle FLY · in air: <b>W/S</b> climb/dive · <b>A/D</b> steer · <b>Q/E</b> roll · <b>X</b> flip · F again to glide, land on wheels · <b>H</b> horn · <b>C</b> camera · <b>R</b> NEW CAR<br>Hint: <b>boost on straights, brake before corners</b> · after a crash: NEW CAR or be the cat and walk to Target';
+  else $('help').innerHTML='<b>WASD / arrows</b> drive · <b>SPACE</b> brake · <b>SHIFT</b> rocket boost (never runs out) · <b>H</b> horn · <b>C</b> camera · <b>R</b> NEW CAR<br>Hint: <b>boost on straights, brake before corners</b> · after a crash: NEW CAR or be the cat and walk to Target';
 }
 
-let camMode=0, orbitA=0, shake=0, popT=0, padBoost=false, padFly=false, padBrake=false, camFreeze=false;
+let camMode=0, orbitA=0, shake=0, popT=0, camFreeze=false;
 const camLook=new V3();
 function updateCam(rdt){
   if(camFreeze) return;
@@ -1052,7 +1170,7 @@ function updateCam(rdt){
   const F=new V3(Math.sin(me.yaw),0,Math.cos(me.yaw)), sp=me.V.length();
   if(camMode===2){ camera.position.copy(P).addScaledVector(F,me.L*.1).setY(me.top+.1); camera.lookAt(P.clone().addScaledVector(F,20)); return; }
   const back=(camMode===1?10:4.1)+me.L*.38+sp*.025, hgt=(camMode===1?4.2:1.55)+me.top*.28;
-  const want=P.clone().addScaledVector(F,-back); want.y=hgt+(me.air?4:0);
+  const want=P.clone().addScaledVector(F,-back-(me.air?3:0)); want.y=hgt+(me.air?7:0);
   camera.position.lerp(want,1-Math.pow(.001,rdt)); camLook.copy(P).addScaledVector(F,4); camLook.y=1.2; camera.lookAt(camLook);
 }
 
@@ -1159,6 +1277,7 @@ addEventListener('keydown',ev=>{
   if(screen==='maps' && (ev.code==='Enter'||ev.code==='Space')) { $('mapGo').click(); return; }
   if(screen==='sel'){ if(ev.code==='Enter'||ev.code==='Space'){ if(pickerFromPlay) confirmNewCar(); else startPlay('free'); } else if(ev.code==='ArrowRight') setSel(sel+1); else if(ev.code==='ArrowLeft') setSel(sel-1); else if(ev.code==='ArrowDown') setSel(sel+3); else if(ev.code==='ArrowUp') setSel(sel-3); return; }
   if(ev.code==='Escape'){ if(pickerFromPlay){ $('sel').classList.add('hidden'); $('selName').classList.add('hidden'); screen='play'; showNewCarBtn(true); pickerFromPlay=false; return; } screen='maps'; $('maps').classList.remove('hidden'); $('sel').classList.add('hidden'); showNewCarBtn(false); }
+  else if(ev.code==='KeyF'){ if(screen==='play' && me && form==='car') toggleFlight(me); }
   else if(ev.code==='KeyH' && me) honk(me.def);
   else if(ev.code==='KeyC') camMode=(camMode+1)%3;
   else if(ev.code==='KeyR'){ openCarPicker(me && me.mode!=='drive' ? 'crash' : 'play'); }
@@ -1198,9 +1317,14 @@ $('shop').addEventListener('click', ev=>{
   stick.addEventListener('pointermove', e=>{ if(pid===e.pointerId) setFrom(e.clientX,e.clientY); });
   const end=()=>{ pid=null; nub.style.left='45px'; nub.style.top='45px'; touchSteer=0; touchGas=0; };
   stick.addEventListener('pointerup', end); stick.addEventListener('pointercancel', end);
-  const hold=(id, set)=>{ const el=$(id); el.addEventListener('pointerdown', e=>{ e.preventDefault(); set(true); }); el.addEventListener('pointerup', ()=>set(false)); el.addEventListener('pointerleave', ()=>set(false)); };
-  hold('padBoost', v=>padBoost=v); hold('padFly', v=>padFly=v); hold('padBrake', v=>padBrake=v);
+  const hold=(id, set)=>{ const el=$(id); if(!el) return; el.addEventListener('pointerdown', e=>{ e.preventDefault(); set(true); }); el.addEventListener('pointerup', ()=>set(false)); el.addEventListener('pointerleave', ()=>set(false)); el.addEventListener('pointercancel', ()=>set(false)); };
+  hold('padBoost', v=>padBoost=v); hold('padBrake', v=>padBrake=v);
+  hold('padClimb', v=>padClimb=v); hold('padDive', v=>padDive=v);
+  hold('padSteerL', v=>padSteerL=v); hold('padSteerR', v=>padSteerR=v);
+  hold('padFlip', v=>padFlip=v); hold('padRollL', v=>padRollL=v); hold('padRollR', v=>padRollR=v);
+  $('padFly').addEventListener('pointerdown', e=>{ e.preventDefault(); if(me && form==='car') toggleFlight(me); });
   $('padHorn').addEventListener('pointerdown', ()=>{ if(me) honk(me.def); });
+  if((navigator.maxTouchPoints||0)>0) document.body.classList.add('touch');
 })();
 
 window.RACE_KIT=installKit({
@@ -1217,7 +1341,7 @@ window.RACE={
   get coins(){ return coins; },
   get inv(){ return inv; },
   get sel(){ return sel; },
-  get me(){ return me?{n:me.def.name, m:me.mode, x:me.G.position.x, y:me.G.position.y, z:me.G.position.z, yaw:me.yaw, mph:Math.round((me.V||_v).length()*2.237), crush:me.crush, wheels:(me.g.userData.wheels||[]).length, air:!!me.air, pitch:me.pitch||0, flip:!!me.flip, gltf:me.g.userData.gltf||null}:null; },
+  get me(){ return me?{n:me.def.name, m:me.mode, x:me.G.position.x, y:me.G.position.y, z:me.G.position.z, yaw:me.yaw, mph:Math.round((me.V||_v).length()*2.237), crush:me.crush, wheels:(me.g.userData.wheels||[]).length, air:!!me.air, flying:!!me.flying, vy:me.vy||0, flipX:me.flipX||0, flipZ:me.flipZ||0, flyPitch:me.flyPitch||0, wheelsDown:wheelsDown(me), pitch:me.pitch||0, flip:!!me.flip, gltf:me.g.userData.gltf||null}:null; },
   get cat(){ return cat?{x:cat.position.x,z:cat.position.z,vis:cat.visible}:null; },
   get train(){ return {s:train.s,v:train.v,kind:train.kind,len:train.len,cars:train.parts.length,derailed:train.derailed,z:train.z,y:train.y}; },
   get ents(){ return ents.filter(e=>!e.isTrain).map(e=>({n:e.def.name,m:e.mode,crush:e.crush,x:+e.G.position.x.toFixed(1),z:+e.G.position.z.toFixed(1)})); },
@@ -1227,10 +1351,27 @@ window.RACE={
   pickMap(id){ mapId=id; loadMap(id); pickerFromPlay=false; screen='sel'; $('maps').classList.add('hidden'); $('sel').classList.remove('hidden'); $('go').textContent='▶ FREE DRIVE'; $('goRace').classList.remove('hidden'); $('backMap').textContent='← MAPS'; buildCarGrid(); setSel(sel); },
   chooseCar(i){ setSel(i); },
   startPlay, startRace, becomeCat, hopIn, buyItem, openShop,
-  pose(x,z,yaw){ if(me){ me.G.position.set(x,me.com,z); me.yaw=yaw||0; me.G.rotation.set(0,me.yaw,0); } if(cat&&form==='cat'){ cat.position.set(x,0,z); cat.rotation.y=yaw||0; } },
+  pose(x,z,yaw){ if(me){ me.flying=false; me.air=false; me.vy=0; me.flipX=0; me.flipZ=0; me.flyPitch=0; me.G.position.set(x,me.com,z); me.yaw=yaw||0; me.G.rotation.set(0,me.yaw,0); paintFlyPad(); } if(cat&&form==='cat'){ cat.position.set(x,0,z); cat.rotation.y=yaw||0; } },
   setVel(v){ if(me){ me.fwd=v; me.V.set(Math.sin(me.yaw)*v,0,Math.cos(me.yaw)*v); } },
   boost(){ keys.ShiftLeft=true; padBoost=true; },
-  fly(){ padFly=true; keys.KeyF=true; if(me){ me.air=true; me.vy=18; } },
+  unboost(){ keys.ShiftLeft=false; padBoost=false; },
+  fly(){ if(me && !me.flying) toggleFlight(me); },
+  toggleFly(){ if(me) toggleFlight(me); },
+  setFly(on){ if(me && !!me.flying!==!!on) toggleFlight(me); },
+  holdAir(which, on){
+    if(which==='climb') padClimb=!!on;
+    else if(which==='dive') padDive=!!on;
+    else if(which==='flip') padFlip=!!on;
+    else if(which==='rollL') padRollL=!!on;
+    else if(which==='rollR') padRollR=!!on;
+    else if(which==='steerL') padSteerL=!!on;
+    else if(which==='steerR') padSteerR=!!on;
+  },
+  setFlip(x,z){ if(!me) return; me.flipX=+x||0; me.flipZ=+z||0; },
+  dropFrom(y, vy){ if(!me) return; me.air=true; me.flying=false; me.G.position.y=y; me.vy=vy!=null?vy:-12; paintFlyPad(); },
+  tapPad(id){ const el=$(id); if(!el) return false; el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,cancelable:true})); el.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,cancelable:true})); return true; },
+  showPads(){ const el=$('pads'); if(el){ el.classList.add('show'); document.body.classList.add('touch'); } return !!(el && $('padFly') && $('padClimb') && $('padDive') && $('padSteerL') && $('padSteerR') && $('padFlip') && $('padRollL') && $('padRollR')); },
+  get pads(){ return {fly:!!$('padFly'), climb:!!$('padClimb'), dive:!!$('padDive'), steerL:!!$('padSteerL'), steerR:!!$('padSteerR'), flip:!!$('padFlip'), rollL:!!$('padRollL'), rollR:!!$('padRollR'), boost:!!$('padBoost'), flyOn:!!$('padFly')&&$('padFly').classList.contains('on')}; },
   smashWall(){ if(!me) return; smash(me, me.G.position.clone().add(new V3(Math.sin(me.yaw)*me.L*.5,1,Math.cos(me.yaw)*me.L*.5)), new V3(Math.sin(me.yaw),0,Math.cos(me.yaw)), 28, {kind:'wall'}); },
   smashTrain(){ if(!me||!train.parts[0]) return; const p=train.parts[0].c; me.G.position.set(p.x, me.com, p.z); smash(me, p.clone().setY(1), new V3(1,0,0), 30, {kind:'train'}); tumble(me); me.v.set(18,4,0); },
   addCoins(n){ coins+=n|0; },
@@ -1241,8 +1382,9 @@ window.RACE={
   beautyCam(){
     ['maps','sel','selName','ui','pads','shop','how','ptPanel','chatBox','loading'].forEach(id=>{ const el=$(id); if(el) el.classList.add('hidden'); });
     if(!me){ loadMap(mapId||'utah'); spawnPlayer(sel, 0, -40, 0); }
-    keys.KeyF=false; keys.ShiftLeft=false; padFly=false; padBoost=false;
-    me.air=false; me.vy=0; me.pitch=0; me.fwd=0; me.V.set(0,0,0);
+    keys.KeyF=false; keys.ShiftLeft=false; padBoost=false;
+    me.flying=false; me.air=false; me.vy=0; me.pitch=0; me.flipX=0; me.flipZ=0; me.flyPitch=0; me.fwd=0; me.V.set(0,0,0);
+    paintFlyPad();
     me.yaw=-2.45; me.G.position.y=me.com; me.G.rotation.set(0, me.yaw, 0);
     const box=new THREE.Box3().setFromObject(me.G);
     const c=box.getCenter(new THREE.Vector3());
@@ -1257,8 +1399,9 @@ window.RACE={
   carCloseup(){
     ['maps','sel','selName','pads','shop','how','ptPanel','chatBox','loading'].forEach(id=>{ const el=$(id); if(el) el.classList.add('hidden'); });
     if(!me) return;
-    keys.KeyF=false; keys.ShiftLeft=false; padFly=false; padBoost=false;
-    me.air=false; me.vy=0; me.pitch=0; me.G.position.y=me.com; me.G.rotation.set(0,me.yaw,0);
+    keys.KeyF=false; keys.ShiftLeft=false; padBoost=false;
+    me.flying=false; me.air=false; me.vy=0; me.pitch=0; me.flipX=0; me.flipZ=0; me.flyPitch=0; me.G.position.y=me.com; me.G.rotation.set(0,me.yaw,0);
+    paintFlyPad();
     const box=new THREE.Box3().setFromObject(me.G);
     const c=box.getCenter(new THREE.Vector3());
     const size=box.getSize(new THREE.Vector3());
