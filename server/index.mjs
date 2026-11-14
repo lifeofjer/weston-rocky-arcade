@@ -26,10 +26,15 @@ const MIME = {
   '.woff2': 'font/woff2',
   '.map': 'application/json',
   '.webmanifest': 'application/manifest+json',
+  '.glb': 'model/gltf-binary',
+  '.gltf': 'model/gltf+json',
+  '.hdr': 'application/octet-stream',
+  '.bin': 'application/octet-stream',
+  '.txt': 'text/plain; charset=utf-8',
 };
 
 const NO_STORE = 'no-cache, no-store, must-revalidate';
-const SAFE = new Set(['.html', '.js', '.mjs', '.css', '.json', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff2', '.map', '.webmanifest']);
+const SAFE = new Set(['.html', '.js', '.mjs', '.css', '.json', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff2', '.map', '.webmanifest', '.glb', '.gltf', '.hdr', '.bin', '.txt']);
 
 function safeJoin(root, urlPath){
   const decoded = decodeURIComponent((urlPath || '/').split('?')[0].split('#')[0]);

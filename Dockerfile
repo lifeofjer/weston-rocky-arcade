@@ -4,6 +4,6 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY . .
 ENV PORT=8080
-ENV ARCADE_BUILD=race1
+ENV ARCADE_BUILD=race4
 EXPOSE 8080
 CMD ["node", "server/index.mjs"]

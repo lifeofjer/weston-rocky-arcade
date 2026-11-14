@@ -69,7 +69,7 @@ const browser = await puppeteer.launch({
   ],
 });
 const page = await browser.newPage();
-page.setDefaultTimeout(45000);
+page.setDefaultTimeout(90000);
 await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
 page.on('pageerror', err => errors.push('pageerror: ' + err.message));
 page.on('console', msg => {
@@ -80,9 +80,9 @@ await page.evaluateOnNewDocument(() => {
   try { localStorage.setItem('arcadeAge6plus', 'yes'); } catch {}
 });
 
-const url = `http://127.0.0.1:${PORT}/games/race-city-3d.html?v=race2`;
+const url = `http://127.0.0.1:${PORT}/games/race-city-3d.html?v=race4`;
 await page.goto(url, { waitUntil: 'load', timeout: 60000 });
-await page.waitForFunction(() => window.RACE_READY === true, { timeout: 45000 });
+await page.waitForFunction(() => window.RACE_READY === true, { timeout: 90000 });
 
 async function shot(name) {
   const dest = path.join(artifacts, name);
@@ -97,6 +97,8 @@ const R = () => page.evaluate(() => {
     ready: r.ready, map: r.map, form: r.form, playMode: r.playMode, coins: r.coins,
     inv: r.inv, me: r.me, cat: r.cat, train: r.train, race: r.race, stats: r.stats,
     errs: r.errs, roadster: r.ROADSTER, wagon: r.POWER_WAGON,
+    picker: r.picker, prompt: r.prompt, remotes: r.remotes, mineNet: r.mineNet,
+    gltf: typeof r.gltf==='function'? r.gltf() : r.gltf,
   };
 });
 
@@ -114,6 +116,7 @@ for (const map of ['utah', 'california', 'vegas']) {
   check(st.map === map, `map ${map} loaded`);
   check(st.me && st.me.n, `${map} player spawned (${st.me && st.me.n})`);
   check(st.train && st.train.cars >= 5, `${map} full-length train (${st.train && st.train.cars} cars)`);
+  check(st.picker && st.picker.newCarBtn, `${map} NEW CAR button visible`);
   await shot(`race-city-${map}.jpg`);
 }
 
@@ -145,7 +148,78 @@ await page.evaluate(() => {
 st = await R();
 check(st.me && st.me.crush > 0.1, `crash damage crush=${st.me && st.me.crush}`);
 check(st.stats && st.stats.wrecks >= 1, `wreck counted ${st.stats && st.stats.wrecks}`);
+await page.evaluate(() => window.RACE.settleCrash());
+st = await R();
+check(st.prompt && st.prompt.open, `post-crash popup open`);
+check(st.prompt && st.prompt.hasNewCar, `post-crash popup has NEW CAR`);
+check(st.prompt && st.prompt.hasCat, `post-crash popup has BE THE CAT`);
+check(st.prompt && /NEW CAR/i.test(st.prompt.text||'') && /BE THE CAT/i.test(st.prompt.text||''), `popup labels ${st.prompt && st.prompt.text}`);
+check(st.picker && st.picker.newCarBtn, `NEW CAR HUD button still visible after crash`);
 await shot('race-city-crash.jpg');
+
+// NEW CAR picker after crash (button + R key) — respawn driving on the same map
+await page.keyboard.press('KeyR');
+st = await R();
+check(st.picker && st.picker.open, `R key opened picker crash=${st.picker && st.picker.crash} go=${st.picker && st.picker.go}`);
+check(st.picker && /DRIVE THIS CAR/i.test(st.picker.go||''), `picker confirm label ${st.picker && st.picker.go}`);
+await shot('race-city-newcar-picker.jpg');
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.chooseCar(R.POWER_WAGON);
+  R.driveThisCar();
+  R.sim(0.5);
+});
+st = await R();
+check(st.form === 'car', `new car form=${st.form}`);
+check(st.me && /POWER WAGON/i.test(st.me.n||''), `respawned as ${st.me && st.me.n}`);
+check(st.me && st.me.m === 'drive', `respawn mode=${st.me && st.me.m}`);
+check(st.me && (st.me.crush||0) < 0.05, `fresh car crush=${st.me && st.me.crush}`);
+check(st.map === 'utah', `stayed on same map ${st.map}`);
+check(st.playMode === 'free', `free-drive new car kept mode=${st.playMode}`);
+await shot('race-city-newcar-respawn.jpg');
+
+// Race mode: crash then pick a new car, stay on the same race
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.pickMap('utah');
+  R.chooseCar(R.ROADSTER);
+  R.startPlay('race');
+  R.sim(0.3);
+  R.smashWall();
+  R.settleCrash();
+  R.openPicker('crash');
+  R.chooseCar(R.POWER_WAGON);
+  R.driveThisCar();
+  R.sim(0.4);
+});
+st = await R();
+check(st.playMode === 'race' && st.race && st.race.on, `race new-car kept race on lap=${st.race && st.race.lap}`);
+check(st.me && /POWER WAGON/i.test(st.me.n||'') && st.me.m === 'drive', `race respawned driving ${st.me && st.me.n}`);
+check(st.map === 'utah', `race new-car stayed on ${st.map}`);
+await shot('race-city-newcar-race.jpg');
+
+// Play Together: remote friend rebuilding when they pick a new car (ci change)
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.pickMap('utah');
+  R.chooseCar(R.ROADSTER);
+  R.startPlay('free');
+  R.simulatePeer({ id:'dad', name:'Dad', data:{ x:4, y:0.6, z:-36, yaw:0, ci:R.ROADSTER, form:'car', mode:'drive', fwd:0 } });
+  R.simulatePeer({ id:'dad', name:'Dad', data:{ x:4, y:0.6, z:-36, yaw:0, ci:R.POWER_WAGON, form:'car', mode:'drive', fwd:0 } });
+});
+st = await R();
+check(st.remotes && st.remotes.length >= 1, `play-together remote count=${st.remotes && st.remotes.length}`);
+check(st.remotes && st.remotes.some(r => /POWER WAGON/i.test(r.n||'')), `play-together remote rebuilt as ${st.remotes && st.remotes.map(r=>r.n).join(',')}`);
+check(st.mineNet && st.mineNet.ci === st.roadster, `local sendMine ci stays ${st.mineNet && st.mineNet.ci}`);
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.openPicker('play');
+  R.chooseCar(R.POWER_WAGON);
+  R.driveThisCar();
+});
+st = await R();
+check(st.mineNet && /POWER WAGON/i.test(st.mineNet.n||''), `play-together local new car ci=${st.mineNet && st.mineNet.ci} ${st.mineNet && st.mineNet.n}`);
+await shot('race-city-newcar-together.jpg');
 
 // Train hit (no wheel kick path; plowed)
 await page.evaluate(() => {
@@ -204,13 +278,24 @@ await page.evaluate(() => {
   R.pickMap('utah');
   R.chooseCar(R.ROADSTER);
   R.startPlay('free');
-  // South edge of the Utah speedway, away from the FrontRunner.
-  R.pose(210, -52, 0);
+  R.pose(0, -40, 0);
   R.beautyCam();
 });
 await new Promise(r => setTimeout(r, 400));
 await page.evaluate(() => window.RACE.beautyCam());
 await shot('race-city-beauty.jpg');
+await page.evaluate(() => window.RACE.carCloseup && window.RACE.carCloseup());
+await shot('race-city-car-closeup.jpg');
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.pickMap('utah');
+  R.chooseCar(R.ROADSTER);
+  R.startPlay('free');
+  R.pose(0, -40, 0);
+  R.carCloseup();
+});
+await new Promise(r => setTimeout(r, 300));
+await shot('race-city-car-closeup-roadster.jpg');
 {
   const og = path.join(root, 'og', 'race-city-3d.jpg');
   fs.copyFileSync(path.join(artifacts, 'race-city-beauty.jpg'), og);

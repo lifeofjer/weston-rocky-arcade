@@ -316,5 +316,6 @@ export function installKit(ctx){
     noteHit, packWorld, applyWorld, myId:()=>net && net.id, sendMode:(m)=>{ if(netOn()) net.sendEvent({ kind:'mode', mode:m }); },
     sendMap:(m)=>{ if(netOn()) net.sendEvent({ kind:'map', map:m }); },
     get game(){ return game; }, paintGameBtns, TYPE,
+    simulatePeer: upsertRemote,
   };
 }
