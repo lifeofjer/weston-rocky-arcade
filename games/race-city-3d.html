@@ -289,10 +289,10 @@ window.addEventListener('unhandledrejection', function(ev){ (window.RACE_ERRS = 
 import * as THREE from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
-import { makeRoster, carKind, findRosterIndex, createVehicleSystem, wreckDeform, popChance } from './arcade-cars.js?v=race6';
-import { installKit } from './race-city-kit.js?v=race6';
-import { loadCarKit } from './race-city-gltf.js?v=race6';
-import { makeWorldMats, decorateRoads, loadHdris, setupLook } from './race-city-look.js?v=race6';
+import { makeRoster, carKind, findRosterIndex, createVehicleSystem, wreckDeform, popChance } from './arcade-cars.js?v=race7';
+import { installKit } from './race-city-kit.js?v=race7';
+import { loadCarKit } from './race-city-gltf.js?v=race7';
+import { makeWorldMats, decorateRoads, loadHdris, setupLook } from './race-city-look.js?v=race7';
 import { makeCat } from '../shared/tabby-cat.js';
 
 const $ = id => document.getElementById(id);
@@ -348,9 +348,15 @@ let gltfKit={ ready:false, build:()=>null, templates:[] };
 function applyQuality(lv){
   Q.level=clamp(lv|0,0,2);
   const split=!!splitOn;
-  Q.pr=split?Math.min(window.devicePixelRatio||1,1)
+  const nextPr=split?Math.min(window.devicePixelRatio||1,1)
     : Q.level>=2?Math.min(window.devicePixelRatio||1,1.5):Q.level>=1?Math.min(window.devicePixelRatio||1,1.1):.8;
-  renderer.setPixelRatio(Q.pr); renderer.setSize(innerWidth, innerHeight);
+  Q.pr=nextPr;
+  const curPr=renderer.getPixelRatio();
+  if(Math.abs(curPr-nextPr)>0.02){
+    try{ renderer.setPixelRatio(Q.pr); }catch(e){}
+  }
+  if(LOOK.setComposerPixelRatio) LOOK.setComposerPixelRatio(Q.pr);
+  try{ renderer.setSize(Math.max(1,innerWidth), Math.max(1,innerHeight)); }catch(e){}
   const far=split?(Q.level>=1?900:560):(Q.level>=2?1400:Q.level>=1?900:560);
   camera.far=far; camera2.far=far;
   setCamAspect();
@@ -1548,8 +1554,12 @@ function frame(){
     fx=f.x; fz=f.z;
   }
   sun.target.position.set(fx,0,fz); sun.position.set(fx+sunDir.x*220, sunDir.y*220, fz+sunDir.z*220);
-  if(splitOn && screen==='play') LOOK.renderSplit(camera, camera2);
-  else LOOK.render();
+  try{
+    if(splitOn && screen==='play' && camera2) LOOK.renderSplit(camera, camera2);
+    else LOOK.render();
+  }catch(e){
+    try{ if(LOOK.resetFullScreen) LOOK.resetFullScreen(); renderer.clear(); renderer.render(scene, camera); }catch(e2){}
+  }
 }
 
 addEventListener('pointerdown',()=>audio());
@@ -1630,6 +1640,16 @@ addEventListener('keydown',ev=>{
 addEventListener('keyup',ev=>{ keys[ev.code]=false; });
 addEventListener('blur',()=>{ for(const k in keys) keys[k]=false; });
 addEventListener('resize',()=>{ setCamAspect(); LOOK.resize(); });
+(function glLife(){
+  const el=renderer.domElement;
+  el.addEventListener('webglcontextlost', ev=>{
+    try{ ev.preventDefault(); }catch(e){}
+    (window.RACE_ERRS=window.RACE_ERRS||[]).push('webglcontextlost');
+  });
+  el.addEventListener('webglcontextrestored', ()=>{
+    try{ applyQuality(Q.level); LOOK.resetFullScreen && LOOK.resetFullScreen(); LOOK.render(); }catch(e){}
+  });
+})();
 
 function enterCarPick(){
   pickerFromPlay=false; splitPick=0; pickerSlot=1; screen='sel';
@@ -1814,6 +1834,36 @@ window.RACE={
     if(slot===2){ keys.ArrowUp=!!on; }
     else { keys.KeyW=!!on; }
   },
+  sampleCanvas(){
+    const gl=renderer.getContext();
+    const canvas=renderer.domElement;
+    if(!gl) return { lost:true, mean:0, lit:0, n:0, w:0, h:0, scissor:true };
+    if(gl.isContextLost()) return { lost:true, mean:0, lit:0, n:0, w:canvas.width|0, h:canvas.height|0, scissor:!!renderer.getScissorTest() };
+    try{ if(splitOn && screen==='play') LOOK.renderSplit(camera, camera2); else LOOK.render(); }catch(e){}
+    try{ renderer.setRenderTarget(null); }catch(e){}
+    const w=gl.drawingBufferWidth|0, h=gl.drawingBufferHeight|0;
+    const p=new Uint8Array(4);
+    function band(x0,x1){
+      let n=0, lit=0, sum=0;
+      const nx=6, ny=6;
+      for(let j=0;j<ny;j++) for(let i=0;i<nx;i++){
+        const x=Math.floor(x0+(i+.5)/nx*(x1-x0)), y=Math.floor((j+.5)/ny*h);
+        try{ gl.readPixels(x,y,1,1,gl.RGBA,gl.UNSIGNED_BYTE,p); }catch(e){ continue; }
+        const m=(p[0]+p[1]+p[2])/3;
+        sum+=m; n++; if(m>12) lit++;
+      }
+      return { mean:n?sum/n:0, lit, n };
+    }
+    const all=band(0,w), left=band(0,Math.max(1,w/2)), right=band(Math.floor(w/2),w);
+    const vp=new THREE.Vector4(); renderer.getViewport(vp);
+    return {
+      lost:false, mean:all.mean, lit:all.lit, n:all.n, w, h,
+      left:left.mean, right:right.mean, leftLit:left.lit, rightLit:right.lit,
+      scissor:!!renderer.getScissorTest(), autoClear:!!renderer.autoClear,
+      vp:[vp.x,vp.y,vp.z,vp.w], split:!!splitOn, pr:renderer.getPixelRatio(),
+    };
+  },
+  setQuality(lv){ applyQuality(lv); },
 };
 window.RACE_READY=false;
 

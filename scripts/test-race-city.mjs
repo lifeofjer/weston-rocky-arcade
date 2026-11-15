@@ -80,7 +80,7 @@ await page.evaluateOnNewDocument(() => {
   try { localStorage.setItem('arcadeAge6plus', 'yes'); } catch {}
 });
 
-const url = `http://127.0.0.1:${PORT}/games/race-city-3d.html?v=race6`;
+const url = `http://127.0.0.1:${PORT}/games/race-city-3d.html?v=race7`;
 await page.goto(url, { waitUntil: 'load', timeout: 60000 });
 await page.waitForFunction(() => window.RACE_READY === true, { timeout: 90000 });
 
@@ -108,6 +108,21 @@ function check(cond, msg) {
   else console.log('ok', msg);
 }
 
+async function canvas() {
+  return page.evaluate(() => window.RACE.sampleCanvas());
+}
+function notBlack(c, label, { split = false } = {}) {
+  check(c && !c.lost, `${label} WebGL context alive lost=${c && c.lost}`);
+  check(c && c.w > 8 && c.h > 8, `${label} drawing buffer ${c && c.w}x${c && c.h}`);
+  check(c && c.mean > 8 && c.lit >= 8, `${label} not black mean=${c && c.mean && c.mean.toFixed(1)} lit=${c && c.lit}/${c && c.n}`);
+  check(c && c.scissor === false, `${label} scissor off after render scissor=${c && c.scissor}`);
+  check(c && c.autoClear === true, `${label} autoClear restored autoClear=${c && c.autoClear}`);
+  if (split) {
+    check(c && c.left > 8 && c.leftLit >= 3, `${label} left half lit mean=${c && c.left && c.left.toFixed(1)} lit=${c && c.leftLit}`);
+    check(c && c.right > 8 && c.rightLit >= 3, `${label} right half lit mean=${c && c.right && c.right.toFixed(1)} lit=${c && c.rightLit}`);
+  }
+}
+
 // Load each map, start drive, screenshot
 for (const map of ['utah', 'california', 'vegas']) {
   await page.evaluate(id => { window.RACE.pickMap(id); window.RACE.chooseCar(window.RACE.ROADSTER); window.RACE.startPlay('free'); }, map);
@@ -118,6 +133,7 @@ for (const map of ['utah', 'california', 'vegas']) {
   check(st.me && st.me.n, `${map} player spawned (${st.me && st.me.n})`);
   check(st.train && st.train.cars >= 5, `${map} full-length train (${st.train && st.train.cars} cars)`);
   check(st.picker && st.picker.newCarBtn, `${map} NEW CAR button visible`);
+  notBlack(await canvas(), `1P free ${map}`);
   await shot(`race-city-${map}.jpg`);
 }
 
@@ -479,6 +495,7 @@ check(st.me && /ROADSTER/i.test(st.me.n||''), `P1 spawned ${st.me && st.me.n}`);
 check(st.p2 && /POWER WAGON/i.test(st.p2.n||''), `P2 spawned ${st.p2 && st.p2.n}`);
 check(st.split && st.split.legend, `key legends visible at start`);
 check(st.picker && st.picker.newCarBtn, `P1 NEW CAR button in split`);
+notBlack(await canvas(), '2P utah start', { split: true });
 await shot('race-city-split.jpg');
 
 // Drive both cars
@@ -587,7 +604,92 @@ await page.evaluate(() => {
 st = await R();
 check(st.p2 && /ROADSTER/i.test(st.p2.n||'') && st.p2.form === 'car', `P2 reset to ${st.p2 && st.p2.n} form=${st.p2 && st.p2.form}`);
 check(st.split && st.split.on, `still split after resets`);
+notBlack(await canvas(), '2P utah after reset', { split: true });
 await shot('race-city-split-reset.jpg');
+
+// 1P Race + 2P split on every map, then back to 1P full screen
+for (const map of ['utah', 'california', 'vegas']) {
+  await page.evaluate(id => {
+    const R = window.RACE;
+    R.pickMap(id);
+    R.chooseCar(R.ROADSTER);
+    R.startPlay('race');
+    R.sim(0.5);
+  }, map);
+  st = await R();
+  check(st.map === map, `1P race map ${map}`);
+  check(st.playMode === 'race' && st.race && st.race.on, `1P race on ${map} lap=${st.race && st.race.lap}`);
+  notBlack(await canvas(), `1P race ${map}`);
+  await shot(`race-city-race-${map}.jpg`);
+
+  await page.evaluate(id => {
+    const R = window.RACE;
+    R.pickMap(id);
+    R.startSplit(R.ROADSTER, R.POWER_WAGON);
+    R.sim(0.4);
+  }, map);
+  st = await R();
+  check(st.split && st.split.on, `2P ${map} split on`);
+  check(st.me && st.p2, `2P ${map} both cars`);
+  notBlack(await canvas(), `2P ${map}`, { split: true });
+  await shot(`race-city-split-${map}.jpg`);
+}
+
+// Leave split → 1P must fill the whole canvas (Weston's black-screen case)
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.pickMap('utah');
+  R.chooseCar(R.ROADSTER);
+  R.startPlay('free');
+  R.sim(0.4);
+});
+st = await R();
+check(st.split && !st.split.on, `back to 1P split=${st.split && st.split.on}`);
+notBlack(await canvas(), '1P after leaving split');
+
+// Resize while playing 1P then 2P
+await page.setViewport({ width: 900, height: 500, deviceScaleFactor: 1 });
+await page.evaluate(() => {
+  window.dispatchEvent(new Event('resize'));
+  window.RACE.sim(0.2);
+});
+notBlack(await canvas(), '1P after resize 900x500');
+await shot('race-city-resize-1p.jpg');
+
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.startSplit(R.ROADSTER, R.POWER_WAGON);
+  R.sim(0.3);
+});
+notBlack(await canvas(), '2P after resize 900x500', { split: true });
+await shot('race-city-resize-2p.jpg');
+
+await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
+await page.evaluate(() => {
+  window.dispatchEvent(new Event('resize'));
+  window.RACE.startPlay('free');
+  window.RACE.sim(0.2);
+});
+notBlack(await canvas(), '1P after restore 1280x720');
+
+// Retina pixel-ratio / quality steps must not lose the context or go black
+await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 2 });
+await page.evaluate(() => {
+  window.dispatchEvent(new Event('resize'));
+  window.RACE.setQuality(2);
+  window.RACE.sim(0.2);
+});
+notBlack(await canvas(), '1P dpr2 Q2');
+await page.evaluate(() => { window.RACE.setQuality(1); window.RACE.sim(0.15); });
+notBlack(await canvas(), '1P dpr2 Q1 (lower pixel ratio)');
+await page.evaluate(() => { window.RACE.setQuality(0); window.RACE.sim(0.15); });
+notBlack(await canvas(), '1P dpr2 Q0');
+await page.evaluate(() => { window.RACE.setQuality(2); window.RACE.sim(0.15); });
+notBlack(await canvas(), '1P dpr2 Q2 restore');
+{
+  const lost = await page.evaluate(() => (window.RACE.errs || []).some(e => /webglcontextlost/i.test(e)));
+  check(!lost, 'no WebGL context loss from pixel-ratio changes');
+}
 
 const pageErrs = await page.evaluate(() => window.RACE.errs || []);
 for (const e of pageErrs) errors.push('RACE_ERRS: ' + e);
