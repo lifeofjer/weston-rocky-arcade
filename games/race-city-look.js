@@ -220,7 +220,7 @@ export function setupLook(THREE, renderer, scene, camera, sun){
   sun.shadow.normalBias = 0.04;
   Object.assign(sun.shadow.camera, {left:-70, right:70, top:70, bottom:-70, near:4, far:260});
 
-  let composer=null, bloom=null, ssao=null, useComposer=true;
+  let composer=null, bloom=null, ssao=null, useComposer=true, splitGfx=false;
   function buildComposer(){
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
@@ -238,11 +238,23 @@ export function setupLook(THREE, renderer, scene, camera, sun){
     const lv = pad && level>1 ? 1 : level;
     renderer.shadowMap.enabled = lv>=1;
     sun.castShadow = lv>=1;
-    sun.shadow.mapSize.set(lv>=2?2048:1024, lv>=2?2048:1024);
+    const sm = splitGfx ? (lv>=1?1024:512) : (lv>=2?2048:1024);
+    sun.shadow.mapSize.set(sm, sm);
     if(bloom) bloom.strength = night ? (lv>=2?.42:.22) : (lv>=2?.18:.08);
-    if(ssao) ssao.enabled = lv>=2 && !pad && !navigator.webdriver;
-    useComposer = lv>=1 && composer;
+    if(ssao) ssao.enabled = !splitGfx && lv>=2 && !pad && !navigator.webdriver;
+    useComposer = !splitGfx && lv>=1 && composer;
     renderer.toneMappingExposure = night ? 0.72 : 1.05;
+  }
+  function setSplit(on){
+    splitGfx=!!on;
+    if(splitGfx){
+      useComposer=false;
+      sun.shadow.mapSize.set(1024, 1024);
+    }
+  }
+  function fullView(){
+    renderer.setScissorTest(false);
+    renderer.setViewport(0,0,innerWidth,innerHeight);
   }
   function resize(){
     const w=innerWidth, h=innerHeight;
@@ -250,19 +262,39 @@ export function setupLook(THREE, renderer, scene, camera, sun){
     if(composer) composer.setSize(w,h);
     if(ssao && typeof ssao.setSize==='function') ssao.setSize(w,h);
   }
-  function render(){
+  function render(cam){
+    fullView();
+    const c = cam || camera;
     try{
-      if(useComposer && composer) composer.render();
-      else renderer.render(scene, camera);
+      if(useComposer && composer && c===camera) composer.render();
+      else renderer.render(scene, c);
     }catch(e){
       useComposer=false;
-      renderer.render(scene, camera);
+      renderer.render(scene, c);
     }
+  }
+  function renderSplit(camL, camR){
+    const w=innerWidth, h=innerHeight, half=Math.floor(w/2);
+    const prev=renderer.autoClear;
+    renderer.autoClear=false;
+    renderer.setScissorTest(true);
+    renderer.setViewport(0,0,w,h);
+    renderer.setScissor(0,0,w,h);
+    renderer.clear();
+    renderer.setViewport(0,0,half,h);
+    renderer.setScissor(0,0,half,h);
+    renderer.render(scene, camL);
+    renderer.setViewport(half,0,w-half,h);
+    renderer.setScissor(half,0,w-half,h);
+    renderer.render(scene, camR);
+    renderer.setScissorTest(false);
+    renderer.setViewport(0,0,w,h);
+    renderer.autoClear=prev;
   }
   function setEnv(tex, bgColor, fogColor, fogDen){
     if(tex){ scene.environment = tex; scene.background = tex; }
     else if(bgColor) scene.background = new THREE.Color(bgColor);
     if(fogColor) scene.fog = new THREE.FogExp2(fogColor, fogDen||.0015);
   }
-  return { applyTier, resize, render, setEnv, composer };
+  return { applyTier, resize, render, renderSplit, setSplit, setEnv, composer };
 }

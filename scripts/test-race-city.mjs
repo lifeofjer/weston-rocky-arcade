@@ -80,7 +80,7 @@ await page.evaluateOnNewDocument(() => {
   try { localStorage.setItem('arcadeAge6plus', 'yes'); } catch {}
 });
 
-const url = `http://127.0.0.1:${PORT}/games/race-city-3d.html?v=race5`;
+const url = `http://127.0.0.1:${PORT}/games/race-city-3d.html?v=race6`;
 await page.goto(url, { waitUntil: 'load', timeout: 60000 });
 await page.waitForFunction(() => window.RACE_READY === true, { timeout: 90000 });
 
@@ -98,7 +98,7 @@ const R = () => page.evaluate(() => {
     inv: r.inv, me: r.me, cat: r.cat, train: r.train, race: r.race, stats: r.stats,
     errs: r.errs, roadster: r.ROADSTER, wagon: r.POWER_WAGON,
     picker: r.picker, prompt: r.prompt, remotes: r.remotes, mineNet: r.mineNet,
-    pads: r.pads,
+    pads: r.pads, split: r.split, p2: r.p2,
     gltf: typeof r.gltf==='function'? r.gltf() : r.gltf,
   };
 });
@@ -457,6 +457,137 @@ await shot('race-city-car-closeup-roadster.jpg');
   fs.copyFileSync(path.join(artifacts, 'race-city-beauty.jpg'), og);
   console.log('copied beauty og', og);
 }
+
+// Local 2-player split screen (Weston + Brogan, one laptop)
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.pickMap('utah');
+});
+st = await R();
+check(st.picker && st.picker.splitBtn, `2 PLAYERS button on car pick "${st.picker && st.picker.go}" splitBtn=${st.picker && st.picker.splitBtn}`);
+await page.evaluate(() => window.RACE.chooseCar(window.RACE.ROADSTER));
+await page.evaluate(() => document.getElementById('goSplit').click());
+st = await R();
+check(st.split && st.split.pick === 2, `after 2 PLAYERS click, picking P2 pick=${st.split && st.split.pick} btn=${st.split && st.split.btnText}`);
+check(st.split && /START 2 PLAYERS/i.test(st.split.btnText||''), `P2 confirm label ${st.split && st.split.btnText}`);
+await page.evaluate(() => window.RACE.chooseCar(window.RACE.POWER_WAGON));
+await page.evaluate(() => document.getElementById('goSplit').click());
+await page.evaluate(() => window.RACE.sim(0.4));
+st = await R();
+check(st.split && st.split.on, `split on after start hud=${st.split && st.split.hud}`);
+check(st.me && /ROADSTER/i.test(st.me.n||''), `P1 spawned ${st.me && st.me.n}`);
+check(st.p2 && /POWER WAGON/i.test(st.p2.n||''), `P2 spawned ${st.p2 && st.p2.n}`);
+check(st.split && st.split.legend, `key legends visible at start`);
+check(st.picker && st.picker.newCarBtn, `P1 NEW CAR button in split`);
+await shot('race-city-split.jpg');
+
+// Drive both cars
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.poseP(1, -12, -260, 0);
+  R.poseP(2, 12, -260, 0);
+  R.driveP(1, true);
+  R.driveP(2, true);
+  R.sim(0.8);
+  R.driveP(1, false);
+  R.driveP(2, false);
+});
+st = await R();
+check(st.me && st.me.mph > 4, `P1 drove mph=${st.me && st.me.mph} z=${st.me && st.me.z}`);
+check(st.p2 && st.p2.mph > 4, `P2 drove mph=${st.p2 && st.p2.mph} z=${st.p2 && st.p2.z}`);
+await shot('race-city-split-drive.jpg');
+
+// Fly with F (P1) and L (P2) — both in Roadsters
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.startSplit(R.ROADSTER, R.ROADSTER);
+  R.poseP(1, -30, -280, 0);
+  R.poseP(2, 30, -280, 0);
+  R.setVelP(1, 16);
+  R.setVelP(2, 16);
+  R.setFlyP(1, true);
+  R.setFlyP(2, true);
+  R.sim(0.5);
+});
+st = await R();
+check(st.me && st.me.flying && st.me.air, `P1 F fly flying=${st.me && st.me.flying} y=${st.me && st.me.y}`);
+check(st.p2 && st.p2.flying && st.p2.air, `P2 L fly flying=${st.p2 && st.p2.flying} y=${st.p2 && st.p2.y}`);
+const y1 = st.me && st.me.y, y2 = st.p2 && st.p2.y;
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.holdAirP(1, 'climb', true);
+  R.holdAirP(2, 'climb', true);
+  R.sim(0.9);
+  R.holdAirP(1, 'climb', false);
+  R.holdAirP(2, 'climb', false);
+});
+st = await R();
+check(st.me && st.me.y > y1 + 2, `P1 climb y0=${y1} y=${st.me && st.me.y}`);
+check(st.p2 && st.p2.y > y2 + 2, `P2 climb y0=${y2} y=${st.p2 && st.p2.y} flying=${st.p2 && st.p2.flying} mode=${st.p2 && st.p2.m}`);
+await page.keyboard.press('KeyF');
+await page.keyboard.press('KeyL');
+await page.evaluate(() => window.RACE.sim(0.3));
+st = await R();
+check(st.me && !st.me.flying && st.me.air, `P1 F toggled off flying=${st.me && st.me.flying}`);
+check(st.p2 && !st.p2.flying && st.p2.air, `P2 L toggled off flying=${st.p2 && st.p2.flying}`);
+await shot('race-city-split-fly.jpg');
+
+// Crash into each other
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.startSplit(R.ROADSTER, R.POWER_WAGON);
+  R.poseP(1, 0, -110, 0);
+  R.poseP(2, 0, -80, Math.PI);
+  R.setVelP(1, 28);
+  R.setVelP(2, 28);
+  R.sim(1.0);
+});
+st = await R();
+check(st.me && st.p2, `both alive after head-on P1 crush=${st.me && st.me.crush} P2 crush=${st.p2 && st.p2.crush}`);
+check((st.me && st.me.crush > 0.08) || (st.p2 && st.p2.crush > 0.08), `split crash damage P1=${st.me && st.me.crush} P2=${st.p2 && st.p2.crush} P1m=${st.me && st.me.m} P2m=${st.p2 && st.p2.m}`);
+await shot('race-city-split-crash.jpg');
+
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.settleCrashP(1);
+  R.settleCrashP(2);
+});
+st = await R();
+const p1prompt = await page.evaluate(() => window.RACE.promptP(1));
+const p2prompt = await page.evaluate(() => window.RACE.promptP(2));
+check(p1prompt && p1prompt.open && p1prompt.hasCat, `P1 crash prompt cat=${p1prompt && p1prompt.hasCat} new=${p1prompt && p1prompt.hasNewCar} ${p1prompt && p1prompt.text}`);
+check(p2prompt && p2prompt.open && p2prompt.hasCat, `P2 crash prompt cat=${p2prompt && p2prompt.hasCat} new=${p2prompt && p2prompt.hasNewCar}`);
+
+await page.evaluate(() => window.RACE.becomeCat(1));
+st = await R();
+check(st.me && st.me.form === 'cat', `P1 became cat form=${st.me && st.me.form}`);
+check(st.p2 && st.p2.form === 'car', `P2 still a car form=${st.p2 && st.p2.form}`);
+
+// Reset each player
+await page.keyboard.press('KeyR');
+st = await R();
+check(st.picker && st.picker.open && st.picker.slot === 1, `R opened P1 picker slot=${st.picker && st.picker.slot}`);
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.chooseCar(R.POWER_WAGON);
+  R.driveThisCar();
+  R.sim(0.3);
+});
+st = await R();
+check(st.me && /POWER WAGON/i.test(st.me.n||'') && st.me.form === 'car', `P1 reset to ${st.me && st.me.n} form=${st.me && st.me.form}`);
+await page.keyboard.press('KeyP');
+st = await R();
+check(st.picker && st.picker.open && st.picker.slot === 2, `P opened P2 picker slot=${st.picker && st.picker.slot}`);
+await page.evaluate(() => {
+  const R = window.RACE;
+  R.chooseCar(R.ROADSTER);
+  R.driveThisCar();
+  R.sim(0.3);
+});
+st = await R();
+check(st.p2 && /ROADSTER/i.test(st.p2.n||'') && st.p2.form === 'car', `P2 reset to ${st.p2 && st.p2.n} form=${st.p2 && st.p2.form}`);
+check(st.split && st.split.on, `still split after resets`);
+await shot('race-city-split-reset.jpg');
 
 const pageErrs = await page.evaluate(() => window.RACE.errs || []);
 for (const e of pageErrs) errors.push('RACE_ERRS: ' + e);
