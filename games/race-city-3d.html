@@ -99,6 +99,35 @@ button.on{background:#ff4040;border-color:#fff}
 body.touch #pads, #pads.show{display:block!important}
 @media (hover:hover) and (pointer:fine){#pads{display:none}}
 @media (hover:none), (pointer:coarse){#pads{display:block}}
+body.split #pads, body.split #speedo, body.split #newCarBtn, body.split #help, body.split #hint, body.split #vname, body.split #fps{display:none!important}
+#sel:not(.hidden) ~ #pads, #maps:not(.hidden) ~ #pads{display:none!important}
+body.split #stats{left:8px;top:88px;font-size:11px;max-width:42vw}
+#splitHud{position:fixed;inset:0;pointer-events:none;z-index:3}
+#splitHud .half{position:absolute;top:0;bottom:0;width:50%;box-sizing:border-box}
+#splitHud .half.L{left:0}
+#splitHud .half.R{left:50%}
+#splitBar{position:absolute;left:50%;top:0;bottom:0;width:4px;margin-left:-2px;background:#ffd21e;box-shadow:0 0 0 2px #000;z-index:4;pointer-events:none}
+#splitHud .pname{position:absolute;left:10px;top:10px;background:rgba(0,0,0,.62);border:3px solid #ffd21e;padding:5px 10px;font-weight:bold;font-size:15px;box-shadow:4px 4px 0 #000}
+#splitHud .half.L .pname{top:86px}
+#splitHud .half.R .pname{border-color:#4cff6a}
+#splitHud .vnm{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:rgba(0,0,0,.55);border:3px solid #ffd21e;padding:4px 10px;font-weight:bold;font-size:13px;box-shadow:3px 3px 0 #000;max-width:42%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#splitHud .half.L .vnm{top:86px}
+#splitHud .newCar{position:absolute;right:8px;top:8px;font-size:16px;padding:10px 12px;min-height:44px;background:#2a6cff;pointer-events:auto;z-index:8}
+#splitHud .speedo{position:absolute;right:8px;bottom:8px;width:124px;height:124px}
+#splitHud .speedo .dial{width:124px;height:124px;border-radius:50%;background:rgba(0,0,0,.6);border:4px solid #000;position:relative}
+#splitHud .mph{position:absolute;left:0;right:0;top:32px;text-align:center;font-size:34px;font-weight:900;text-shadow:3px 3px 0 #000}
+#splitHud .mphl{position:absolute;left:0;right:0;top:76px;text-align:center;font-size:11px;color:#ffd21e;font-weight:bold;letter-spacing:1px}
+#splitHud .legend{position:absolute;left:8px;bottom:78px;max-width:calc(50vw - 150px);background:rgba(0,0,0,.72);border:2px solid #7cf;padding:6px 8px;font-size:11px;line-height:1.4;pointer-events:none}
+#splitHud .half.L .legend{left:72px;bottom:12px}
+#splitHud .legend b{color:#ffd21e}
+#splitHud .prompt{position:absolute;left:8px;right:8px;top:28%;background:rgba(0,0,0,.82);border:3px solid #ff4040;padding:10px 12px;font-weight:bold;font-size:16px;text-align:center;text-shadow:2px 2px 0 #000;pointer-events:auto;z-index:9}
+#splitHud .prompt small{display:block;color:#ffd21e;font-size:12px;margin-top:4px}
+#splitHud .prompt .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+#splitHud .prompt .row button{font-size:14px;padding:10px 12px;min-height:44px}
+#sel.splitL{width:50vw}
+#sel.splitR{left:50%;width:50vw;background:linear-gradient(90deg,rgba(8,10,30,.96),rgba(8,10,30,.82) 82%,rgba(8,10,30,0))}
+#splitPickHint{display:block;margin-top:8px;color:#ffd21e;font-weight:bold;font-size:14px}
+#goSplit{font-size:18px;padding:12px 16px;background:#1faa4a;margin-top:8px}
 </style>
 <script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
 </head><body>
@@ -126,20 +155,41 @@ body.touch #pads, #pads.show{display:block!important}
 <div id="maps" class="pe">
   <h1>RACE CITY 3D</h1>
   <div class="by">by Weston and Rocky · for ages 8–9 (Weston is 7 and getting fast!)</div>
-  <p>Open-world racing like Asphalt + Fortnite. Pick a map, then a car. The white Tesla Roadster can FLY as long as you want (press F to toggle) and has rockets that never run out. In the air: climb, dive, steer, and flip/roll. Press F again to glide — land on your wheels to keep driving. Crash, become the orange tabby, and shop at Target with pretend coins.</p>
+  <p>Open-world racing like Asphalt + Fortnite. Pick a map, then a car. The white Tesla Roadster can FLY as long as you want (press F to toggle) and has rockets that never run out. In the air: climb, dive, steer, and flip/roll. Press F again to glide — land on your wheels to keep driving. Crash, become the orange tabby, and shop at Target with pretend coins. Two kids, one laptop: <b>2 PLAYERS (SPLIT SCREEN)</b>.</p>
   <p style="color:#ffd21e"><b>Hint:</b> boost on straights, brake before corners.</p>
   <div id="mapGrid"></div>
   <div><button id="mapGo" class="pe" style="background:#ff4040;font-size:20px">▶ PICK THIS MAP</button> <button id="ptOpen" class="pe">PLAY TOGETHER</button> <a href="../index.html" style="color:#7cf;margin-left:12px">← arcade</a></div>
 </div>
 <div id="sel" class="hidden pe">
-  <h1>PICK YOUR CAR</h1>
+  <h1 id="selTitle">PICK YOUR CAR</h1>
   <div class="by">Featured: white Tesla Roadster · Dad's truck is the 2015 RAM POWER WAGON</div>
-  <p>Race cars, trucks, and semis with real tandem axles. Every car crumples like BeamNG when you hit a wall, a spike, or another car.</p>
-  <div id="grid"></div>
+  <p>Race cars, trucks, and semis with real tandem axles. Every car crumples like BeamNG when you hit a wall, a spike, or another car. On one computer, Weston and a friend can pick two cars and play split screen.</p>
   <div>
     <button id="go" class="pe">▶ FREE DRIVE</button>
     <button id="goRace" class="pe" style="background:#2a6cff">🏁 RACE</button>
+    <button id="goSplit" class="pe">2 PLAYERS (SPLIT SCREEN)</button>
     <button id="backMap" class="pe">← MAPS</button>
+  </div>
+  <span id="splitPickHint" class="hidden">Player 1 locked in. Player 2, pick a car!</span>
+  <div id="grid"></div>
+</div>
+<div id="splitHud" class="hidden">
+  <div id="splitBar"></div>
+  <div class="half L">
+    <div class="pname">P1</div>
+    <div class="vnm" id="vname1">🚗</div>
+    <button class="newCar pe" id="newCarBtn1">NEW CAR · RESET</button>
+    <div class="speedo"><div class="dial"><div class="mph" id="mph1">0</div><div class="mphl" id="mphl1">MPH</div></div></div>
+    <div class="legend" id="legend1"><b>P1 KEYS</b><br><b>WASD</b> drive · <b>F</b> fly · <b>SHIFT</b> boost<br><b>Q/E</b> roll · <b>X</b> flip · <b>R</b> new car</div>
+    <div class="prompt hidden" id="prompt1"></div>
+  </div>
+  <div class="half R">
+    <div class="pname">P2</div>
+    <div class="vnm" id="vname2">🚗</div>
+    <button class="newCar pe" id="newCarBtn2">NEW CAR · RESET</button>
+    <div class="speedo"><div class="dial"><div class="mph" id="mph2">0</div><div class="mphl" id="mphl2">MPH</div></div></div>
+    <div class="legend" id="legend2"><b>P2 KEYS</b><br><b>ARROWS</b> drive · <b>L</b> fly · <b>ENTER</b> or <b>/</b> boost<br><b>, .</b> roll · <b>M</b> flip · <b>P</b> new car</div>
+    <div class="prompt hidden" id="prompt2"></div>
   </div>
 </div>
 <div id="ptPanel" class="hidden pe">
@@ -186,6 +236,8 @@ body.touch #pads, #pads.show{display:block!important}
   <p>Real glTF cars, credited in the repo: Ferrari 458 from three.js examples (sports / Roadster stand-in), Khronos Car Concept CC-BY (sedan / SUV / pickup), Cesium Milk Truck CC-BY (truck / semi cab). Crash damage still crumples the actual body mesh from the hit point. Semis, Cybertruck, monster, and fire truck stay procedural when no matching CC0/CC-BY mesh fit.</p>
   <h3>City lighting</h3>
   <p>Poly Haven CC0 HDRIs (via three.js) light the cars so paint and glass actually reflect the sky. Soft shadows, a little bloom, and haze make the blocks feel farther away.</p>
+  <h3>Split screen</h3>
+  <p>Two cameras, one world. The game draws the left half for player 1 and the right half for player 2 with scissor viewports. Each half has its own chase camera, speedo, and NEW CAR button. On a laptop we turn the shine down so both views stay smooth.</p>
   <h3>Play Together</h3>
   <p>A WebSocket room shares car positions and the crash “seed” so both screens show the same dent.</p>
   <div style="margin-top:10px"><button id="howClose">GOT IT</button></div>
@@ -237,10 +289,10 @@ window.addEventListener('unhandledrejection', function(ev){ (window.RACE_ERRS = 
 import * as THREE from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
-import { makeRoster, carKind, findRosterIndex, createVehicleSystem, wreckDeform, popChance } from './arcade-cars.js?v=race5';
-import { installKit } from './race-city-kit.js?v=race5';
-import { loadCarKit } from './race-city-gltf.js?v=race5';
-import { makeWorldMats, decorateRoads, loadHdris, setupLook } from './race-city-look.js?v=race5';
+import { makeRoster, carKind, findRosterIndex, createVehicleSystem, wreckDeform, popChance } from './arcade-cars.js?v=race6';
+import { installKit } from './race-city-kit.js?v=race6';
+import { loadCarKit } from './race-city-gltf.js?v=race6';
+import { makeWorldMats, decorateRoads, loadHdris, setupLook } from './race-city-look.js?v=race6';
 import { makeCat } from '../shared/tabby-cat.js';
 
 const $ = id => document.getElementById(id);
@@ -276,12 +328,14 @@ function popup(html){ $('pop').innerHTML=html; $('pop').style.opacity=1; popT=2.
 
 const renderer=new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance', preserveDrawingBuffer:true});
 const Q={level:(navigator.maxTouchPoints||0)>1?1:2,fps:60,acc:0,n:0,pr:Math.min(window.devicePixelRatio||1,1.5),show:false,night:false};
+let splitOn=false, splitPick=0, pickerSlot=1, p2=null, p2form='car', p2cat=null, p1ci=0, p2sel=0, splitHintT=0;
 renderer.setPixelRatio(Q.pr); renderer.setSize(innerWidth, innerHeight);
 renderer.domElement.id='c'; document.body.prepend(renderer.domElement);
 const ANISO=renderer.capabilities.getMaxAnisotropy();
 const { MAT, buildVehicle, mkPaint, buildLoco, buildRailCar, buildFrontRunnerLoco, buildBilevel } = createVehicleSystem(THREE, mergeGeometries, { aniso:ANISO, mergeVertices });
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(60, innerWidth/innerHeight, .2, 1400);
+const camera2=new THREE.PerspectiveCamera(60, innerWidth/innerHeight, .2, 1400);
 const sunDir=new V3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90-38), THREE.MathUtils.degToRad(200));
 function mkSky(turb=5, ray=1.2){ const s=new Sky(); s.scale.setScalar(5000); s.frustumCulled=false; const u=s.material.uniforms; u.turbidity.value=turb; u.rayleigh.value=ray; u.mieCoefficient.value=.004; u.mieDirectionalG.value=.86; u.sunPosition.value.copy(sunDir); return s; }
 let skyMesh=mkSky(); scene.add(skyMesh);
@@ -293,18 +347,28 @@ const WMAT=makeWorldMats(THREE, ANISO);
 let gltfKit={ ready:false, build:()=>null, templates:[] };
 function applyQuality(lv){
   Q.level=clamp(lv|0,0,2);
-  Q.pr=Q.level>=2?Math.min(window.devicePixelRatio||1,1.5):Q.level>=1?Math.min(window.devicePixelRatio||1,1.1):.8;
+  const split=!!splitOn;
+  Q.pr=split?Math.min(window.devicePixelRatio||1,1)
+    : Q.level>=2?Math.min(window.devicePixelRatio||1,1.5):Q.level>=1?Math.min(window.devicePixelRatio||1,1.1):.8;
   renderer.setPixelRatio(Q.pr); renderer.setSize(innerWidth, innerHeight);
-  camera.far=Q.level>=2?1400:Q.level>=1?900:560; camera.updateProjectionMatrix();
-  LOOK.applyTier(Q.level, Q.night); LOOK.resize();
+  const far=split?(Q.level>=1?900:560):(Q.level>=2?1400:Q.level>=1?900:560);
+  camera.far=far; camera2.far=far;
+  setCamAspect();
+  LOOK.setSplit(split);
+  LOOK.applyTier(split?Math.min(Q.level,1):Q.level, Q.night); LOOK.resize();
 }
 function tickQuality(dt){
   Q.acc+=dt; Q.n++;
   if(Q.acc<.8) return;
   Q.fps=Q.n/Q.acc; Q.acc=0; Q.n=0;
   if(Q.fps<46 && Q.level>0) applyQuality(Q.level-1);
-  else if(Q.fps>58 && Q.level<2) applyQuality(Q.level+1);
+  else if(Q.fps>58 && Q.level<2 && !splitOn) applyQuality(Q.level+1);
   if(Q.show) $('fps').textContent=`${Math.round(Q.fps)} FPS · Q${Q.level} · ${renderer.info.render.calls} calls`;
+}
+function setCamAspect(){
+  const a=splitOn? (innerWidth*.5)/Math.max(1,innerHeight) : innerWidth/Math.max(1,innerHeight);
+  camera.aspect=a; camera.updateProjectionMatrix();
+  camera2.aspect=a; camera2.updateProjectionMatrix();
 }
 
 const SCORCH=new THREE.Color(0x221e1a);
@@ -700,13 +764,16 @@ function paintFlyPad(){
   el.textContent=on?'FLY ON':'FLY';
 }
 function setFlight(e, on){
-  if(!e || !canFlyDef(e.def) || e.mode!=='drive') return;
+  if(!e || !canFlyDef(e.def)) return;
+  if(on && e.mode!=='drive') return;
   e.flying=!!on;
   if(e.flying){
     e.air=true;
     if(e.G.position.y<e.com+1.5) e.vy=Math.max(e.vy||0, 14);
     if(Math.abs(e.fwd)<12){ e.fwd=16; e.V.set(Math.sin(e.yaw)*e.fwd,0,Math.cos(e.yaw)*e.fwd); }
-    popup('FLYING!<small>W/S climb dive · A/D steer · Q/E roll · X flip · F to glide</small>');
+    popup(e===p2
+      ? 'P2 FLYING!<small>UP/DOWN climb dive · LEFT/RIGHT steer · , . roll · M flip · L to glide</small>'
+      : 'FLYING!<small>W/S climb dive · A/D steer · Q/E roll · X flip · F to glide</small>');
     say('Fly fly! Stay in the sky!');
   } else if(e.air){
     popup('GLIDE!<small>land on your wheels to keep driving</small>');
@@ -763,7 +830,7 @@ function smash(e, pt, dir, speed, hit){
   if(!isTrain){ kickImpact(e, pt, dir, speed, hit); popHood(e, dir, speed); }
   sparks(pt, Math.min(48, 16+speed*1.4|0), dir); crashSnd(sev, sev>.2); shake=Math.max(shake, Math.min(.85,speed*.03));
   bigHit=Math.max(bigHit, Math.round(speed*2.237));
-  if(e===me && form==='car' && e.crush>=.35) offerReset(true);
+  maybeTotal(e);
 }
 
 function rigidStep(e,dt){ const P=e.G.position; e.v.y-=22*dt; P.addScaledVector(e.v,dt);
@@ -773,7 +840,7 @@ function rigidStep(e,dt){ const P=e.G.position; e.v.y-=22*dt; P.addScaledVector(
   if(touching){ P.y-=minY; e.v.x*=Math.pow(.55,dt); e.v.z*=Math.pow(.55,dt); e.w.multiplyScalar(Math.pow(.45,dt)); }
   for(const c of circlesInto(e,_circA)){ const po=pushOut(c.x,c.z,c.r,e); if(po.dx||po.dz){ P.x+=po.dx; P.z+=po.dz; const l=Math.hypot(po.dx,po.dz)||1, nx=po.dx/l, nzz=po.dz/l, vn=e.v.x*nx+e.v.z*nzz;
     if(vn<0){ e.v.x-=1.4*vn*nx; e.v.z-=1.4*vn*nzz; if(-vn>6 && e.cd<=0){ e.cd=.25; smash(e,new V3(c.x-nx*c.r,P.y,c.z-nzz*c.r), new V3(nx,0,nzz), -vn, po.hit); } } break; } }
-  if(touching && e.v.length()<.8 && e.w.length()<.9){ e.sleepT+=dt; if(e.sleepT>.45){ e.mode='wreck'; e.v.set(0,0,0); e.w.set(0,0,0); if(e===me) playerSettled(); } } else e.sleepT=0;
+  if(touching && e.v.length()<.8 && e.w.length()<.9){ e.sleepT+=dt; if(e.sleepT>.45){ e.mode='wreck'; e.v.set(0,0,0); e.w.set(0,0,0); if(e===me||e===p2) playerSettled(e); } } else e.sleepT=0;
 }
 
 function hitPair(A,B){
@@ -798,25 +865,42 @@ function hitPair(A,B){
     popHood(A, new V3(-nx,0,-nzz), rv); popHood(B, new V3(nx,0,nzz), rv);
     sparks(pt,Math.min(52,rv*2.4|0),new V3(nx,0,nzz)); crashSnd(clamp(rv/22,0,1),rv>6);
     shake=Math.max(shake,Math.min(.7,rv*.02)); bigHit=Math.max(bigHit,Math.round(rv*2.237));
+    maybeTotal(A); maybeTotal(B);
   }
 }
 function carCars(){ for(let i=0;i<ents.length;i++) for(let j=i+1;j<ents.length;j++){ const A=ents[i], B=ents[j]; if(A.isTrain||B.isTrain) continue; hitPair(A,B); } }
 
-function offerReset(force){
-  if(!me || form!=='car') return;
-  if(!force){
-    const up=_v.set(0,1,0).applyQuaternion(me.G.quaternion).y;
-    if(me.crush<.4 && up>.8 && me.g.userData.wheels.length>=3){ me.mode='drive'; me.V.set(0,0,0); me.fwd=0; me.yaw=Math.atan2(_v.set(0,0,1).applyQuaternion(me.G.quaternion).x,_v.z); me.G.quaternion.setFromEuler(new THREE.Euler(0,me.yaw,0)); me.G.position.y=me.com; return; }
-  }
-  if(!force && me.crush<.25 && me.mode==='drive') return;
-  popT=0; $('pop').style.opacity=0;
-  $('prompt').innerHTML='YOUR CAR IS TOTALED!<small>Pick a NEW CAR on the same map, or be the orange tabby and walk to Target.</small><div class="row"><button class="pe" id="promptNewCar" style="background:#2a6cff">NEW CAR · RESET</button><button class="pe" id="promptCat">BE THE CAT</button></div>';
-  $('prompt').classList.remove('hidden');
-  $('promptNewCar').onclick=()=>{ $('prompt').classList.add('hidden'); openCarPicker('crash'); };
-  $('promptCat').onclick=()=>{ $('prompt').classList.add('hidden'); becomeCat(); };
-  say('Car is pancake! New car, or be the cat!');
+function slotOf(e){ return e===p2 ? 2 : 1; }
+function entOf(slot){ return slot===2 ? p2 : me; }
+function formOf(slot){ return slot===2 ? p2form : form; }
+function catOf(slot){ return slot===2 ? p2cat : cat; }
+function promptEl(slot){ return splitOn ? $('prompt'+slot) : $('prompt'); }
+function maybeTotal(e){
+  if(!e || (e!==me && e!==p2)) return;
+  if(formOf(slotOf(e))!=='car') return;
+  if(e.crush>=.35) offerReset(true, e);
 }
-function playerSettled(){ offerReset(false); }
+function offerReset(force, who){
+  const e = who && who.G ? who : (who===2 ? p2 : me);
+  if(!e || (e!==me && e!==p2)) return;
+  const slot=slotOf(e);
+  if(formOf(slot)!=='car') return;
+  if(!force){
+    const up=_v.set(0,1,0).applyQuaternion(e.G.quaternion).y;
+    if(e.crush<.4 && up>.8 && e.g.userData.wheels.length>=3){ e.mode='drive'; e.V.set(0,0,0); e.fwd=0; e.yaw=Math.atan2(_v.set(0,0,1).applyQuaternion(e.G.quaternion).x,_v.z); e.G.quaternion.setFromEuler(new THREE.Euler(0,e.yaw,0)); e.G.position.y=e.com; return; }
+  }
+  if(!force && e.crush<.25 && e.mode==='drive') return;
+  popT=0; $('pop').style.opacity=0;
+  const el=promptEl(slot);
+  const ncId=splitOn?('promptNewCar'+slot):'promptNewCar';
+  const catId=splitOn?('promptCat'+slot):'promptCat';
+  el.innerHTML=`YOUR CAR IS TOTALED!<small>Pick a NEW CAR on the same map, or be the orange tabby and walk to Target.</small><div class="row"><button class="pe" id="${ncId}" style="background:#2a6cff">NEW CAR · RESET</button><button class="pe" id="${catId}">BE THE CAT</button></div>`;
+  el.classList.remove('hidden');
+  $(ncId).onclick=()=>{ el.classList.add('hidden'); openCarPicker('crash', slot); };
+  $(catId).onclick=()=>{ el.classList.add('hidden'); becomeCat(slot); };
+  say(slot===2 ? 'Player 2 pancake! New car, or be the cat!' : 'Car is pancake! New car, or be the cat!');
+}
+function playerSettled(e){ offerReset(false, e||me); }
 
 function safeSpawn(){
   if(playMode==='race' && race.path && race.path.length){
@@ -828,58 +912,123 @@ function safeSpawn(){
   if(mapId==='vegas') return {x:0,z:-80,yaw:0};
   return {x:0,z:-40,yaw:0};
 }
-function showNewCarBtn(on){ $('newCarBtn').classList.toggle('hidden', !on); }
-function openCarPicker(from='play'){
+function showNewCarBtn(on){
+  $('newCarBtn').classList.toggle('hidden', !on || splitOn);
+  if($('newCarBtn1')) $('newCarBtn1').classList.toggle('hidden', !on || !splitOn);
+  if($('newCarBtn2')) $('newCarBtn2').classList.toggle('hidden', !on || !splitOn);
+}
+function hidePrompts(){
+  $('prompt').classList.add('hidden');
+  if($('prompt1')) $('prompt1').classList.add('hidden');
+  if($('prompt2')) $('prompt2').classList.add('hidden');
+}
+function hidePrompt(slot){
+  const el=promptEl(slot||1);
+  if(el) el.classList.add('hidden');
+  if(!splitOn) $('prompt').classList.add('hidden');
+}
+function paintSelChrome(){
+  const picking2=splitPick===2;
+  const inPlay=!!pickerFromPlay;
+  $('selTitle').textContent = inPlay ? (pickerSlot===2?'PLAYER 2 — NEW CAR':'PLAYER 1 — NEW CAR') : picking2 ? 'PLAYER 2 — PICK YOUR CAR' : (splitPick? 'PLAYER 1 — PICK YOUR CAR' : 'PICK YOUR CAR');
+  $('go').textContent = inPlay ? '▶ DRIVE THIS CAR' : '▶ FREE DRIVE';
+  $('go').classList.toggle('hidden', !!splitPick && !inPlay);
+  $('goRace').classList.toggle('hidden', !!inPlay || !!splitPick);
+  $('goSplit').classList.toggle('hidden', !!inPlay);
+  $('goSplit').textContent = picking2 ? '▶ START 2 PLAYERS' : '2 PLAYERS (SPLIT SCREEN)';
+  $('splitPickHint').classList.toggle('hidden', !picking2);
+  if(picking2) $('splitPickHint').textContent = `Player 1 is the ${ROSTER[p1ci]?ROSTER[p1ci].name:'car'}. Player 2, pick yours!`;
+  $('backMap').textContent = inPlay ? 'CANCEL' : (splitPick ? '← BACK' : '← MAPS');
+  $('sel').classList.toggle('splitL', inPlay && splitOn && pickerSlot===1);
+  $('sel').classList.toggle('splitR', inPlay && splitOn && pickerSlot===2);
+}
+function openCarPicker(from='play', slot=1){
   pickerFromPlay = from==='play' || from==='crash' || screen==='play';
   pickerCrash = from==='crash';
+  pickerSlot = splitOn ? (slot||1) : 1;
   if(preview){ scene.remove(preview); preview=null; }
-  $('prompt').classList.add('hidden');
-  screen='sel';
+  hidePrompt(pickerSlot||1);
+  if(splitOn && pickerFromPlay) screen='play';
+  else screen='sel';
   $('sel').classList.remove('hidden');
   $('maps').classList.add('hidden');
-  $('go').textContent = pickerFromPlay ? '▶ DRIVE THIS CAR' : '▶ FREE DRIVE';
-  $('goRace').classList.toggle('hidden', !!pickerFromPlay);
-  $('backMap').textContent = pickerFromPlay ? 'CANCEL' : '← MAPS';
+  paintSelChrome();
   buildCarGrid(); setSel(sel);
-  say(pickerCrash ? 'Pick any car! You spawn on the road.' : 'Pick a car!');
+  say(pickerCrash ? 'Pick any car! You spawn on the road.' : (pickerSlot===2 ? 'Player 2 pick a car!' : 'Pick a car!'));
 }
 function confirmNewCar(){
-  $('prompt').classList.add('hidden');
+  hidePrompt(pickerSlot||1);
   $('sel').classList.add('hidden'); $('selName').classList.add('hidden');
+  $('sel').classList.remove('splitL','splitR');
   if(preview){ scene.remove(preview); preview=null; }
-  pickerFromPlay=false; pickerCrash=false;
+  const slot=pickerSlot||1;
+  pickerFromPlay=false; pickerCrash=false; pickerSlot=1;
   const s=safeSpawn();
-  if(cat) cat.visible=false;
-  form='car';
-  spawnPlayer(sel, s.x, s.z, s.yaw);
+  const other=slot===2?me:p2;
+  let x=s.x+(slot===2?8:0), z=s.z, yaw=s.yaw;
+  if(other && other.G){ x=other.G.position.x+(slot===2?8:-8); z=other.G.position.z; yaw=other.yaw||0; }
+  if(slot===2){
+    if(p2cat) p2cat.visible=false;
+    p2form='car';
+    spawnP2(sel, x, z, yaw);
+  } else {
+    if(cat) cat.visible=false;
+    form='car';
+    spawnPlayer(sel, x, z, yaw);
+  }
   screen='play'; showNewCarBtn(true);
   camFreeze=false;
   setHelp();
-  say('New ride! Drive drive!');
+  say(slot===2 ? 'Player 2 new ride!' : 'New ride! Drive drive!');
 }
 
-function becomeCat(){
-  if(form==='cat') return;
-  form='cat';
-  if(me){ me.flying=false; me.air=false; me.vy=0; paintFlyPad(); }
-  if(!cat){ cat=makeCat(THREE); cat.scale.setScalar(1.8); scene.add(cat); }
-  cat.visible=true;
-  const P=me?me.G.position:new V3();
-  cat.position.set(P.x,0,P.z); cat.rotation.y=me?me.yaw:0;
-  if(me) me.G.visible=false;
-  $('prompt').classList.add('hidden');
-  $('vname').textContent='🐱 ORANGE TABBY';
-  setHelp(); meow(); popup('CAT MODE!<small>walk to Target · ENTER near a car to drive</small>');
+function becomeCat(slot=1){
+  if(formOf(slot)==='cat') return;
+  const e=entOf(slot);
+  if(slot===2) p2form='cat'; else form='cat';
+  if(e){
+    e.flying=false; e.air=false; e.vy=0; e.fwd=0;
+    if(e.V) e.V.set(0,0,0);
+    if(e.mode==='drive') e.mode='parked';
+    if(!splitOn) e.G.visible=false;
+    if(slot===1) paintFlyPad();
+  }
+  let kitty=catOf(slot);
+  if(!kitty){
+    kitty=makeCat(THREE); kitty.scale.setScalar(1.8); scene.add(kitty);
+    if(slot===2) p2cat=kitty; else cat=kitty;
+  }
+  kitty.visible=true;
+  const P=e?e.G.position:new V3();
+  kitty.position.set(P.x,0,P.z); kitty.rotation.y=e?e.yaw:0;
+  hidePrompt(slot);
+  const label='🐱 ORANGE TABBY';
+  if(splitOn) $(slot===2?'vname2':'vname1').textContent=label;
+  else $('vname').textContent=label;
+  setHelp(); meow(); popup(slot===2?'P2 CAT MODE!<small>arrows walk · ENTER near a car to drive</small>':'CAT MODE!<small>walk to Target · ENTER near a car to drive</small>');
 }
 
-function hopIn(e){
-  const car=e || ents.find(x=>!x.isTrain && x!==me && x.G.visible!==false && cat && Math.hypot(x.G.position.x-cat.position.x, x.G.position.z-cat.position.z)<6);
-  if(!car && me){ me.G.visible=true; me.mode='drive'; me.crush=0; form='car'; cat.visible=false; $('vname').textContent='🚗 '+me.def.name; setHelp(); return me; }
+function hopIn(e, slot=1){
+  const kitty=catOf(slot);
+  const mine=entOf(slot);
+  const other=slot===2?me:p2;
+  const car=e || ents.find(x=>!x.isTrain && x!==other && x.G.visible!==false && kitty && Math.hypot(x.G.position.x-kitty.position.x, x.G.position.z-kitty.position.z)<6);
+  if(!car && mine){
+    mine.G.visible=true; mine.mode='drive'; mine.crush=0;
+    if(slot===2) p2form='car'; else form='car';
+    if(kitty) kitty.visible=false;
+    const nm='🚗 '+mine.def.name;
+    if(splitOn) $(slot===2?'vname2':'vname1').textContent=nm; else $('vname').textContent=nm;
+    setHelp(); return mine;
+  }
   if(!car) return null;
-  if(me && me!==car) me.mode='parked';
-  me=car; me.mode='drive'; me.G.visible=true; form='car';
-  if(cat) cat.visible=false;
-  $('vname').textContent='🚗 '+me.def.name; setHelp(); say('New ride! Drive drive!'); return me;
+  if(mine && mine!==car) mine.mode='parked';
+  if(slot===2){ p2=car; p2form='car'; } else { me=car; form='car'; }
+  car.mode='drive'; car.G.visible=true;
+  if(kitty) kitty.visible=false;
+  const nm='🚗 '+car.def.name;
+  if(splitOn) $(slot===2?'vname2':'vname1').textContent=nm; else $('vname').textContent=nm;
+  setHelp(); say('New ride! Drive drive!'); return car;
 }
 
 function inTarget(x,z){ return Math.abs(x-TARGET.x)<TARGET.w/2+2 && Math.abs(z-TARGET.z)<TARGET.d/2+2; }
@@ -894,24 +1043,59 @@ function buyItem(id, cost){
 
 const keys={}; let touchSteer=0, touchGas=0;
 let padBoost=false, padBrake=false, padClimb=false, padDive=false, padSteerL=false, padSteerR=false, padFlip=false, padRollL=false, padRollR=false;
-function drivePlayer(e,dt){
-  const d=e.def, inp=screen==='play' && form==='car';
+function inputOf(slot){
+  if(!splitOn){
+    return {
+      up: !!(keys.ArrowUp||keys.KeyW||touchGas>0.2||padClimb),
+      down: !!(keys.ArrowDown||keys.KeyS||touchGas<-.2||padDive),
+      left: !!(keys.ArrowLeft||keys.KeyA||touchSteer<-.2||padSteerL),
+      right: !!(keys.ArrowRight||keys.KeyD||touchSteer>.2||padSteerR),
+      boost: !!(keys.ShiftLeft||keys.ShiftRight||padBoost),
+      brake: !!(keys.Space||padBrake),
+      flip: !!(keys.KeyX||padFlip),
+      rollL: !!(keys.KeyQ||padRollL),
+      rollR: !!(keys.KeyE||padRollR),
+    };
+  }
+  if(slot===2){
+    return {
+      up: !!keys.ArrowUp, down: !!keys.ArrowDown, left: !!keys.ArrowLeft, right: !!keys.ArrowRight,
+      boost: !!(keys.Enter||keys.NumpadEnter||keys.Slash),
+      brake: false, flip: !!keys.KeyM, rollL: !!keys.Comma, rollR: !!keys.Period,
+    };
+  }
+  return {
+    up: !!(keys.KeyW||touchGas>0.2||padClimb),
+    down: !!(keys.KeyS||touchGas<-.2||padDive),
+    left: !!(keys.KeyA||touchSteer<-.2||padSteerL),
+    right: !!(keys.KeyD||touchSteer>.2||padSteerR),
+    boost: !!(keys.ShiftLeft||keys.ShiftRight||padBoost),
+    brake: !!(keys.Space||padBrake),
+    flip: !!(keys.KeyX||padFlip),
+    rollL: !!(keys.KeyQ||padRollL),
+    rollR: !!(keys.KeyE||padRollR),
+  };
+}
+function drivePlayer(e,dt,ctl){
+  const d=e.def, slot=slotOf(e);
+  const picking = splitOn && pickerSlot===slot && !$('sel').classList.contains('hidden');
+  const inp=!!ctl && screen==='play' && formOf(slot)==='car' && !picking;
   const flying=!!(e.flying && canFlyDef(d));
-  const climb=inp&&(keys.ArrowUp||keys.KeyW||touchGas>0.2||padClimb);
-  const dive=inp&&(keys.ArrowDown||keys.KeyS||touchGas<-.2||padDive);
-  const lf=inp&&(keys.ArrowLeft||keys.KeyA||touchSteer<-.2||padSteerL);
-  const rt=inp&&(keys.ArrowRight||keys.KeyD||touchSteer>.2||padSteerR);
-  const boost=inp&&(keys.ShiftLeft||keys.ShiftRight||padBoost);
-  const brake=inp&&(keys.Space||padBrake);
-  const flipOn=inp&&e.air&&(keys.KeyX||padFlip);
-  const rollL=inp&&e.air&&(keys.KeyQ||padRollL);
-  const rollR=inp&&e.air&&(keys.KeyE||padRollR);
+  const climb=inp&&ctl.up;
+  const dive=inp&&ctl.down;
+  const lf=inp&&ctl.left;
+  const rt=inp&&ctl.right;
+  const boost=inp&&ctl.boost;
+  const brake=inp&&ctl.brake;
+  const flipOn=inp&&e.air&&ctl.flip;
+  const rollL=inp&&e.air&&ctl.rollL;
+  const rollR=inp&&e.air&&ctl.rollR;
   const wl=e.g.userData.wheels.length, crip=wl>=4?1:wl>=3?.6:.3, dmgK=1-Math.min(.5,e.crush*.4);
   let top=d.top*dmgK*crip, acc=d.acc*crip;
   // Rockets never run out — boost is always available.
   if(boost && (d.rockets||d.roadster||true)){ top*=1.45; acc*=1.8; }
   if(flying && boost){ top*=1.12; acc*=1.15; }
-  const st=((lf?1:0)-(rt?1:0)) + (-touchSteer);
+  const st=((lf?1:0)-(rt?1:0)) + (slot===2?0:(-touchSteer));
   e.steer+=(clamp(st,-1,1)-e.steer)*Math.min(1,dt*7);
   const sp0=Math.abs(e.fwd), turn=d.turn*clamp(sp0/5,0,1)/(1+sp0/45)*((brake&&!flying)?1.5:1);
   e.yaw+=e.steer*(flying?d.turn*1.15:turn)*Math.sign(e.fwd||1)*dt;
@@ -978,23 +1162,24 @@ function drivePlayer(e,dt){
   for(const w of (e.g.userData.wheels||[])){ if(!w.userData.spin) continue; w.userData.spin.rotation.x+=vf*dt/(w.userData.r||.3); if(w.userData.front) w.rotation.y=e.steer*.42; }
 }
 
-function walkCat(dt){
-  if(!cat) return;
-  const up=keys.ArrowUp||keys.KeyW||touchGas>0.2, dn=keys.ArrowDown||keys.KeyS, lf=keys.ArrowLeft||keys.KeyA||touchSteer<-.2, rt=keys.ArrowRight||keys.KeyD||touchSteer>.2;
-  const yaw=cat.rotation.y + ((lf?1:0)-(rt?1:0))*dt*2.6;
-  cat.rotation.y=yaw;
+function walkCat(dt, kitty, ctl, slot){
+  if(!kitty) return;
+  const up=ctl.up, dn=ctl.down, lf=ctl.left, rt=ctl.right;
+  const yaw=kitty.rotation.y + ((lf?1:0)-(rt?1:0))*dt*2.6;
+  kitty.rotation.y=yaw;
   let sp=0; if(up) sp=7; else if(dn) sp=-4;
-  cat.position.x+=Math.sin(yaw)*sp*dt; cat.position.z+=Math.cos(yaw)*sp*dt;
-  const u=cat.userData, ph=performance.now()/90;
+  kitty.position.x+=Math.sin(yaw)*sp*dt; kitty.position.z+=Math.cos(yaw)*sp*dt;
+  const u=kitty.userData, ph=performance.now()/90;
   if(Math.abs(sp)>.1){ u.legs.forEach((l,i)=> l.rotation.x = Math.sin(ph + (i%3===0?0:Math.PI))*0.6); u.tail.rotation.y=Math.sin(ph*.7)*0.25; }
   else u.legs.forEach(l=> l.rotation.x=0);
-  if(inv.hat && !cat.userData.hat){
+  if(inv.hat && !kitty.userData.hat){
     const hat=new THREE.Mesh(new THREE.CylinderGeometry(.16,.22,.08,10), new THREE.MeshStandardMaterial({color:0x5a3a18}));
-    hat.position.set(0,.22,0); cat.userData.head.add(hat); cat.userData.hat=hat;
+    hat.position.set(0,.22,0); kitty.userData.head.add(hat); kitty.userData.hat=hat;
   }
-  if(inTarget(cat.position.x, cat.position.z) && $('shop').classList.contains('hidden')){
-    $('prompt').innerHTML='TARGET!<small>ENTER to shop with pretend coins</small>'; $('prompt').classList.remove('hidden');
-  } else if(!inTarget(cat.position.x, cat.position.z) && $('prompt').textContent.includes('TARGET')) $('prompt').classList.add('hidden');
+  const el=promptEl(slot||1);
+  if(inTarget(kitty.position.x, kitty.position.z) && $('shop').classList.contains('hidden')){
+    el.innerHTML='TARGET!<small>'+(slot===2?'ENTER':'ENTER')+' to shop with pretend coins</small>'; el.classList.remove('hidden');
+  } else if(!inTarget(kitty.position.x, kitty.position.z) && (el.textContent||'').includes('TARGET')) el.classList.add('hidden');
 }
 
 function aiDrive(e,dt){
@@ -1059,7 +1244,7 @@ function trainHits(){
       sparks(pt, 24, h); crashSnd(.8,true); shake=Math.max(shake,.5);
       bigHit=Math.max(bigHit, Math.round(rel*2.237));
       popup(`TRAIN HIT!<small>${Math.round(rel*2.237)} MPH · plowed!</small>`);
-      if(e===me) playerSettled();
+      if(e===me||e===p2) playerSettled(e);
       if(mapId==='california' && rel>12 && Math.random()<(e.mass>=3?.6:.28)) derail();
     }
   }
@@ -1093,6 +1278,7 @@ function loadMap(id, opts={}){
   mapId=id; clearWorld();
   for(const e of [...ents]) if(!e.isTrain) removeCar(e);
   me=null; form='car'; if(cat) cat.visible=false;
+  p2=null; p2form='car'; if(p2cat) p2cat.visible=false;
   sun.intensity=3.1;
   if(id==='utah'){ train.z=6; train.y=.14; train.span=440; train.elevated=false; train.cruise=22; assembleTrain('frontrunner'); buildUtah(); }
   else if(id==='california'){ train.z=48; train.y=.14; train.span=560; train.elevated=false; train.cruise=26; assembleTrain('diesel'); buildCalifornia(); }
@@ -1101,11 +1287,28 @@ function loadMap(id, opts={}){
   if(!opts.fromNet && window.RACE_KIT && window.RACE_KIT.sendMap) window.RACE_KIT.sendMap(id);
 }
 
+function setSplitMode(on){
+  splitOn=!!on;
+  document.body.classList.toggle('split', splitOn);
+  $('splitHud').classList.toggle('hidden', !splitOn);
+  if(splitOn){
+    $('ui').classList.remove('hidden');
+    ['vname','speedo','help','hint'].forEach(id=>$(id).classList.add('hidden'));
+    $('stats').classList.remove('hidden');
+    splitHintT=8;
+    $('legend1').classList.remove('hidden');
+    $('legend2').classList.remove('hidden');
+  }
+  applyQuality(Q.level);
+}
 function startPlay(mode){
   audio(); playMode=mode||'free'; screen='play'; camFreeze=false;
-  pickerFromPlay=false; pickerCrash=false;
+  pickerFromPlay=false; pickerCrash=false; splitPick=0; pickerSlot=1;
+  setSplitMode(false);
   $('maps').classList.add('hidden'); $('sel').classList.add('hidden'); $('selName').classList.add('hidden');
+  $('sel').classList.remove('splitL','splitR');
   if(preview){ scene.remove(preview); preview=null; }
+  $('ui').classList.remove('hidden');
   ['vname','stats','speedo','help','hint'].forEach(id=>$(id).classList.remove('hidden'));
   showNewCarBtn(true);
   if(!ents.filter(e=>!e.isTrain).length) spawnTraffic();
@@ -1115,13 +1318,54 @@ function startPlay(mode){
   else { race.on=false; $('raceHud').classList.add('hidden'); }
   setHelp(); say(playMode==='race'?'Race! Boost on straights, brake before corners!':'Free drive! Go anywhere!');
 }
+function startSplitPlay(){
+  audio(); playMode='free'; screen='play'; camFreeze=false;
+  pickerFromPlay=false; pickerCrash=false; splitPick=0; pickerSlot=1;
+  $('maps').classList.add('hidden'); $('sel').classList.add('hidden'); $('selName').classList.add('hidden');
+  $('sel').classList.remove('splitL','splitR'); $('goSplit').classList.remove('hidden');
+  if(preview){ scene.remove(preview); preview=null; }
+  setSplitMode(true);
+  race.on=false; $('raceHud').classList.add('hidden');
+  if(!ents.filter(e=>!e.isTrain).length) spawnTraffic();
+  const start={x:0,z:mapId==='vegas'?-80:mapId==='california'?-24:-40};
+  spawnPlayer(p1ci!=null?p1ci:sel, start.x-4, start.z, 0);
+  spawnP2(p2sel!=null?p2sel:sel, start.x+4, start.z, 0);
+  showNewCarBtn(true);
+  setHelp(); say('Two players! Crash into each other!');
+}
 
 function spawnPlayer(ci,x,z,yaw){
   if(me && me.mode==='drive'){ me.mode='parked'; me.fwd=0; }
   me=newCar(ci,x,z,yaw,'drive'); me.fwd=0; form='car';
-  $('prompt').classList.add('hidden'); $('vname').textContent='🚗 '+ROSTER[ci].name;
+  hidePrompt(1);
+  const nm='🚗 '+ROSTER[ci].name;
+  $('vname').textContent=nm;
+  if($('vname1')) $('vname1').textContent=nm;
   paintFlyPad(); setHelp();
   camera.position.copy(me.G.position).add(new V3(-Math.sin(yaw)*12,5,-Math.cos(yaw)*12));
+}
+function spawnP2(ci,x,z,yaw){
+  if(p2 && p2.mode==='drive'){ p2.mode='parked'; p2.fwd=0; }
+  p2=newCar(ci,x,z,yaw,'drive'); p2.fwd=0; p2form='car';
+  if($('prompt2')) $('prompt2').classList.add('hidden');
+  if($('vname2')) $('vname2').textContent='🚗 '+ROSTER[ci].name;
+  camera2.position.copy(p2.G.position).add(new V3(-Math.sin(yaw)*12,5,-Math.cos(yaw)*12));
+}
+function beginSplitPick(){
+  audio();
+  if(splitPick===2){
+    p2sel=sel;
+    sel=p1ci;
+    startSplitPlay();
+    return;
+  }
+  p1ci=sel;
+  splitPick=2;
+  pickerFromPlay=false;
+  if(sel===ROADSTER && POWER_WAGON>=0) setSel(POWER_WAGON);
+  else setSel((sel+1)%ROSTER.length);
+  paintSelChrome();
+  say('Player 2 pick a car!');
 }
 
 function startRace(){
@@ -1145,13 +1389,30 @@ function setPlayMode(mode, opts={}){
 }
 
 function setHelp(){
+  if(splitOn){ $('help').classList.add('hidden'); return; }
   if(form==='cat') $('help').innerHTML='<b>WASD</b> walk · <b>ENTER</b> Target shop or hop in a car · pretend coins only';
   else if(me && canFlyDef(me.def)) $('help').innerHTML='<b>WASD / arrows</b> drive · <b>SPACE</b> brake · <b>SHIFT</b> rocket boost (never runs out) · <b>F</b> toggle FLY · in air: <b>W/S</b> climb/dive · <b>A/D</b> steer · <b>Q/E</b> roll · <b>X</b> flip · F again to glide, land on wheels · <b>H</b> horn · <b>C</b> camera · <b>R</b> NEW CAR<br>Hint: <b>boost on straights, brake before corners</b> · after a crash: NEW CAR or be the cat and walk to Target';
   else $('help').innerHTML='<b>WASD / arrows</b> drive · <b>SPACE</b> brake · <b>SHIFT</b> rocket boost (never runs out) · <b>H</b> horn · <b>C</b> camera · <b>R</b> NEW CAR<br>Hint: <b>boost on straights, brake before corners</b> · after a crash: NEW CAR or be the cat and walk to Target';
 }
 
-let camMode=0, orbitA=0, shake=0, popT=0, camFreeze=false;
-const camLook=new V3();
+let camMode=0, orbitA=0, shake=0, popT=0, camFreeze=false, orbitB=1.7;
+const camLook=new V3(), camLook2=new V3();
+function chaseCam(ent, formNow, kitty, cam, look, rdt, cmode, orbit){
+  if(formNow==='cat' && kitty && kitty.visible){
+    const F=new V3(Math.sin(kitty.rotation.y),0,Math.cos(kitty.rotation.y));
+    const want=kitty.position.clone().addScaledVector(F,-7); want.y=3.2;
+    cam.position.lerp(want,1-Math.pow(.02,rdt)); look.lerp(kitty.position.clone().setY(1.1),1-Math.pow(.02,rdt)); cam.lookAt(look); return orbit;
+  }
+  if(!ent) return orbit;
+  const P=ent.G.position;
+  if(ent.mode!=='drive'){ orbit+=rdt*.35; const R=8+ent.L*.5; cam.position.lerp(new V3(P.x+Math.sin(orbit)*R, 3.4, P.z+Math.cos(orbit)*R), .12); cam.lookAt(P); return orbit; }
+  const F=new V3(Math.sin(ent.yaw),0,Math.cos(ent.yaw)), sp=ent.V.length();
+  if(cmode===2){ cam.position.copy(P).addScaledVector(F,ent.L*.1).setY(ent.top+.1); cam.lookAt(P.clone().addScaledVector(F,20)); return orbit; }
+  const back=(cmode===1?10:4.1)+ent.L*.38+sp*.025, hgt=(cmode===1?4.2:1.55)+ent.top*.28;
+  const want=P.clone().addScaledVector(F,-back-(ent.air?3:0)); want.y=hgt+(ent.air?7:0);
+  cam.position.lerp(want,1-Math.pow(.001,rdt)); look.copy(P).addScaledVector(F,4); look.y=1.2; cam.lookAt(look);
+  return orbit;
+}
 function updateCam(rdt){
   if(camFreeze) return;
   if(screen!=='play'){
@@ -1159,19 +1420,8 @@ function updateCam(rdt){
     const t=preview?preview.position:new V3(0,1,0);
     camera.position.set(t.x+Math.sin(orbitA)*7, 2.2, t.z+Math.cos(orbitA)*7); camera.lookAt(t.x,1,t.z); return;
   }
-  if(form==='cat' && cat){
-    const F=new V3(Math.sin(cat.rotation.y),0,Math.cos(cat.rotation.y));
-    const want=cat.position.clone().addScaledVector(F,-7); want.y=3.2;
-    camera.position.lerp(want,1-Math.pow(.02,rdt)); camLook.lerp(cat.position.clone().setY(1.1),1-Math.pow(.02,rdt)); camera.lookAt(camLook); return;
-  }
-  if(!me) return;
-  const P=me.G.position;
-  if(me.mode!=='drive'){ orbitA+=rdt*.35; const R=8+me.L*.5; camera.position.lerp(new V3(P.x+Math.sin(orbitA)*R, 3.4, P.z+Math.cos(orbitA)*R), .12); camera.lookAt(P); return; }
-  const F=new V3(Math.sin(me.yaw),0,Math.cos(me.yaw)), sp=me.V.length();
-  if(camMode===2){ camera.position.copy(P).addScaledVector(F,me.L*.1).setY(me.top+.1); camera.lookAt(P.clone().addScaledVector(F,20)); return; }
-  const back=(camMode===1?10:4.1)+me.L*.38+sp*.025, hgt=(camMode===1?4.2:1.55)+me.top*.28;
-  const want=P.clone().addScaledVector(F,-back-(me.air?3:0)); want.y=hgt+(me.air?7:0);
-  camera.position.lerp(want,1-Math.pow(.001,rdt)); camLook.copy(P).addScaledVector(F,4); camLook.y=1.2; camera.lookAt(camLook);
+  orbitA=chaseCam(me, form, cat, camera, camLook, rdt, camMode, orbitA);
+  if(splitOn) orbitB=chaseCam(p2, p2form, p2cat, camera2, camLook2, rdt, camMode, orbitB);
 }
 
 let preview=null, sel=ROADSTER>=0?ROADSTER:0;
@@ -1210,7 +1460,7 @@ function buildMapGrid(){
 function resetWorld(){
   for(const e of [...ents]) if(!e.isTrain) removeCar(e);
   for(const d of loose) scene.remove(d.o); loose.length=0; SH.list.length=0; SPARK.p=[]; FIRE.p=[]; SMOKE.p=[];
-  wreckCount=0; bigHit=0; me=null; nextSid=1; form='car';
+  wreckCount=0; bigHit=0; me=null; p2=null; nextSid=1; form='car'; p2form='car';
 }
 
 function firstScene(){ spawnTraffic(); }
@@ -1222,16 +1472,22 @@ function simStep(rdt){
   const dt=Math.min(.05,rdt), host=simHost();
   if(host) updateTrain(dt);
   trainHits();
-  if(form==='cat' && screen==='play') walkCat(dt);
+  if(form==='cat' && screen==='play') walkCat(dt, cat, inputOf(1), 1);
+  if(splitOn && p2form==='cat' && screen==='play') walkCat(dt, p2cat, inputOf(2), 2);
   for(const e of ents){
     if(e.cd>0) e.cd-=dt; if(e.landCd>0) e.landCd-=dt;
-    if(e.mode==='drive' && e===me && form==='car') drivePlayer(e,dt);
+    if(e.mode==='drive' && e===me && form==='car') drivePlayer(e,dt, inputOf(1));
+    else if(splitOn && e.mode==='drive' && e===p2 && p2form==='car') drivePlayer(e,dt, inputOf(2));
     else if(e.mode==='ai' && host && !e.net) aiDrive(e,dt);
-    else if(e.mode==='tumble' && (host || e===me)){ rigidStep(e,dt/2); if(e.mode==='tumble') rigidStep(e,dt/2); }
+    else if(e.mode==='tumble' && (host || e===me || e===p2)){ rigidStep(e,dt/2); if(e.mode==='tumble') rigidStep(e,dt/2); }
     const P=e.G.position;
     if(e.fire>0){ e.fire-=dt; if(Math.random()<.5) FIRE.add(P.clone().add(new V3(rand(-.5,.5),.4,rand(-.5,.5))), new V3(0,2,0), pick([0xff7a00,0xffc000]), .4, .8, -2, 1); }
     if(e.crush>.3){ e.smokeT=(e.smokeT||0)-dt; if(e.smokeT<=0){ e.smokeT=.2; SMOKE.add(P.clone().setY(P.y+1.4), new V3(rand(-.2,.2),3,rand(-.2,.2)), 0x555555, 1.4, 1, -.2, 2); } }
-    const d=P.distanceTo(camera.position); e.G.visible = e===me || d<(Q.level>=2?240:140);
+    const lim=Q.level>=2?240:140;
+    const d=P.distanceTo(camera.position);
+    const d2=splitOn?P.distanceTo(camera2.position):1e9;
+    if(e===me || e===p2) e.G.visible = formOf(slotOf(e))==='car' || splitOn;
+    else e.G.visible = d<lim || d2<lim;
   }
   carCars(); updateLoose(dt); updateShards(dt); SPARK.update(dt); FIRE.update(dt); SMOKE.update(dt);
   if(race.on) updateRace();
@@ -1246,10 +1502,22 @@ function simStep(rdt){
   if(preview && screen!=='play') preview.rotation.y+=dt*.6;
 }
 
+function mphOf(e, f){
+  if(f==='cat') return 4;
+  if(e && e.mode==='drive') return e.V.length();
+  return 0;
+}
 function hud(){
-  const sp=me&&form==='car'&&me.mode==='drive'?me.V.length(): (form==='cat'?4:0);
-  $('mph').textContent=Math.round(sp*2.237);
-  $('mphl').textContent=form==='cat'?'CAT':'MPH';
+  if(splitOn){
+    $('mph1').textContent=Math.round(mphOf(me, form)*2.237);
+    $('mphl1').textContent=form==='cat'?'CAT':'MPH';
+    $('mph2').textContent=Math.round(mphOf(p2, p2form)*2.237);
+    $('mphl2').textContent=p2form==='cat'?'CAT':'MPH';
+  } else {
+    const sp=mphOf(me, form);
+    $('mph').textContent=Math.round(sp*2.237);
+    $('mphl').textContent=form==='cat'?'CAT':'MPH';
+  }
   $('sc').textContent=coins; $('sw').textContent=wreckCount; $('sh').textContent=bigHit;
 }
 
@@ -1259,48 +1527,130 @@ function frame(){
   simStep(rdt);
   if(window.RACE_KIT) window.RACE_KIT.sendMine(performance.now());
   tickQuality(rdt); updateCam(rdt);
-  if(shake>0){ shake=Math.max(0,shake-rdt); camera.position.add(new V3(rand(-1,1),rand(-1,1),rand(-1,1)).multiplyScalar(shake*.35)); }
+  if(shake>0){
+    shake=Math.max(0,shake-rdt);
+    const j=new V3(rand(-1,1),rand(-1,1),rand(-1,1)).multiplyScalar(shake*.35);
+    camera.position.add(j);
+    if(splitOn) camera2.position.add(j);
+  }
   if(popT>0){ popT-=rdt; if(popT<=0) $('pop').style.opacity=0; }
+  if(splitHintT>0){
+    splitHintT-=rdt;
+    if(splitHintT<=0){ $('legend1').classList.add('hidden'); $('legend2').classList.add('hidden'); }
+  }
   if(screen==='play') hud();
   if(LOOP && me && form==='car' && me.mode==='drive'){ const sp=Math.abs(me.fwd); LOOP.eng.o1.frequency.setTargetAtTime(80+sp*8, AC.currentTime, .08); LOOP.eng.g.gain.setTargetAtTime(.03+(keys.ShiftLeft?0.04:0), AC.currentTime, .08); }
   else if(LOOP) LOOP.eng.g.gain.setTargetAtTime(0, AC.currentTime, .1);
-  const f=me?me.G.position:(cat&&form==='cat'?cat.position:camera.position);
-  sun.target.position.set(f.x,0,f.z); sun.position.set(f.x+sunDir.x*220, sunDir.y*220, f.z+sunDir.z*220);
-  LOOK.render();
+  let fx,fz;
+  if(splitOn && me && p2){ fx=(me.G.position.x+p2.G.position.x)*.5; fz=(me.G.position.z+p2.G.position.z)*.5; }
+  else {
+    const f=me?me.G.position:(cat&&form==='cat'?cat.position:camera.position);
+    fx=f.x; fz=f.z;
+  }
+  sun.target.position.set(fx,0,fz); sun.position.set(fx+sunDir.x*220, sunDir.y*220, fz+sunDir.z*220);
+  if(splitOn && screen==='play') LOOK.renderSplit(camera, camera2);
+  else LOOK.render();
 }
 
 addEventListener('pointerdown',()=>audio());
+function cancelPicker(){
+  $('sel').classList.add('hidden'); $('selName').classList.add('hidden');
+  $('sel').classList.remove('splitL','splitR');
+  pickerFromPlay=false; pickerCrash=false; pickerSlot=1;
+  if(splitOn){ screen='play'; showNewCarBtn(true); }
+  else { screen='play'; showNewCarBtn(true); }
+}
+function goMaps(){
+  splitPick=0; pickerFromPlay=false; pickerSlot=1;
+  setSplitMode(false);
+  screen='maps';
+  $('maps').classList.remove('hidden'); $('sel').classList.add('hidden'); $('selName').classList.add('hidden');
+  $('sel').classList.remove('splitL','splitR');
+  paintSelChrome();
+  showNewCarBtn(false);
+}
 addEventListener('keydown',ev=>{
   if(ev.target && (ev.target.tagName==='INPUT'||ev.target.tagName==='TEXTAREA')) return;
-  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(ev.code)) ev.preventDefault();
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','Slash'].includes(ev.code)) ev.preventDefault();
   keys[ev.code]=true; if(ev.repeat) return; audio();
   if(screen==='maps' && (ev.code==='Enter'||ev.code==='Space')) { $('mapGo').click(); return; }
-  if(screen==='sel'){ if(ev.code==='Enter'||ev.code==='Space'){ if(pickerFromPlay) confirmNewCar(); else startPlay('free'); } else if(ev.code==='ArrowRight') setSel(sel+1); else if(ev.code==='ArrowLeft') setSel(sel-1); else if(ev.code==='ArrowDown') setSel(sel+3); else if(ev.code==='ArrowUp') setSel(sel-3); return; }
-  if(ev.code==='Escape'){ if(pickerFromPlay){ $('sel').classList.add('hidden'); $('selName').classList.add('hidden'); screen='play'; showNewCarBtn(true); pickerFromPlay=false; return; } screen='maps'; $('maps').classList.remove('hidden'); $('sel').classList.add('hidden'); showNewCarBtn(false); }
+  if(!$('sel').classList.contains('hidden') && (screen==='sel' || pickerFromPlay || splitPick)){
+    if(pickerFromPlay && splitOn && ((pickerSlot===1 && ev.code==='KeyR') || (pickerSlot===2 && ev.code==='KeyP'))){ confirmNewCar(); return; }
+    if(ev.code==='Enter' || (ev.code==='Space' && !pickerFromPlay)){
+      if(pickerFromPlay && splitOn){ /* Enter is P2 boost; click DRIVE THIS CAR */ }
+      else if(pickerFromPlay) confirmNewCar();
+      else if(splitPick) beginSplitPick();
+      else startPlay('free');
+      if(!(splitOn && pickerFromPlay)) return;
+    } else {
+      const stealArrows=!splitOn || !pickerFromPlay || pickerSlot===2 || !!splitPick;
+      if(stealArrows){
+        if(ev.code==='ArrowRight') setSel(sel+1);
+        else if(ev.code==='ArrowLeft') setSel(sel-1);
+        else if(ev.code==='ArrowDown') setSel(sel+3);
+        else if(ev.code==='ArrowUp') setSel(sel-3);
+        if(['ArrowRight','ArrowLeft','ArrowDown','ArrowUp'].includes(ev.code)) return;
+      }
+      if(screen==='sel' || splitPick) return;
+    }
+  }
+  if(ev.code==='Escape'){
+    if(pickerFromPlay || (!$('sel').classList.contains('hidden') && splitOn)){ cancelPicker(); return; }
+    if(splitPick){ splitPick=0; paintSelChrome(); setSel(p1ci); return; }
+    goMaps();
+  }
   else if(ev.code==='KeyF'){ if(screen==='play' && me && form==='car') toggleFlight(me); }
+  else if(ev.code==='KeyL'){ if(splitOn && screen==='play' && p2 && p2form==='car') toggleFlight(p2); }
   else if(ev.code==='KeyH' && me) honk(me.def);
   else if(ev.code==='KeyC') camMode=(camMode+1)%3;
-  else if(ev.code==='KeyR'){ openCarPicker(me && me.mode!=='drive' ? 'crash' : 'play'); }
-  else if(ev.code==='KeyP'){ Q.show=!Q.show; $('fps').classList.toggle('hidden', !Q.show); }
+  else if(ev.code==='KeyR'){ if(screen==='play') openCarPicker(me && me.mode!=='drive' ? 'crash' : 'play', 1); }
+  else if(ev.code==='KeyP'){
+    if(splitOn && screen==='play') openCarPicker(p2 && p2.mode!=='drive' ? 'crash' : 'play', 2);
+    else { Q.show=!Q.show; $('fps').classList.toggle('hidden', !Q.show); }
+  }
   else if(ev.code==='Enter'){
+    if(splitOn){
+      if(p2form==='cat' && p2cat){
+        if(inTarget(p2cat.position.x,p2cat.position.z)) openShop();
+        else hopIn(null, 2);
+      }
+      return;
+    }
     if(form==='car' && me && me.mode!=='drive') becomeCat();
     else if(form==='cat' && inTarget(cat.position.x,cat.position.z)) openShop();
     else if(form==='cat') hopIn();
   }
+  else if(ev.code==='Space'){
+    if(splitOn && form==='cat' && cat){
+      if(inTarget(cat.position.x,cat.position.z)) openShop();
+      else hopIn(null, 1);
+    }
+  }
 });
 addEventListener('keyup',ev=>{ keys[ev.code]=false; });
 addEventListener('blur',()=>{ for(const k in keys) keys[k]=false; });
-addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); LOOK.resize(); });
+addEventListener('resize',()=>{ setCamAspect(); LOOK.resize(); });
 
-$('mapGo').onclick=()=>{ audio(); loadMap(mapId); pickerFromPlay=false; screen='sel'; $('maps').classList.add('hidden'); $('sel').classList.remove('hidden'); $('go').textContent='▶ FREE DRIVE'; $('goRace').classList.remove('hidden'); $('backMap').textContent='← MAPS'; buildCarGrid(); setSel(sel); };
+function enterCarPick(){
+  pickerFromPlay=false; splitPick=0; pickerSlot=1; screen='sel';
+  $('maps').classList.add('hidden'); $('sel').classList.remove('hidden');
+  showNewCarBtn(false);
+  ['speedo','help','hint','vname','raceHud'].forEach(id=>{ const el=$(id); if(el) el.classList.add('hidden'); });
+  paintSelChrome(); buildCarGrid(); setSel(sel);
+}
+$('mapGo').onclick=()=>{ audio(); loadMap(mapId); enterCarPick(); };
 $('backMap').onclick=()=>{
-  if(pickerFromPlay){ $('sel').classList.add('hidden'); $('selName').classList.add('hidden'); screen='play'; showNewCarBtn(true); pickerFromPlay=false; return; }
-  screen='maps'; $('sel').classList.add('hidden'); $('maps').classList.remove('hidden'); $('selName').classList.add('hidden');
+  if(pickerFromPlay){ cancelPicker(); return; }
+  if(splitPick===2){ splitPick=0; paintSelChrome(); setSel(p1ci); return; }
+  goMaps();
 };
 $('go').onclick=()=>{ if(pickerFromPlay) confirmNewCar(); else startPlay('free'); };
 $('goRace').onclick=()=>startPlay('race');
-$('newCarBtn').onclick=()=>{ audio(); openCarPicker(me && me.mode!=='drive' ? 'crash' : 'play'); };
-$('padNewCar').onclick=()=>{ audio(); openCarPicker(me && me.mode!=='drive' ? 'crash' : 'play'); };
+$('goSplit').onclick=()=>beginSplitPick();
+$('newCarBtn').onclick=()=>{ audio(); openCarPicker(me && me.mode!=='drive' ? 'crash' : 'play', 1); };
+$('padNewCar').onclick=()=>{ audio(); openCarPicker(me && me.mode!=='drive' ? 'crash' : 'play', 1); };
+$('newCarBtn1').onclick=()=>{ audio(); openCarPicker(me && me.mode!=='drive' ? 'crash' : 'play', 1); };
+$('newCarBtn2').onclick=()=>{ audio(); openCarPicker(p2 && p2.mode!=='drive' ? 'crash' : 'play', 2); };
 $('howOpen').onclick=()=>$('how').classList.remove('hidden');
 $('howClose').onclick=()=>$('how').classList.add('hidden');
 $('shopClose').onclick=()=>$('shop').classList.add('hidden');
@@ -1333,6 +1683,10 @@ window.RACE_KIT=installKit({
   getMap:()=>mapId, getPlayMode:()=>playMode, setPlayMode, getForm:()=>form, loadMap,
 });
 
+function snapEnt(e, f){
+  if(!e) return null;
+  return {n:e.def.name, m:e.mode, x:e.G.position.x, y:e.G.position.y, z:e.G.position.z, yaw:e.yaw, mph:Math.round((e.V||_v).length()*2.237), crush:e.crush, wheels:(e.g.userData.wheels||[]).length, air:!!e.air, flying:!!e.flying, vy:e.vy||0, flipX:e.flipX||0, flipZ:e.flipZ||0, flyPitch:e.flyPitch||0, wheelsDown:wheelsDown(e), pitch:e.pitch||0, flip:!!e.flip, gltf:e.g.userData.gltf||null, form:f||'car', vis:e.G.visible!==false};
+}
 window.RACE={
   get ready(){ return !!window.RACE_READY; },
   get map(){ return mapId; },
@@ -1341,23 +1695,39 @@ window.RACE={
   get coins(){ return coins; },
   get inv(){ return inv; },
   get sel(){ return sel; },
-  get me(){ return me?{n:me.def.name, m:me.mode, x:me.G.position.x, y:me.G.position.y, z:me.G.position.z, yaw:me.yaw, mph:Math.round((me.V||_v).length()*2.237), crush:me.crush, wheels:(me.g.userData.wheels||[]).length, air:!!me.air, flying:!!me.flying, vy:me.vy||0, flipX:me.flipX||0, flipZ:me.flipZ||0, flyPitch:me.flyPitch||0, wheelsDown:wheelsDown(me), pitch:me.pitch||0, flip:!!me.flip, gltf:me.g.userData.gltf||null}:null; },
+  get me(){ return snapEnt(me, form); },
+  get p2(){ return snapEnt(p2, p2form); },
+  get split(){ return { on:!!splitOn, pick:splitPick, slot:pickerSlot, hud: $('splitHud') && !$('splitHud').classList.contains('hidden'), btn:!!$('goSplit') && !$('goSplit').classList.contains('hidden'), btnText:$('goSplit')&&$('goSplit').textContent, legend: $('legend1') && !$('legend1').classList.contains('hidden'), p1:snapEnt(me, form), p2:snapEnt(p2, p2form) }; },
   get cat(){ return cat?{x:cat.position.x,z:cat.position.z,vis:cat.visible}:null; },
   get train(){ return {s:train.s,v:train.v,kind:train.kind,len:train.len,cars:train.parts.length,derailed:train.derailed,z:train.z,y:train.y}; },
   get ents(){ return ents.filter(e=>!e.isTrain).map(e=>({n:e.def.name,m:e.mode,crush:e.crush,x:+e.G.position.x.toFixed(1),z:+e.G.position.z.toFixed(1)})); },
   get race(){ return {on:race.on,lap:race.lap,laps:race.laps,wp:race.wp,pos:race.pos,done:race.done,path:race.path.length}; },
   get stats(){ return {wrecks:wreckCount, big:bigHit, coins, fps:Q.fps, q:Q.level, calls:renderer.info.render.calls, tris:renderer.info.render.triangles}; },
   get errs(){ return window.RACE_ERRS||[]; },
-  pickMap(id){ mapId=id; loadMap(id); pickerFromPlay=false; screen='sel'; $('maps').classList.add('hidden'); $('sel').classList.remove('hidden'); $('go').textContent='▶ FREE DRIVE'; $('goRace').classList.remove('hidden'); $('backMap').textContent='← MAPS'; buildCarGrid(); setSel(sel); },
+  pickMap(id){ mapId=id; loadMap(id); enterCarPick(); },
   chooseCar(i){ setSel(i); },
-  startPlay, startRace, becomeCat, hopIn, buyItem, openShop,
+  startPlay, startRace, startSplitPlay, beginSplitPick, becomeCat, hopIn, buyItem, openShop,
+  startSplit(ci1, ci2){
+    p1ci = ci1!=null?ci1:(sel||ROADSTER);
+    p2sel = ci2!=null?ci2:(POWER_WAGON>=0?POWER_WAGON:p1ci);
+    sel=p1ci;
+    startSplitPlay();
+  },
   pose(x,z,yaw){ if(me){ me.flying=false; me.air=false; me.vy=0; me.flipX=0; me.flipZ=0; me.flyPitch=0; me.G.position.set(x,me.com,z); me.yaw=yaw||0; me.G.rotation.set(0,me.yaw,0); paintFlyPad(); } if(cat&&form==='cat'){ cat.position.set(x,0,z); cat.rotation.y=yaw||0; } },
+  poseP(slot,x,z,yaw){
+    const e=entOf(slot);
+    if(e){ e.flying=false; e.air=false; e.vy=0; e.flipX=0; e.flipZ=0; e.flyPitch=0; e.G.position.set(x,e.com,z); e.yaw=yaw||0; e.G.rotation.set(0,e.yaw,0); if(slot===1) paintFlyPad(); }
+    const kitty=catOf(slot);
+    if(kitty && formOf(slot)==='cat'){ kitty.position.set(x,0,z); kitty.rotation.y=yaw||0; }
+  },
   setVel(v){ if(me){ me.fwd=v; me.V.set(Math.sin(me.yaw)*v,0,Math.cos(me.yaw)*v); } },
+  setVelP(slot,v){ const e=entOf(slot); if(e){ e.fwd=v; e.V.set(Math.sin(e.yaw)*v,0,Math.cos(e.yaw)*v); } },
   boost(){ keys.ShiftLeft=true; padBoost=true; },
   unboost(){ keys.ShiftLeft=false; padBoost=false; },
   fly(){ if(me && !me.flying) toggleFlight(me); },
   toggleFly(){ if(me) toggleFlight(me); },
   setFly(on){ if(me && !!me.flying!==!!on) toggleFlight(me); },
+  setFlyP(slot, on){ const e=entOf(slot); if(e && !!e.flying!==!!on) toggleFlight(e); },
   holdAir(which, on){
     if(which==='climb') padClimb=!!on;
     else if(which==='dive') padDive=!!on;
@@ -1366,6 +1736,22 @@ window.RACE={
     else if(which==='rollR') padRollR=!!on;
     else if(which==='steerL') padSteerL=!!on;
     else if(which==='steerR') padSteerR=!!on;
+  },
+  holdAirP(slot, which, on){
+    if(slot===2){
+      if(which==='climb') keys.ArrowUp=!!on;
+      else if(which==='dive') keys.ArrowDown=!!on;
+      else if(which==='flip') keys.KeyM=!!on;
+      else if(which==='rollL') keys.Comma=!!on;
+      else if(which==='rollR') keys.Period=!!on;
+      else if(which==='steerL') keys.ArrowLeft=!!on;
+      else if(which==='steerR') keys.ArrowRight=!!on;
+      else if(which==='boost'){ keys.Enter=!!on; keys.Slash=!!on; }
+      return;
+    }
+    window.RACE.holdAir(which, on);
+    if(which==='climb') keys.KeyW=!!on;
+    else if(which==='dive') keys.KeyS=!!on;
   },
   setFlip(x,z){ if(!me) return; me.flipX=+x||0; me.flipZ=+z||0; },
   dropFrom(y, vy){ if(!me) return; me.air=true; me.flying=false; me.G.position.y=y; me.vy=vy!=null?vy:-12; paintFlyPad(); },
@@ -1380,7 +1766,7 @@ window.RACE={
   sim(sec){ for(let t=0;t<sec;t+=1/30) simStep(1/30); },
   shot(){ return renderer.domElement.toDataURL('image/jpeg', .72); },
   beautyCam(){
-    ['maps','sel','selName','ui','pads','shop','how','ptPanel','chatBox','loading'].forEach(id=>{ const el=$(id); if(el) el.classList.add('hidden'); });
+    ['maps','sel','selName','ui','pads','shop','how','ptPanel','chatBox','loading','splitHud'].forEach(id=>{ const el=$(id); if(el) el.classList.add('hidden'); });
     if(!me){ loadMap(mapId||'utah'); spawnPlayer(sel, 0, -40, 0); }
     keys.KeyF=false; keys.ShiftLeft=false; padBoost=false;
     me.flying=false; me.air=false; me.vy=0; me.pitch=0; me.flipX=0; me.flipZ=0; me.flyPitch=0; me.fwd=0; me.V.set(0,0,0);
@@ -1397,7 +1783,7 @@ window.RACE={
     LOOK.render();
   },
   carCloseup(){
-    ['maps','sel','selName','pads','shop','how','ptPanel','chatBox','loading'].forEach(id=>{ const el=$(id); if(el) el.classList.add('hidden'); });
+    ['maps','sel','selName','pads','shop','how','ptPanel','chatBox','loading','splitHud'].forEach(id=>{ const el=$(id); if(el) el.classList.add('hidden'); });
     if(!me) return;
     keys.KeyF=false; keys.ShiftLeft=false; padBoost=false;
     me.flying=false; me.air=false; me.vy=0; me.pitch=0; me.flipX=0; me.flipZ=0; me.flyPitch=0; me.G.position.y=me.com; me.G.rotation.set(0,me.yaw,0);
@@ -1414,13 +1800,20 @@ window.RACE={
   },
   openPicker: openCarPicker,
   driveThisCar: confirmNewCar,
-  settleCrash(){ if(me){ me.mode='wreck'; me.v.set(0,0,0); me.w.set(0,0,0); } offerReset(true); },
-  get prompt(){ const el=$('prompt'); return { open: !el.classList.contains('hidden'), text: el.textContent||'', hasNewCar: !!$('promptNewCar'), hasCat: !!$('promptCat') }; },
-  get picker(){ return {fromPlay:pickerFromPlay, crash:pickerCrash, open: !$('sel').classList.contains('hidden'), go:$('go').textContent, newCarBtn: !$('newCarBtn').classList.contains('hidden'), btnText: $('newCarBtn').textContent}; },
+  settleCrash(){ if(me){ me.mode='wreck'; me.v.set(0,0,0); me.w.set(0,0,0); } offerReset(true, me); },
+  settleCrashP(slot){ const e=entOf(slot); if(e){ e.mode='wreck'; e.v.set(0,0,0); e.w.set(0,0,0); } offerReset(true, e); },
+  get prompt(){ const el=splitOn?($('prompt1')||$('prompt')):$('prompt'); return { open: !el.classList.contains('hidden'), text: el.textContent||'', hasNewCar: !!$('promptNewCar')||!!$('promptNewCar1'), hasCat: !!$('promptCat')||!!$('promptCat1') }; },
+  promptP(slot){ const el=splitOn?$('prompt'+slot):$('prompt'); return { open: el && !el.classList.contains('hidden'), text: (el&&el.textContent)||'', hasNewCar: !!$(splitOn?('promptNewCar'+slot):'promptNewCar'), hasCat: !!$(splitOn?('promptCat'+slot):'promptCat') }; },
+  get picker(){ return {fromPlay:pickerFromPlay, crash:pickerCrash, open: !$('sel').classList.contains('hidden'), go:$('go').textContent, newCarBtn: splitOn ? !$('newCarBtn1').classList.contains('hidden') : !$('newCarBtn').classList.contains('hidden'), btnText: $('newCarBtn').textContent, slot:pickerSlot, splitBtn:!!$('goSplit') && !$('goSplit').classList.contains('hidden')}; },
+  camera2,
   simulatePeer(peer){ if(window.RACE_KIT && window.RACE_KIT.simulatePeer) window.RACE_KIT.simulatePeer(peer); },
   get remotes(){ return window.RACE_KIT ? [...window.RACE_KIT.remotes.values()].map(r=>({id:r.id, ci:r.ci, n:r.e.def.name, form:r.form, m:r.e.mode})) : []; },
   get mineNet(){ return me ? {ci:me.ci, n:me.def.name, m:me.mode, form, sid:me.sid} : null; },
   TARGET, CRASHZ, ROADSTER, POWER_WAGON, scene, camera, renderer, ROSTER, gltf:()=>gltfKit.templates,
+  driveP(slot, on){
+    if(slot===2){ keys.ArrowUp=!!on; }
+    else { keys.KeyW=!!on; }
+  },
 };
 window.RACE_READY=false;
 
