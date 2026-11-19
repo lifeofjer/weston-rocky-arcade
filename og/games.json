@@ -73,6 +73,12 @@
       "title": "RACE CITY 3D",
       "href": "games/race-city-3d.html?v=race7",
       "thumb": "og/race-city-3d.jpg"
+    },
+    {
+      "slug": "cat-life-city-3d",
+      "title": "CAT LIFE CITY 3D",
+      "href": "games/cat-life-city-3d.html?v=cat1",
+      "thumb": "og/cat-life-city-3d.jpg"
     }
   ]
 }

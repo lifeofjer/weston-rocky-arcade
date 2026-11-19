@@ -6,6 +6,7 @@
     "start": "node server/index.mjs",
     "test:play": "node server/play-together.test.mjs",
     "test:race": "node scripts/test-race-city.mjs",
+    "test:catlife": "node scripts/test-cat-life-city.mjs",
     "icons": "node scripts/make-icons.mjs",
     "og": "node scripts/make-og.mjs"
   },
