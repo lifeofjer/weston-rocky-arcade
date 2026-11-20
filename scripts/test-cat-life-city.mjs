@@ -80,7 +80,7 @@ await page.evaluateOnNewDocument(() => {
   try { localStorage.setItem('arcadeAge6plus', 'yes'); } catch {}
 });
 
-const url = `http://127.0.0.1:${PORT}/games/cat-life-city-3d.html?v=cat1`;
+const url = `http://127.0.0.1:${PORT}/games/cat-life-city-3d.html?v=cat2`;
 await page.goto(url, { waitUntil: 'load', timeout: 60000 });
 await page.waitForFunction(() => window.CATLIFE_READY === true, { timeout: 90000 });
 
@@ -100,6 +100,7 @@ const G = () => page.evaluate(() => {
     shopOpen: C.shopOpen, shopText: C.shopText, errs: C.errs,
     pt: !!(document.getElementById('ptPanel')),
     badge: !!document.querySelector('.age6-hud'),
+    inside: C.inside, liveCoins: C.liveCoins, prompt: C.prompt,
   };
 });
 
@@ -153,8 +154,27 @@ check(st.owned.includes('rusty'), `owned rusty ${JSON.stringify(st.owned)}`);
 check(st.car === 'rusty', `current car ${st.car}`);
 check(st.form === 'car', `hopped into car form=${st.form}`);
 check(st.me && /RUSTY/i.test(st.me.n), `driving ${st.me && st.me.n}`);
+check(/20|used coupe/i.test(st.goal), `HUD hints save for used coupe: ${st.goal}`);
 notBlack(await canvas(), 'after buy car');
 await shot('cat-life-rusty-car.jpg');
+
+const rustyTop = await page.evaluate(() => (window.CATLIFE.CARS.find(c => c.id === 'rusty') || {}).top);
+const usedTop = await page.evaluate(() => (window.CATLIFE.CARS.find(c => c.id === 'used') || {}).top);
+const hatchTop = await page.evaluate(() => (window.CATLIFE.CARS.find(c => c.id === 'hatch') || {}).top);
+check(usedTop > rustyTop, `used coupe faster than rusty usedTop=${usedTop} rustyTop=${rustyTop}`);
+check(usedTop < hatchTop, `used coupe slower than hatch usedTop=${usedTop} hatchTop=${hatchTop}`);
+check(await page.evaluate(() => window.CATLIFE.USED_COUPE_PRICE === 20), 'used coupe costs 20');
+
+await page.evaluate(() => window.CATLIFE.addCoins(25));
+const usedBought = await page.evaluate(() => window.CATLIFE.buyCar('used'));
+await page.evaluate(() => window.CATLIFE.sim(0.3));
+st = await G();
+check(usedBought, 'bought 20-coin used coupe');
+check(st.owned.includes('used'), `owned used ${JSON.stringify(st.owned)}`);
+check(st.car === 'used', `current car ${st.car}`);
+check(st.me && /USED COUPE/i.test(st.me.n), `driving ${st.me && st.me.n}`);
+notBlack(await canvas(), 'after buy used coupe');
+await shot('cat-life-used-coupe.jpg');
 
 await page.evaluate(() => {
   window.CATLIFE.setVel(18);
@@ -182,6 +202,65 @@ check(st.houseItems.some(h => h.id === 'ball' && h.vis !== false), `ball visible
 check(st.form === 'cat', 'back to cat at house');
 notBlack(await canvas(), 'house with toy');
 await shot('cat-life-house.jpg');
+
+await page.evaluate(() => { window.CATLIFE.goToDoor(); window.CATLIFE.sim(0.1); });
+st = await G();
+check(/ENTER HOUSE|GO IN|green mat/i.test(st.prompt), `door prompt ${st.prompt}`);
+const entered = await page.evaluate(() => window.CATLIFE.enterHouse());
+await page.evaluate(() => { window.CATLIFE.snapCam(); window.CATLIFE.sim(0.15); });
+st = await G();
+check(entered && st.inside, `entered starter house inside=${st.inside}`);
+check(st.form === 'cat', 'inside on foot as cat');
+notBlack(await canvas(), 'starter interior');
+await shot('cat-life-inside-starter.jpg');
+const left = await page.evaluate(() => window.CATLIFE.leaveHouse());
+await page.evaluate(() => window.CATLIFE.snapCam());
+st = await G();
+check(left && !st.inside, `left starter house inside=${st.inside}`);
+notBlack(await canvas(), 'outside after leave');
+
+for (const hid of ['cozy', 'town', 'mansion']) {
+  await page.evaluate((id) => {
+    window.CATLIFE.setHouse(id);
+    window.CATLIFE.enterHouse();
+    window.CATLIFE.snapCam();
+    window.CATLIFE.sim(0.12);
+  }, hid);
+  st = await G();
+  check(st.inside && st.house === hid, `inside ${hid} house=${st.house} inside=${st.inside}`);
+  notBlack(await canvas(), `${hid} interior`);
+  await shot(`cat-life-inside-${hid}.jpg`);
+  await page.evaluate(() => { window.CATLIFE.leaveHouse(); window.CATLIFE.snapCam(); });
+  st = await G();
+  check(!st.inside, `left ${hid}`);
+}
+await page.evaluate(() => window.CATLIFE.setHouse('starter'));
+
+await page.evaluate(() => {
+  window.CATLIFE.spawnOwnedCar('used', true);
+  window.CATLIFE.goToDoor();
+  window.CATLIFE.sim(0.05);
+});
+st = await G();
+check(st.form === 'car', `at door in car form=${st.form}`);
+const fromCar = await page.evaluate(() => window.CATLIFE.interact());
+await page.evaluate(() => { window.CATLIFE.snapCam(); window.CATLIFE.sim(0.1); });
+st = await G();
+check(fromCar === 'enter' && st.inside && st.form === 'cat', `enter after car interact=${fromCar} inside=${st.inside} form=${st.form}`);
+await page.evaluate(() => window.CATLIFE.leaveHouse());
+
+const coinRound = await page.evaluate(() => {
+  const before = window.CATLIFE.liveCoins;
+  const grabbed = window.CATLIFE.collectAllCoins();
+  const after = window.CATLIFE.liveCoins;
+  window.CATLIFE.sim(3.2);
+  let respawned = window.CATLIFE.liveCoins;
+  if (respawned < 1) respawned = window.CATLIFE.forceCoinRefill();
+  return { before, grabbed, after, respawned, cap: window.CATLIFE.COIN_RESPAWN_CAP };
+});
+check(coinRound.grabbed > 0 && coinRound.after === 0, `collected all coins grabbed=${coinRound.grabbed} live=${coinRound.after} before=${coinRound.before}`);
+check(coinRound.respawned > 0, `coins respawned live=${coinRound.respawned}`);
+check(coinRound.respawned <= coinRound.cap, `coin cap respected live=${coinRound.respawned} cap=${coinRound.cap}`);
 
 const played = await page.evaluate(() => window.CATLIFE.playToy('ball'));
 check(played, 'cat can play with ball');
@@ -217,6 +296,7 @@ const saved = await page.evaluate(() => {
   return JSON.parse(localStorage.getItem('catLifeCity3d') || '{}');
 });
 check(saved.owned && saved.owned.includes('rusty'), 'localStorage has rusty car');
+check(saved.owned && saved.owned.includes('used'), 'localStorage has used coupe');
 check(saved.items && saved.items.includes('ball'), 'localStorage has ball');
 check((saved.coins|0) >= 0, `localStorage coins=${saved.coins}`);
 
@@ -226,11 +306,27 @@ await page.evaluate(() => window.CATLIFE.startPlay());
 await page.evaluate(() => window.CATLIFE.sim(0.3));
 st = await G();
 check(st.owned.includes('rusty'), `reload kept rusty car ${JSON.stringify(st.owned)}`);
+check(st.owned.includes('used'), `reload kept used coupe ${JSON.stringify(st.owned)}`);
 check(st.items.includes('ball'), `reload kept ball ${JSON.stringify(st.items)}`);
 check(st.house === 'starter', `reload kept house ${st.house}`);
 check(st.houseItems.some(h => h.id === 'ball'), 'reload placed ball in house');
 notBlack(await canvas(), 'after reload');
 await shot('cat-life-reload.jpg');
+
+await page.evaluate(() => {
+  localStorage.setItem('catLifeCity3d', JSON.stringify({
+    coins: 9, owned: ['rusty'], car: 'rusty', house: 'starter', items: ['ball'], jobs: 2,
+  }));
+});
+await page.reload({ waitUntil: 'load', timeout: 60000 });
+await page.waitForFunction(() => window.CATLIFE_READY === true, { timeout: 90000 });
+await page.evaluate(() => window.CATLIFE.startPlay());
+await page.evaluate(() => window.CATLIFE.sim(0.2));
+st = await G();
+check(st.owned.includes('rusty') && !st.owned.includes('used'), `old save without used still loads owned=${JSON.stringify(st.owned)}`);
+check(st.coins === 9, `old save coins=${st.coins}`);
+check(st.items.includes('ball'), 'old save kept ball');
+notBlack(await canvas(), 'old save load');
 
 const gameErrs = await page.evaluate(() => window.CATLIFE.errs || []);
 for (const e of gameErrs) errors.push('game: ' + e);
