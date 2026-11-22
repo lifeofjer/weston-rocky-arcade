@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Cat Life City 3D - Weston &amp; Rocky Arcade</title>
-<!-- cat-life-fix-v2-coins-house-used20 -->
+<!-- cat-life-fix-v3-city-life-mart-move -->
 <!-- arcade-share -->
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -10,16 +10,16 @@
 <link rel="manifest" href="/site.webmanifest">
 <meta name="theme-color" content="#0b0b2a">
 <link rel="canonical" href="https://westonandrockysarcade.com/games/cat-life-city-3d.html">
-<meta name="description" content="Be the orange tabby. Earn coins, save up, buy cars and a bigger house. Friendly city life by Weston and Rocky. Rated 6+.">
+<meta name="description" content="Be the orange tabby. Earn coins, ride the bus, shop at Bullseye Mart, swim in the pool, and move with a Haul-It truck. Friendly city life by Weston and Rocky. Rated 6+.">
 <meta property="og:site_name" content="Weston &amp; Rocky&#8217;s Arcade">
 <meta property="og:title" content="Cat Life City 3D · Weston &amp; Rocky&#8217;s Arcade">
-<meta property="og:description" content="Walk the orange tabby around a colorful 3D city. Start with a tiny house, save coins, buy cars, furnish your home. No weapons — just jobs, races, and play. Rated 6+.">
+<meta property="og:description" content="Walk the orange tabby around a colorful 3D city. Buy houses, ride buses, shop at Bullseye Mart with a cart, swim in the villa pool. No weapons — just cat life. Rated 6+.">
 <meta property="og:image" content="https://westonandrockysarcade.com/og/cat-life-city-3d.jpg">
 <meta property="og:url" content="https://westonandrockysarcade.com/games/cat-life-city-3d.html">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Cat Life City 3D · Weston &amp; Rocky&#8217;s Arcade">
-<meta name="twitter:description" content="Walk the orange tabby around a colorful 3D city. Start with a tiny house, save coins, buy cars, furnish your home. Rated 6+.">
+<meta name="twitter:description" content="Walk the orange tabby around a colorful 3D city. Houses, buses, Bullseye Mart, a pool, and a Haul-It moving truck. Rated 6+.">
 <meta name="twitter:image" content="https://westonandrockysarcade.com/og/cat-life-city-3d.jpg">
 <!-- /arcade-share -->
 <script src="/shared/age-rating.js" defer></script>
@@ -112,7 +112,7 @@ body.touch #pads, #pads.show{display:block!important}
 <div id="title">
   <h1>CAT LIFE<br>CITY 3D</h1>
   <div class="by">by Weston and Rocky · for ages 8–9 (Weston is 7 and saving up!)</div>
-  <p>You are the orange tabby with green eyes. Walk a big colorful city. Start with a tiny house. Buy a rusty $1 car, then save 20 coins for a nicer used coupe. Earn more with pizza runs, races, and jobs. Walk in the front door — lights are on, and you can always walk back out. No weapons — just cat life!</p>
+  <p>You are the orange tabby with green eyes. Walk a big colorful city. Start with a tiny house. Buy a rusty $1 car, then save 20 coins for a nicer used coupe. Ride city buses, shop inside Bullseye Mart with a cart, and when you buy a bigger house a Haul-It truck helps you move. The Palm Villa has a swimming pool and supercars in the garage. No weapons — just cat life!</p>
   <button id="bStart">▶ PLAY</button>
   <p style="margin-top:16px"><button id="ptOpen" class="pe">PLAY TOGETHER</button> <a href="../index.html" style="color:#7cf;margin-left:12px">← arcade</a></p>
 </div>
@@ -145,9 +145,9 @@ body.touch #pads, #pads.show{display:block!important}
 <div id="how" class="hidden pe">
   <h2>HOW IT'S BUILT</h2>
   <p>A few game-dev ideas, said simply:</p>
-  <p><b>Saving is a superpower.</b> Coins stay in a tiny notebook on this iPad (localStorage). Gold coins refill around the city, so you can always earn more. Save 20 for the used coupe before the fancy cars.</p>
-  <p><b>Better tools earn faster.</b> A rusty car can deliver pizza. The $20 used coupe is nicer and quicker. A supercar finishes the same job even faster. Buy the next step, not always the fanciest thing first.</p>
-  <p><b>Soft-body dents.</b> Crash and vertices near the hit fold in, just like Race City. The rusty $1 car already looks crumpled.</p>
+  <p><b>Saving is a superpower.</b> Coins stay in a tiny notebook on this iPad (localStorage). Gold coins refill around the city, so you can always earn more. Save 20 for the used coupe before the fancy cars. Old saves still load!</p>
+  <p><b>Better tools earn faster.</b> A rusty car can deliver pizza. The $20 used coupe is nicer and quicker. A supercar finishes the same job even faster. The Palm Villa even comes with garage supercars.</p>
+  <p><b>City life.</b> Sliding doors open when you walk near them. Push a shopping cart, pay the cashier, ride a bus, and a Haul-It truck moves your furniture when you buy a new house.</p>
   <p><b>Play Together.</b> A WebSocket room shares where each cat and car is so two screens match.</p>
   <div style="margin-top:10px"><button id="howClose">GOT IT</button></div>
 </div>
@@ -171,11 +171,12 @@ window.addEventListener('unhandledrejection', function(ev){ (window.CATLIFE_ERRS
 import * as THREE from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
-import { makeRoster, findRosterIndex, createVehicleSystem, wreckDeform, popChance } from './arcade-cars.js?v=cat2';
-import { makeWorldMats, loadHdris, setupLook } from './race-city-look.js?v=cat2';
-import { loadCarKit } from './race-city-gltf.js?v=cat2';
+import { makeRoster, findRosterIndex, createVehicleSystem, wreckDeform, popChance } from './arcade-cars.js?v=cat3';
+import { makeWorldMats, loadHdris, setupLook } from './race-city-look.js?v=cat3';
+import { loadCarKit } from './race-city-gltf.js?v=cat3';
 import { makeCat } from '../shared/tabby-cat.js';
 import { PlayTogether, EMOJI, roomFromUrl } from '../shared/play-together.js';
+import { installCatLifeKit } from './cat-life-kit.js?v=cat3';
 
 const $ = id => document.getElementById(id);
 const V3 = THREE.Vector3;
@@ -197,10 +198,11 @@ const CATALOG=[
   {id:'big-rig', name:'BIG RIG', price:350, earn:2.05, store:'rig', match:d=>d.name==='PETERBILT 579'},
 ];
 const HOUSES=[
-  {id:'starter', name:'STARTER PAD', price:0, w:9, d:8, h:4.6, color:0xd8c4a0, blurb:'Tiny plain house. It is yours!'},
-  {id:'cozy', name:'COZY COTTAGE', price:80, w:13, d:11, h:6.2, color:0xe8b070, blurb:'Porch, chimney, room for a couch.'},
-  {id:'town', name:'TOWNHOUSE', price:200, w:12, d:12, h:10.5, color:0xc45c48, blurb:'Two stories. Fancy windows.'},
-  {id:'mansion', name:'SUN MANSION', price:500, w:22, d:16, h:9.2, color:0xf2e6c8, blurb:'Columns, a wide yard, cat royalty.'},
+  {id:'starter', name:'STARTER PAD', price:0, w:9, d:8, h:4.6, color:0xd8c4a0, lot:[0,28], blurb:'Tiny plain house. It is yours!'},
+  {id:'cozy', name:'COZY COTTAGE', price:80, w:13, d:11, h:6.2, color:0xe8b070, lot:[-48,96], blurb:'Porch, chimney, room for a couch.'},
+  {id:'town', name:'TOWNHOUSE', price:200, w:12, d:12, h:10.5, color:0xc45c48, lot:[96,48], blurb:'Two stories. Fancy windows.'},
+  {id:'mansion', name:'SUN MANSION', price:500, w:22, d:16, h:9.2, color:0xf2e6c8, lot:[-96,-48], blurb:'Columns, a wide yard, cat royalty.'},
+  {id:'villa', name:'PALM VILLA', price:800, w:26, d:20, h:10.5, color:0xf7efe2, lot:[48,-96], pool:true, cars:['horse-red','bull-orange'], blurb:'Pool, fancy rooms, and supercars in the garage!'},
 ];
 const MART=[
   {id:'trash', name:'Trash can', price:8, kind:'furn'},
@@ -220,11 +222,29 @@ const POI={
   volt:{x:150,z:110,r:22,name:'Volt Motors'},
   horse:{x:-150,z:-110,r:22,name:'Prancing Horse Motors'},
   rig:{x:150,z:-110,r:22,name:'Big Rig Trucks'},
-  mart:{x:0,z:175,r:22,name:'Bullseye Mart'},
+  mart:{x:0,z:175,r:28,name:'Bullseye Mart'},
   nest:{x:195,z:0,r:18,name:'Nest Realty'},
   pizza:{x:-195,z:0,r:16,name:'Pizza Palace'},
   race:{x:0,z:-175,r:28,name:'City Time Trial'},
+  fire:{x:-96,z:96,r:22,name:'Fire Station'},
+  hosp:{x:96,z:96,r:22,name:'Hospital'},
 };
+const BUS_STOPS=[
+  {id:'home', name:'HOME', x:22, z:18},
+  {id:'mart', name:'MART', x:22, z:166},
+  {id:'pizza', name:'PIZZA', x:-166, z:22},
+  {id:'nest', name:'NEST', x:166, z:22},
+  {id:'race', name:'RACE', x:22, z:-166},
+  {id:'fire', name:'FIRE', x:-74, z:74},
+  {id:'hosp', name:'HOSPITAL', x:74, z:74},
+  {id:'lot', name:'LOT', x:22, z:-22},
+];
+const BUS_ROUTE=[
+  [24,24],[24,72],[24,120],[24,168],[72,168],[120,168],[168,168],[168,120],[168,72],[168,24],
+  [168,-24],[168,-72],[168,-120],[168,-168],[120,-168],[72,-168],[24,-168],[-24,-168],[-72,-168],[-120,-168],[-168,-168],
+  [-168,-120],[-168,-72],[-168,-24],[-168,24],[-168,72],[-168,120],[-168,168],[-120,168],[-72,168],[-72,120],[-72,72],
+  [-24,72],[24,72],[72,72],[72,24],[24,24],
+];
 
 let save={coins:0, owned:[], car:null, house:'starter', items:[], jobs:0};
 function loadSave(){
@@ -307,10 +327,10 @@ const worldRoot=new THREE.Group(); scene.add(worldRoot);
 const furnRoot=new THREE.Group(); scene.add(furnRoot);
 const coinRoot=new THREE.Group(); scene.add(coinRoot);
 const OB=new Map(), OBC=16; const okey=(i,j)=>i*10007+j; let OST=0;
-function addOb(x,z,w,d,kind,extra){ const o={minx:x-w/2,maxx:x+w/2,minz:z-d/2,maxz:z+d/2,st:0,kind:kind||'wall', ...(extra||{})}; for(let i=Math.floor(o.minx/OBC); i<=Math.floor(o.maxx/OBC); i++) for(let j=Math.floor(o.minz/OBC); j<=Math.floor(o.maxz/OBC); j++){ const k=okey(i,j); if(!OB.has(k)) OB.set(k,[]); OB.get(k).push(o); } return o; }
+function addOb(x,z,w,d,kind,extra){ const o={minx:x-w/2,maxx:x+w/2,minz:z-d/2,maxz:z+d/2,st:0,kind:kind||'wall', disabled:false, ...(extra||{})}; for(let i=Math.floor(o.minx/OBC); i<=Math.floor(o.maxx/OBC); i++) for(let j=Math.floor(o.minz/OBC); j<=Math.floor(o.maxz/OBC); j++){ const k=okey(i,j); if(!OB.has(k)) OB.set(k,[]); OB.get(k).push(o); } return o; }
 function pushOut(x,z,r){ OST++; let dx=0,dz=0, hit=null;
   for(let i=Math.floor((x-r)/OBC); i<=Math.floor((x+r)/OBC); i++) for(let j=Math.floor((z-r)/OBC); j<=Math.floor((z+r)/OBC); j++){ const Lst=OB.get(okey(i,j)); if(!Lst) continue;
-    for(const b of Lst){ if(b.st===OST) continue; b.st=OST; if(x<b.minx-r || x>b.maxx+r || z<b.minz-r || z>b.maxz+r) continue;
+    for(const b of Lst){ if(b.st===OST || b.disabled) continue; b.st=OST; if(x<b.minx-r || x>b.maxx+r || z<b.minz-r || z>b.maxz+r) continue;
       const nx=clamp(x,b.minx,b.maxx), nzz=clamp(z,b.minz,b.maxz), ex=x-nx, ez=z-nzz, dd=Math.hypot(ex,ez);
       if(dd<r){ hit=b; if(dd>0){ dx+=ex/dd*(r-dd); dz+=ez/dd*(r-dd); } else { const l=x-b.minx, rr=b.maxx-x, tt=z-b.minz, bb=b.maxz-z, m=Math.min(l,rr,tt,bb); if(m===l) dx-=l+r; else if(m===rr) dx+=rr+r; else if(m===tt) dz-=tt+r; else dz+=bb+r; } } } }
   return {dx,dz,hit}; }
@@ -325,7 +345,9 @@ function label(text, col, x, y, z, w=10){
   const m=new THREE.Mesh(new THREE.PlaneGeometry(w,w*.25), new THREE.MeshBasicMaterial({map:t, transparent:false}));
   m.position.set(x,y,z); worldRoot.add(m); return m;
 }
-function nearPoi(px,pz,key,pad=0){ const p=POI[key]; return Math.hypot(px-p.x, pz-p.z) < p.r+pad; }
+function nearPoi(px,pz,key,pad=0){ const p=POI[key]; return p && Math.hypot(px-p.x, pz-p.z) < p.r+pad; }
+
+const KIT=installCatLifeKit(THREE, { mat, box, addOb, WMAT, worldRoot, label });
 
 const BCOLS=[0xff6b6b,0x4ecdc4,0xffe66d,0x7bdff2,0xff9f1c,0x9b5de5,0x00bb77,0xf15bb5,0x3a86ff,0xffbe0b];
 const ents=[], displayCars=[];
@@ -333,6 +355,11 @@ let me=null, cat=null, form='cat', screen='title', nextSid=1;
 let houseGroup=null, houseDoorZ=24, houseObs=[];
 let insideHouse=false, houseRoof=null, houseCuts=[], houseLights=[], houseAmb=null, houseInsideMat=null, camSnap=false;
 let coinRespawnT=0;
+let housesBuilt=new Map(), insideH=null, pools=[], swimming=false;
+let mart=null, insideMart=false, martGoods=[], cart=null, checkout={phase:null,i:0,t:0,total:0};
+let carrying=null, moving=null, haul=null, rideBus=null, waitingStop=null;
+let buses=[], peds=[], cityCars=[], shoppers=[], fireCall=null, fireT=0, smokePuff=null;
+let fireCrew=[], ambulances=[];
 function clearHouseObs(){
   for(const o of houseObs){
     for(const list of OB.values()){
@@ -360,7 +387,8 @@ function makeGround(){
 
 function poiClear(ix,iz){
   const x=ix*48, z=iz*48;
-  return Object.values(POI).some(p=>Math.abs(p.x-x)<36 && Math.abs(p.z-z)<36);
+  if(Object.values(POI).some(p=>Math.abs(p.x-x)<36 && Math.abs(p.z-z)<36)) return true;
+  return HOUSES.some(h=>Math.abs(h.lot[0]-x)<36 && Math.abs(h.lot[1]-z)<36);
 }
 
 function storeHall(x,z,w,d,h,color,sign,signCol,doorW=6){
@@ -416,30 +444,23 @@ function buildCity(){
       bulb.position.set(lx, 5.2, lz); worldRoot.add(bulb);
     }
   }
-  // home lawn so the starter house is not sitting in the road
-  box(28,.12,26, WMAT.grass, POI.home.x, .07, POI.home.z);
+  for(const H of HOUSES){
+    box(Math.max(28,H.w+16),.12,Math.max(26,H.d+16), WMAT.grass, H.lot[0], .07, H.lot[1]);
+  }
 
-  // HOME lot
   rebuildHouse();
-  // garage
-  box(10,.2,12, mat(0x6a6e74), POI.garage.x, .12, POI.garage.z);
-  box(.4,3.2,12, mat(0x8a9098), POI.garage.x-5, 1.6, POI.garage.z);
-  box(10,3.2,.4, mat(0x8a9098), POI.garage.x, 1.6, POI.garage.z-6);
-  box(10,.3,12, mat(0x5a6068), POI.garage.x, 3.3, POI.garage.z);
-  addOb(POI.garage.x-5, POI.garage.z, .6, 12, 'wall');
-  addOb(POI.garage.x, POI.garage.z-6, 10, .6, 'wall');
-  label('GARAGE', '#3a6ea5', POI.garage.x, 4.2, POI.garage.z+6.2, 8);
+  buildGarages();
 
   storeHall(POI.bull.x, POI.bull.z, 28, 20, 8, 0x1a1a1c, 'BULL MOTORS', '#ff7f00');
   storeHall(POI.volt.x, POI.volt.z, 28, 20, 8, 0xe8eef4, 'VOLT MOTORS', '#1a1a1c');
   storeHall(POI.horse.x, POI.horse.z, 28, 20, 8, 0x7a1010, 'PRANCING HORSE MOTORS', '#d40000');
   storeHall(POI.rig.x, POI.rig.z, 32, 24, 10, 0x2a2c30, 'BIG RIG TRUCKS', '#c4141c');
-  storeHall(POI.mart.x, POI.mart.z, 34, 26, 9, 0xcc0000, 'BULLSEYE MART', '#cc0000');
-  // bullseye disc
-  const disc=new THREE.Mesh(new THREE.CylinderGeometry(4.2,4.2,.2,24), new THREE.MeshStandardMaterial({color:0xffffff}));
-  disc.position.set(POI.mart.x, 9.4, POI.mart.z+13.2); disc.rotation.x=Math.PI/2; worldRoot.add(disc);
-  const inner=new THREE.Mesh(new THREE.CylinderGeometry(2.4,2.4,.22,24), new THREE.MeshStandardMaterial({color:0xcc0000}));
-  inner.position.set(POI.mart.x, 9.42, POI.mart.z+13.2); inner.rotation.x=Math.PI/2; worldRoot.add(inner);
+  mart=KIT.buildMart(POI.mart.x, POI.mart.z);
+  stockMartShelves();
+  spawnCart();
+  spawnShoppers();
+  KIT.buildFireStation(POI.fire.x, POI.fire.z);
+  KIT.buildHospital(POI.hosp.x, POI.hosp.z);
   storeHall(POI.nest.x, POI.nest.z, 22, 18, 8, 0x3d8b6e, 'NEST REALTY', '#2a6b4e');
   storeHall(POI.pizza.x, POI.pizza.z, 20, 16, 7, 0xffb703, 'PIZZA PALACE', '#e85d04');
 
@@ -455,20 +476,40 @@ function buildCity(){
   scatterCoins();
   parkShowroom();
   spawnTraffic();
+  spawnCityLife();
 }
 
-function houseSpec(){
-  const H=HOUSES.find(h=>h.id===save.house)||HOUSES[0];
-  return {id:H.id, name:H.name, w:H.w, d:H.d, h:H.h, x:POI.home.x, z:POI.home.z, doorW:4.6, doorH:2.7};
+function specFor(H){
+  return {id:H.id, name:H.name, w:H.w, d:H.d, h:H.h, x:H.lot[0], z:H.lot[1], color:H.color, doorW:H.pool?5.4:4.6, doorH:H.pool?3.1:2.7, pool:!!H.pool, cars:H.cars||[]};
+}
+function houseDef(id){ return HOUSES.find(h=>h.id===(id||save.house))||HOUSES[0]; }
+function houseSpec(){ return specFor(houseDef()); }
+function syncHomePoi(){
+  const H=houseSpec();
+  POI.home.x=H.x; POI.home.z=H.z; POI.home.r=Math.max(16, H.w);
+  POI.garage.x=H.x-(H.pool?18:14); POI.garage.z=H.z;
+}
+function doorZoneFor(H,P){
+  const doorZ=H.z+H.d/2;
+  return Math.abs(P.x-H.x)<Math.max(2.9,H.doorW/2+0.4) && P.z>doorZ-1.6 && P.z<doorZ+5.6;
+}
+function interiorZoneFor(H,P){
+  return Math.abs(P.x-H.x)<H.w/2-0.55 && Math.abs(P.z-H.z)<H.d/2-0.55;
+}
+function houseAtPos(P){
+  for(const raw of HOUSES){
+    const H=specFor(raw);
+    if(interiorZoneFor(H,P) || doorZoneFor(H,P)) return H;
+  }
+  return null;
 }
 function doorZone(P){
-  const H=houseSpec();
-  const doorZ=H.z+H.d/2;
-  return Math.abs(P.x-H.x)<2.9 && P.z>doorZ-1.6 && P.z<doorZ+5.6;
+  const H=houseAtPos(P);
+  return !!(H && doorZoneFor(H,P));
 }
 function interiorZone(P){
-  const H=houseSpec();
-  return Math.abs(P.x-H.x)<H.w/2-0.55 && Math.abs(P.z-H.z)<H.d/2-0.55;
+  const H=insideH || houseSpec();
+  return interiorZoneFor(H,P);
 }
 function addHouseLight(x,y,z, inI, outI, dist){
   const L=new THREE.PointLight(0xfff1d0, insideHouse?inI:outI, dist, 1.15);
@@ -478,91 +519,164 @@ function addHouseLight(x,y,z, inI, outI, dist){
   return L;
 }
 function applyHouseInterior(on){
-  if(houseRoof) houseRoof.visible=!on;
-  for(const L of houseLights) L.intensity=on?(L.userData.inI||1.8):(L.userData.outI||0.5);
-  if(houseAmb) houseAmb.intensity=on?0.7:0.28;
-  if(houseInsideMat) houseInsideMat.emissiveIntensity=on?0.22:0.08;
+  const rec=insideH ? housesBuilt.get(insideH.id) : housesBuilt.get(save.house);
+  const roof=rec?rec.roof:houseRoof, cuts=rec?rec.cuts:houseCuts, lights=rec?rec.lights:houseLights, amb=rec?rec.amb:houseAmb, im=rec?rec.insideMat:houseInsideMat;
+  if(roof) roof.visible=!on;
+  for(const L of (lights||[])) L.intensity=on?(L.userData.inI||1.8):(L.userData.outI||0.5);
+  if(amb) amb.intensity=on?0.7:0.28;
+  if(im) im.emissiveIntensity=on?0.22:0.08;
   updateHouseCutaway();
+  applyMartInterior(insideMart);
 }
 function updateHouseCutaway(){
-  if(!houseGroup) return;
-  if(!insideHouse){
-    if(houseRoof) houseRoof.visible=true;
-    for(const m of houseCuts) m.visible=true;
+  if(insideMart && mart){
+    if(mart.roof) mart.roof.visible=false;
+    for(const m of mart.cuts){
+      const dx=m.position.x+mart.x-camera.position.x, dz=m.position.z+mart.z-camera.position.z;
+      m.visible=Math.hypot(dx,dz)>2.2;
+    }
     return;
   }
-  if(houseRoof) houseRoof.visible=false;
-  for(const m of houseCuts){
+  const rec=insideH ? housesBuilt.get(insideH.id) : null;
+  const roof=rec?rec.roof:houseRoof, cuts=rec?rec.cuts:houseCuts;
+  if(!insideHouse){
+    if(roof) roof.visible=true;
+    for(const m of (cuts||[])) m.visible=true;
+    if(mart && mart.roof) mart.roof.visible=true;
+    if(mart) for(const m of mart.cuts) m.visible=true;
+    return;
+  }
+  if(roof) roof.visible=false;
+  for(const m of (cuts||[])){
     const dx=m.position.x-camera.position.x, dz=m.position.z-camera.position.z;
     m.visible=Math.hypot(dx,dz)>1.85;
   }
 }
+function applyMartInterior(on){
+  if(!mart) return;
+  for(const L of mart.lights) L.intensity=on?1.35:0.28;
+  if(mart.amb) mart.amb.intensity=on?0.75:0.22;
+  if(mart.insideMat) mart.insideMat.emissiveIntensity=on?0.22:0.08;
+}
 
-function rebuildHouse(){
-  if(houseGroup){ worldRoot.remove(houseGroup); }
-  clearHouseObs();
-  houseRoof=null; houseCuts=[]; houseLights=[]; houseAmb=null; houseInsideMat=null;
-  houseGroup=new THREE.Group(); worldRoot.add(houseGroup);
-  const H=houseSpec();
+function buildOneHouse(raw){
+  const H=specFor(raw);
+  const g=new THREE.Group(); worldRoot.add(g);
   const x=H.x, z=H.z, w=H.w, d=H.d, h=H.h, doorW=H.doorW, doorH=H.doorH;
   const sideW=Math.max(1.2,(w-doorW)/2);
-  houseDoorZ=z+d/2;
   const wall=mat(H.color);
-  houseInsideMat=new THREE.MeshStandardMaterial({color:0xf3e2c4, roughness:.88, metalness:.02, emissive:0xe8cda8, emissiveIntensity:insideHouse?0.22:0.08, side:THREE.DoubleSide});
-  box(w,.18,d, new THREE.MeshStandardMaterial({color:0xd4b48a, roughness:.92, emissive:0xc4a070, emissiveIntensity:.1}), x, .11, z, houseGroup);
-  const rug=box(Math.min(w-2.2,5.2),.05,Math.min(d-2.2,3.8), mat(H.id==='mansion'?0xc45c48:0x3a6ea5), x, .17, z, houseGroup);
+  const insideMat=new THREE.MeshStandardMaterial({color:H.pool?0xf7efe2:0xf3e2c4, roughness:.88, metalness:.02, emissive:0xe8cda8, emissiveIntensity:0.08, side:THREE.DoubleSide});
+  box(w,.18,d, new THREE.MeshStandardMaterial({color:H.pool?0xe8dcc8:0xd4b48a, roughness:.92, emissive:0xc4a070, emissiveIntensity:.1}), x, .11, z, g);
+  const rug=box(Math.min(w-2.2,H.pool?7.4:5.2),.05,Math.min(d-2.2,H.pool?5.2:3.8), mat(H.id==='mansion'||H.pool?0xc45c48:0x3a6ea5), x, .17, z, g);
   rug.receiveShadow=true;
-  const back=box(w,h,.4, wall, x, h/2, z-d/2, houseGroup);
-  const fl=box(sideW,h,.4, wall, x-(doorW+sideW)/2, h/2, z+d/2, houseGroup);
-  const fr=box(sideW,h,.4, wall, x+(doorW+sideW)/2, h/2, z+d/2, houseGroup);
-  const lintel=box(doorW, Math.max(.45,h-doorH), .4, wall, x, doorH+(h-doorH)/2, z+d/2, houseGroup);
-  const left=box(.4,h,d, wall, x-w/2, h/2, z, houseGroup);
-  const right=box(.4,h,d, wall, x+w/2, h/2, z, houseGroup);
-  houseCuts.push(back,fl,fr,lintel,left,right);
-  box(w-.35,h-.35,.1, houseInsideMat, x, h/2, z-d/2+.28, houseGroup);
-  box(sideW-.1,h-.35,.1, houseInsideMat, x-(doorW+sideW)/2, h/2, z+d/2-.28, houseGroup);
-  box(sideW-.1,h-.35,.1, houseInsideMat, x+(doorW+sideW)/2, h/2, z+d/2-.28, houseGroup);
-  box(.1,h-.35,d-.35, houseInsideMat, x-w/2+.28, h/2, z, houseGroup);
-  box(.1,h-.35,d-.35, houseInsideMat, x+w/2-.28, h/2, z, houseGroup);
-  const roof=mat(H.id==='mansion'?0xf7e7b0:0x8b3a2a);
+  const back=box(w,h,.4, wall, x, h/2, z-d/2, g);
+  const fl=box(sideW,h,.4, wall, x-(doorW+sideW)/2, h/2, z+d/2, g);
+  const fr=box(sideW,h,.4, wall, x+(doorW+sideW)/2, h/2, z+d/2, g);
+  const lintel=box(doorW, Math.max(.45,h-doorH), .4, wall, x, doorH+(h-doorH)/2, z+d/2, g);
+  const left=box(.4,h,d, wall, x-w/2, h/2, z, g);
+  const right=box(.4,h,d, wall, x+w/2, h/2, z, g);
+  const cuts=[back,fl,fr,lintel,left,right];
+  box(w-.35,h-.35,.1, insideMat, x, h/2, z-d/2+.28, g);
+  box(sideW-.1,h-.35,.1, insideMat, x-(doorW+sideW)/2, h/2, z+d/2-.28, g);
+  box(sideW-.1,h-.35,.1, insideMat, x+(doorW+sideW)/2, h/2, z+d/2-.28, g);
+  box(.1,h-.35,d-.35, insideMat, x-w/2+.28, h/2, z, g);
+  box(.1,h-.35,d-.35, insideMat, x+w/2-.28, h/2, z, g);
+  const roof=mat(H.pool||H.id==='mansion'?0xf7e7b0:0x8b3a2a);
   const rf=new THREE.Mesh(new THREE.BoxGeometry(w+1.6,.35,d+1.8), roof);
-  rf.position.set(x, h+.35, z); rf.rotation.x=.12; houseGroup.add(rf);
-  houseRoof=rf;
+  rf.position.set(x, h+.35, z); rf.rotation.x=.12; g.add(rf);
   const ceil=new THREE.Mesh(new THREE.PlaneGeometry(w-.3,d-.3), new THREE.MeshStandardMaterial({color:0xf0e0c4, roughness:.9, emissive:0xe2cba8, emissiveIntensity:.28, side:THREE.DoubleSide}));
-  ceil.rotation.x=Math.PI/2; ceil.position.set(x, h-0.12, z); houseGroup.add(ceil);
-  for(const s of [-1,1]) box(.2,doorH,.2, mat(0x5a3a22), x+s*(doorW/2), doorH/2, z+d/2+.08, houseGroup);
-  box(doorW,.18,.2, mat(0x5a3a22), x, doorH+.05, z+d/2+.08, houseGroup);
-  box(2.6,.07,1.7, mat(0x2a6b4e), x, .08, z+d/2+1.55, houseGroup);
+  ceil.rotation.x=Math.PI/2; ceil.position.set(x, h-0.12, z); g.add(ceil);
+  for(const s of [-1,1]) box(.2,doorH,.2, mat(0x5a3a22), x+s*(doorW/2), doorH/2, z+d/2+.08, g);
+  box(doorW,.18,.2, mat(0x5a3a22), x, doorH+.05, z+d/2+.08, g);
+  box(H.pool?3.4:2.6,.07,1.7, mat(0x2a6b4e), x, .08, z+d/2+1.55, g);
   houseObs.push(addOb(x, z-d/2, w, .7, 'wall'));
   houseObs.push(addOb(x-(doorW+sideW)/2, z+d/2, sideW, .7, 'wall'));
   houseObs.push(addOb(x+(doorW+sideW)/2, z+d/2, sideW, .7, 'wall'));
   houseObs.push(addOb(x-w/2, z, .7, d, 'wall'));
   houseObs.push(addOb(x+w/2, z, .7, d, 'wall'));
-  for(const s of [-1,1]) box(1.6,1.3,.08, WMAT.glassB, x+s*(w*.28), 2.2, z+d/2+.08, houseGroup);
+  for(const s of [-1,1]) box(1.6,1.3,.08, WMAT.glassB, x+s*(w*.28), 2.2, z+d/2+.08, g);
   if(H.id!=='starter'){
-    box(3.6,.35,1.8, mat(0x8a6a48), x, .22, z+d/2+1.15, houseGroup);
-    box(.5,2.8,.5, mat(0x7a3a28), x-w*.35, h+1.4, z-d*.2, houseGroup);
+    box(3.6,.35,1.8, mat(0x8a6a48), x, .22, z+d/2+1.15, g);
+    box(.5,2.8,.5, mat(0x7a3a28), x-w*.35, h+1.4, z-d*.2, g);
   }
-  if(H.id==='mansion'){
-    for(const s of [-1,1]) box(.45,3.4,.45, mat(0xf2e6c8), x+s*3.2, 1.7, z+d/2+.3, houseGroup);
+  if(H.id==='mansion' || H.pool){
+    for(const s of [-1,1]) box(.45,3.4,.45, mat(0xf2e6c8), x+s*3.2, 1.7, z+d/2+.3, g);
   }
-  const lampY=Math.min(h-0.55, 3.35);
+  const lights=[];
+  const addL=(lx,ly,lz,inI,outI,dist)=>{
+    const L=new THREE.PointLight(0xfff1d0, outI, dist, 1.15);
+    L.position.set(lx,ly,lz); L.userData.inI=inI; L.userData.outI=outI; g.add(L); lights.push(L);
+  };
+  const lampY=Math.min(h-0.55, H.pool?4.2:3.35);
   const bulb=new THREE.Mesh(new THREE.SphereGeometry(.32,12,10), new THREE.MeshStandardMaterial({color:0xfff6d8, emissive:0xffe08a, emissiveIntensity:2.4, toneMapped:false}));
-  bulb.position.set(x, lampY, z); houseGroup.add(bulb);
-  addHouseLight(x, lampY-0.15, z, 1.85, 0.55, 20);
-  addHouseLight(x, 2.15, z+d/2-1.3, 1.35, 0.4, 12);
-  addHouseLight(x, 2.0, z-d/2+1.2, 1.15, 0.35, 11);
-  houseAmb=new THREE.HemisphereLight(0xfff6e8, 0xb08958, insideHouse?0.7:0.28);
-  houseAmb.position.set(x, 2.2, z); houseGroup.add(houseAmb);
-  label(H.name, '#6b4a2a', x, h+1.5, z+d/2+.4, 8);
+  bulb.position.set(x, lampY, z); g.add(bulb);
+  addL(x, lampY-0.15, z, 1.85, 0.45, 20);
+  addL(x, 2.15, z+d/2-1.3, 1.35, 0.32, 12);
+  const amb=new THREE.HemisphereLight(0xfff6e8, 0xb08958, 0.28);
+  amb.position.set(x, 2.2, z); g.add(amb);
+  if(H.pool) KIT.decorateVilla(g, H, x, z, w, d, h);
+  const yours=save.house===H.id;
+  label(yours?('HOME · '+H.name):H.name, yours?'#2a6b4e':'#6b4a2a', x, h+1.5, z+d/2+.4, 9);
+  let pool=null;
+  if(H.pool){
+    pool=KIT.makePool(x, z+d/2+8.5, 12, 7.5);
+    pools.push(pool);
+  }
+  const rec={id:H.id, group:g, roof:rf, cuts, lights, amb, insideMat, spec:H, pool};
+  housesBuilt.set(H.id, rec);
+  if(H.id===save.house){
+    houseGroup=g; houseRoof=rf; houseCuts=cuts; houseLights=lights; houseAmb=amb; houseInsideMat=insideMat; houseDoorZ=z+d/2;
+  }
+  return rec;
+}
+
+function rebuildHouse(){
+  for(const rec of housesBuilt.values()){ if(rec.group && rec.group.parent) rec.group.parent.remove(rec.group); }
+  for(const p of pools){ if(p.g && p.g.parent) p.g.parent.remove(p.g); }
+  housesBuilt.clear(); pools=[];
+  clearHouseObs();
+  houseRoof=null; houseCuts=[]; houseLights=[]; houseAmb=null; houseInsideMat=null;
+  syncHomePoi();
+  for(const H of HOUSES) buildOneHouse(H);
   applyHouseInterior(insideHouse);
   placeFurniture();
+  grantHouseCars(houseDef(), false);
+}
+
+function buildGarages(){
+  for(const raw of HOUSES){
+    const H=specFor(raw);
+    const gx=H.x-(H.pool?18:14), gz=H.z;
+    const gw=H.pool?16:10, gd=H.pool?14:12;
+    box(gw,.2,gd, mat(0x6a6e74), gx, .12, gz);
+    box(.4,3.4,gd, mat(0x8a9098), gx-gw/2, 1.7, gz);
+    box(gw,3.4,.4, mat(0x8a9098), gx, 1.7, gz-gd/2);
+    box(gw,.3,gd, mat(H.pool?0xd4af37:0x5a6068), gx, 3.5, gz);
+    addOb(gx-gw/2, gz, .6, gd, 'wall');
+    addOb(gx, gz-gd/2, gw, .6, 'wall');
+    label(H.pool?'VILLA GARAGE':'GARAGE', H.pool?'#d4af37':'#3a6ea5', gx, 4.4, gz+gd/2+.3, H.pool?10:8);
+  }
+}
+
+function grantHouseCars(h, hop){
+  h=h||houseDef();
+  if(!h.cars || save.house!==h.id) return;
+  let added=false;
+  for(const id of h.cars){
+    if(!save.owned.includes(id)){ save.owned.push(id); added=true; }
+    const parked=ents.find(e=>e.id===id && e.mode!=='show' && e.mode!=='ai' && e.mode!=='net' && e.mode!=='bus' && e.mode!=='city');
+    const gx=POI.garage.x+(id==='horse-red'?-3.2:3.2);
+    const gz=POI.garage.z+1.2;
+    if(parked){ parked.G.position.set(gx, parked.com, gz); parked.yaw=0; parked.G.rotation.y=0; if(parked.mode==='drive' && me===parked) {} else parked.mode='parked'; }
+    else newCar(id, gx, gz, 0, hop?'drive':'parked');
+  }
+  if(added) persist();
 }
 
 function placeFurniture(){
   while(furnRoot.children.length) furnRoot.remove(furnRoot.children[0]);
-  const H=HOUSES.find(h=>h.id===save.house)||HOUSES[0];
-  const x=POI.home.x, z=POI.home.z;
+  const H=houseSpec();
+  const x=H.x, z=H.z;
   const slots={
     trash:[x+H.w*.32, .45, z-H.d*.28],
     ball:[x, .2, z],
@@ -573,7 +687,9 @@ function placeFurniture(){
     tv:[x, 1.1, z-H.d*.38],
     bed:[x+H.w*.18, .28, z+H.d*.18],
   };
+  const packed=moving?moving.packed:[];
   for(const id of save.items){
+    if(packed.includes(id) || carrying===id) continue;
     const p=slots[id]; if(!p) continue;
     const g=makeFurn(id); g.position.set(p[0], p[1], p[2]); g.userData.item=id; furnRoot.add(g);
   }
@@ -664,11 +780,127 @@ function parkShowroom(){
 
 function spawnTraffic(){
   const ids=['hatch','volt-sedan','horse-red','bull-orange'];
-  for(let i=0;i<6;i++){
+  for(let i=0;i<5;i++){
     const x=(-3+i)*48, z=i%2? -8: 8;
     const e=newCar(ids[i%ids.length], x, z, i%2?Math.PI:0, 'ai');
     if(e) e.aiPath=i%2?-1:1;
   }
+}
+
+function attachCityMesh(mesh, x, z, yaw, mode, extra){
+  const G=new THREE.Group(); G.add(mesh);
+  const com=mesh.userData.top?mesh.userData.top*.42:1.2;
+  mesh.position.y=0; G.position.set(x, com, z); G.rotation.y=yaw||0;
+  scene.add(G);
+  const e={sid:nextSid++, id:extra.id, ci:-1, def:{name:extra.name, L:mesh.userData.L||6, W:mesh.userData.W||2.4, top:extra.top||22, acc:extra.acc||7, turn:extra.turn||1.3, grip:6, mass:extra.mass||4, big:true, siren:!!extra.siren}, G, g:mesh, mode, yaw:yaw||0, L:mesh.userData.L||6, W:mesh.userData.W||2.4, fwd:0, lat:0, V:new V3(), v:new V3(), w:new V3(), com, top:mesh.userData.top||2.4, crush:0, dmg:0, cd:0, sleepT:0, hits:0, fire:0, steer:0, mass:extra.mass||4, vy:0, pitch:0, pitchVel:0, squash:0, city:true};
+  Object.assign(e, extra.more||{});
+  ents.push(e);
+  return e;
+}
+
+function spawnCityLife(){
+  for(const s of BUS_STOPS) KIT.makeStopSign(s.name, s.x, s.z);
+  const crosses=[[24,24,true],[24,72,false],[24,168,true],[-72,72,true],[72,72,true],[168,24,false],[-168,24,false],[24,-168,true]];
+  for(const [x,z,ax] of crosses) KIT.makeCrosswalk(x,z,ax);
+  buses=[spawnBus(0), spawnBus(18)].filter(Boolean);
+  spawnFireCrew();
+  spawnAmbulances();
+  spawnPedestrians();
+}
+
+function spawnBus(wp){
+  const mesh=KIT.makeBusMesh();
+  const p=BUS_ROUTE[wp%BUS_ROUTE.length];
+  const e=attachCityMesh(mesh, p[0], p[1], 0, 'bus', {id:'bus', name:'CITY BUS', top:22, acc:6, turn:1.15, mass:5, more:{wp, pause:0, stopId:null}});
+  return e;
+}
+
+function spawnFireCrew(){
+  const fx=POI.fire.x, fz=POI.fire.z;
+  const i=findRosterIndex(ROSTER, d=>d.type==='fire');
+  const def={...ROSTER[i], id:'firetruck', name:'FIRE TRUCK', rosterI:i};
+  const g=(gltfKit && gltfKit.build && gltfKit.build(def,{detail:'lod'})) || buildVehicle(def);
+  if(!g.userData.wheels) g.userData.wheels=[];
+  const top=g.userData.top||2.8, com=top*.4;
+  g.position.y=-com; const G=new THREE.Group(); G.add(g); G.position.set(fx, com, fz+4); scene.add(G);
+  const e={sid:nextSid++, id:'firetruck', ci:i, def:{...def, L:def.L||10.8, W:def.W||2.55, top:40, acc:8, turn:1.5, grip:6, mass:5, big:true, siren:true}, G, g, mode:'city', yaw:0, L:def.L||10.8, W:2.55, fwd:0, V:new V3(), com, top, crush:0, cd:0, steer:0, mass:5, city:true, home:[fx, fz+4], wp:0};
+  ents.push(e); cityCars.push(e);
+  for(let k=0;k<3;k++){
+    const p=KIT.makePerson({cloth:0xffd21e, pants:0x1a1c22, hair:0x3b2a1a}, fx-4+k*2.2, 0, fz+8);
+    fireCrew.push({g:p, home:[fx-4+k*2.2, fz+8], t:Math.random()*10});
+  }
+}
+
+function spawnAmbulances(){
+  const hx=POI.hosp.x, hz=POI.hosp.z;
+  for(const off of [-4, 4]){
+    const mesh=KIT.makeAmbulanceMesh();
+    const e=attachCityMesh(mesh, hx+off, hz+14, Math.PI, 'city', {id:'ambulance', name:'AMBULANCE', top:28, acc:9, turn:1.4, mass:3.2, siren:true, more:{home:[hx+off, hz+14], patrol:off>0, wp:0, pause:2}});
+    ambulances.push(e); cityCars.push(e);
+  }
+  KIT.makePerson({cloth:0xf4f6f8, pants:0x2a6ea5, hair:0x5a3a22}, hx+8, 0, hz+12);
+}
+
+function spawnPedestrians(){
+  const spots=[[20,20],[28,20],[20,76],[76,68],[-68,76],[164,20],[-164,28],[20,-164]];
+  const colors=[0x3a6ea5,0xe85d04,0x2f9e44,0x9b5de5,0xff9f1c,0x4ecdc4];
+  peds=spots.map((s,i)=>{
+    const g=KIT.makePerson({cloth:colors[i%colors.length], pants:0x2a3344}, s[0], 0, s[1]);
+    return {g, x:s[0], z:s[1], ox:s[0], oz:s[1], t:i*1.4, state:'wait', alongX:i%2===0, dir:1};
+  });
+}
+
+function spawnShoppers(){
+  if(!mart) return;
+  shoppers=[];
+  const cols=[0xcc0000,0x3a6ea5,0xe8b070];
+  for(let i=0;i<3;i++){
+    const g=KIT.makePerson({cloth:cols[i], pants:0x333}, mart.x-8+i*6, 0, mart.z-2);
+    shoppers.push({g, t:i*2.2, wp:i});
+  }
+}
+
+function spawnCart(){
+  if(!mart) return;
+  const mesh=KIT.makeCartMesh();
+  mesh.position.set(mart.cartSpot.x, 0, mart.cartSpot.z);
+  scene.add(mesh);
+  cart={G:mesh, held:false, items:[]};
+}
+
+function stockMartShelves(){
+  martGoods.forEach(g=>{ if(g.mesh && g.mesh.parent) g.mesh.parent.remove(g.mesh); if(g.tag && g.tag.parent) g.tag.parent.remove(g.tag); });
+  martGoods=[];
+  if(!mart) return;
+  MART.forEach((it,i)=>{
+    const sh=mart.shelves[i % mart.shelves.length];
+    const mesh=makeFurn(it.id);
+    mesh.position.set(sh.x, 1.32, sh.z);
+    scene.add(mesh);
+    const tag=KIT.makePriceTag(it.name, it.price);
+    tag.position.set(sh.x, 2.08, sh.z+0.5);
+    scene.add(tag);
+    martGoods.push({id:it.id, it, mesh, tag, shelf:sh, taken:save.items.includes(it.id)});
+    if(save.items.includes(it.id)){ mesh.visible=false; }
+  });
+}
+
+function inPoolAt(P){
+  for(const p of pools){
+    if(Math.abs(P.x-p.x)<p.w/2 && Math.abs(P.z-p.z)<p.d/2) return p;
+  }
+  return null;
+}
+function martZone(P){
+  return !!(mart && Math.abs(P.x-mart.x)<mart.w/2-0.55 && Math.abs(P.z-mart.z)<mart.d/2-0.55);
+}
+function martDoorZone(P){
+  return !!(mart && Math.abs(P.x-mart.x)<3.8 && P.z>mart.doorZ-1.8 && P.z<mart.doorZ+5);
+}
+function nearestStop(P, r=5.5){
+  let best=null, bd=r;
+  for(const s of BUS_STOPS){ const d=Math.hypot(P.x-s.x, P.z-s.z); if(d<bd){ bd=d; best=s; } }
+  return best;
 }
 
 function newCar(id,x,z,yaw,mode,sid){
@@ -708,7 +940,7 @@ function dentRusty(e){
 function removeCar(e){ if(!e) return; scene.remove(e.G); const i=ents.indexOf(e); if(i>=0) ents.splice(i,1); if(me===e) me=null; }
 
 function wreck(e, wpt, wdir, sev){
-  if(!e || e.mode==='show' || sev<=0) return;
+  if(!e || e.mode==='show' || e.mode==='bus' || e.mode==='city' || e.city || e.id==='haul' || sev<=0) return;
   sev=clamp(sev,0,1);
   e.crush=Math.min(1.3, (e.crush||0)+sev*.9);
   wreckDeform(THREE, {clamp,h3,_gi,_p,_m4,_mi}, e, wpt, wdir, sev, {bend:1.2, heavy:2.6});
@@ -780,29 +1012,54 @@ function hitPair(A,B){
 }
 
 function walkCat(dt, ctl){
-  if(!cat) return;
+  if(!cat || form==='bus') return;
   const yaw=cat.rotation.y + ((ctl.left?1:0)-(ctl.right?1:0))*dt*2.8 + (-touchSteer)*dt*2.6;
   cat.rotation.y=yaw;
   let want=0; if(ctl.up || touchGas>.2) want=7.2; else if(ctl.down || touchGas<-.2) want=-4.2;
+  const pool=inPoolAt(cat.position);
+  if(pool) want*=0.62;
   cat.userData.walkSp=(cat.userData.walkSp||0)+(want-(cat.userData.walkSp||0))*Math.min(1,dt*9);
   const sp=cat.userData.walkSp;
   cat.position.x+=Math.sin(yaw)*sp*dt; cat.position.z+=Math.cos(yaw)*sp*dt;
   const po=pushOut(cat.position.x, cat.position.z, .45);
   cat.position.x+=po.dx; cat.position.z+=po.dz;
-  cat.position.y=0;
+  if(pool){
+    if(!swimming){ swimming=true; cat.userData.vy=2.8; popup('SPLASH!<small>paddle around the pool</small>'); say('Swim swim! The water is nice.'); tone(520,.08,'sine',.06); }
+    cat.userData.vy=(cat.userData.vy||0)-16*dt;
+    cat.position.y+=(cat.userData.vy)*dt;
+    if(cat.position.y<pool.y){ cat.position.y=pool.y+Math.sin(performance.now()/260)*0.07; cat.userData.vy=0; }
+  } else {
+    if(swimming){ swimming=false; popup('DRIP DRY<small>back on the deck</small>'); }
+    cat.position.y=0; cat.userData.vy=0;
+  }
   const u=cat.userData, ph=performance.now()/90;
-  if(Math.abs(sp)>.15){ u.legs.forEach((l,i)=> l.rotation.x = Math.sin(ph + (i%3===0?0:Math.PI))*0.6); u.tail.rotation.y=Math.sin(ph*.7)*0.25; }
+  if(Math.abs(sp)>.15){ u.legs.forEach((l,i)=> l.rotation.x = Math.sin(ph + (i%3===0?0:Math.PI))*(pool?0.85:0.6)); u.tail.rotation.y=Math.sin(ph*.7)*0.25; }
   else u.legs.forEach(l=> l.rotation.x=0);
+  if(carrying && cart && !cart.held){
+    const f=furnRoot.children.find(o=>o.userData.item===carrying);
+    if(f){ f.position.set(cat.position.x+Math.sin(yaw)*0.9, 0.7, cat.position.z+Math.cos(yaw)*0.9); }
+  }
+  if(cart && cart.held){
+    cart.G.position.set(cat.position.x-Math.sin(yaw)*1.55, 0, cat.position.z-Math.cos(yaw)*1.55);
+    cart.G.rotation.y=yaw;
+  }
   collectCoins(cat.position.x, cat.position.z, 1.5);
   syncInsideFromWalk();
 }
 function syncInsideFromWalk(){
-  if(!cat || form!=='cat') return;
+  if(!cat || (form!=='cat' && form!=='bus')) return;
   const P=cat.position;
+  const hAt=houseAtPos(P);
   if(insideHouse){
-    if(!interiorZone(P) && !doorZone(P)){ insideHouse=false; applyHouseInterior(false); }
-  } else if(interiorZone(P)){
-    insideHouse=true; applyHouseInterior(true); camSnap=true;
+    const H=insideH||houseSpec();
+    if(!interiorZoneFor(H,P) && !doorZoneFor(H,P)){ insideHouse=false; insideH=null; applyHouseInterior(false); }
+  } else if(hAt && interiorZoneFor(hAt,P)){
+    insideHouse=true; insideH=hAt; applyHouseInterior(true); camSnap=true;
+  }
+  if(insideMart){
+    if(!martZone(P) && !martDoorZone(P)){ insideMart=false; applyMartInterior(false); updateHouseCutaway(); }
+  } else if(martZone(P)){
+    insideMart=true; applyMartInterior(true); camSnap=true;
   }
 }
 
@@ -824,10 +1081,11 @@ function goalHint(){
   if(!save.owned.includes('rusty')) return 'Collect coins, then buy the $1 rusty car!';
   if(!save.owned.includes('used') && !save.owned.some(id=>{ const c=carById(id); return c && c.price>=50; })) return 'Save 20 coins for the used coupe — nicer and faster!';
   if(!save.owned.some(id=>{ const c=carById(id); return c && c.price>=50; })) return 'Save 50 coins for a city hatch!';
-  if(save.house==='starter') return 'Save for a bigger house at Nest Realty!';
-  if(!save.items.length) return 'Furnish your house — a cat ball is fun!';
+  if(save.house==='starter') return 'Save for a bigger house at Nest Realty — a Haul-It truck will move you!';
+  if(save.house!=='villa') return 'Save for Palm Villa — a pool and garage supercars!';
+  if(!save.items.length) return 'Walk into Bullseye Mart and shop with a cart!';
   if(!save.owned.includes('bull-orange') && !save.owned.includes('horse-red')) return 'Save up for a supercar — they earn faster!';
-  return 'Keep earning, keep saving, live your cat life!';
+  return 'Ride the bus, swim, shop, live your cat life!';
 }
 function hud(){
   if(screen!=='play') return;
@@ -835,9 +1093,9 @@ function hud(){
   $('scar').textContent=save.car ? (carById(save.car)||{}).name : 'none yet';
   $('shouse').textContent=(HOUSES.find(h=>h.id===save.house)||{}).name||'Home';
   $('goal').textContent=goalHint();
-  $('vname').textContent=form==='cat'?'🐱 ORANGE TABBY':('🚗 '+(me?me.def.name:''));
+  $('vname').textContent=form==='bus'?'🚌 CITY BUS':(form==='cat'?'🐱 ORANGE TABBY':('🚗 '+(me?me.def.name:'')));
   $('mphl').textContent=form==='cat'?'CAT':'MPH';
-  const sp=form==='car'&&me?Math.round(Math.abs(me.fwd)*2.237):Math.round(Math.abs(touchGas)*7);
+  const sp=form==='car'&&me?Math.round(Math.abs(me.fwd)*2.237):form==='bus'&&rideBus?Math.round(Math.abs(rideBus.fwd)*2.237):Math.round(Math.abs(touchGas)*7);
   $('mph').textContent=sp;
   drawMini();
 }
@@ -845,12 +1103,12 @@ function drawMini(){
   const c=$('mini'), g=c.getContext('2d'), W=c.width, H=c.height;
   g.fillStyle='#102018'; g.fillRect(0,0,W,H);
   const S=148/460, cx=W/2, cy=H/2;
-  const px=form==='car'&&me?me.G.position.x:cat.position.x;
-  const pz=form==='car'&&me?me.G.position.z:cat.position.z;
+  const px=form==='car'&&me?me.G.position.x:form==='bus'&&rideBus?rideBus.G.position.x:cat.position.x;
+  const pz=form==='car'&&me?me.G.position.z:form==='bus'&&rideBus?rideBus.G.position.z:cat.position.z;
   g.fillStyle='#2a2c30'; g.fillRect(0,0,W,H);
   const map=(x,z)=>[cx+(x-px)*S, cy+(z-pz)*S];
   g.fillStyle='#3d8b4a'; g.fillRect(4,4,W-8,H-8);
-  const marks=[['home','#e8b070'],['lot','#8a6a48'],['bull','#ff7f00'],['volt','#dde'],['horse','#d40000'],['rig','#c4141c'],['mart','#ff3030'],['nest','#4cff6a'],['pizza','#ffb703'],['race','#2a6cff']];
+  const marks=[['home','#e8b070'],['lot','#8a6a48'],['bull','#ff7f00'],['volt','#dde'],['horse','#d40000'],['rig','#c4141c'],['mart','#ff3030'],['nest','#4cff6a'],['pizza','#ffb703'],['race','#2a6cff'],['fire','#c8101a'],['hosp','#e02020']];
   for(const [k,col] of marks){ const p=POI[k], [mx,my]=map(p.x,p.z); g.fillStyle=col; g.beginPath(); g.arc(mx,my,4,0,6.3); g.fill(); }
   for(const c3 of coins3d){ if(c3.got) continue; const [mx,my]=map(c3.x,c3.z); g.fillStyle='#ffd21e'; g.fillRect(mx-1,my-1,2,2); }
   g.fillStyle='#f0983c'; g.beginPath();
@@ -862,23 +1120,26 @@ function drawMini(){
   g.fill();
 }
 
-function pos(){ return form==='car'&&me ? me.G.position : cat.position; }
+function pos(){
+  if(form==='car'&&me) return me.G.position;
+  if(form==='bus'&&rideBus) return rideBus.G.position;
+  return cat.position;
+}
 
 function currentShop(){
   const P=pos();
-  if(insideHouse) return null;
-  if(doorZone(P)) return null;
+  if(insideHouse || insideMart) return null;
+  if(doorZone(P) || martDoorZone(P) || martZone(P)) return null;
   if(nearPoi(P.x,P.z,'lot',2)) return 'lot';
   if(nearPoi(P.x,P.z,'bull')) return 'bull';
   if(nearPoi(P.x,P.z,'volt')) return 'volt';
   if(nearPoi(P.x,P.z,'horse')) return 'horse';
   if(nearPoi(P.x,P.z,'rig')) return 'rig';
-  if(nearPoi(P.x,P.z,'mart')) return 'mart';
   if(nearPoi(P.x,P.z,'nest')) return 'nest';
   if(nearPoi(P.x,P.z,'pizza')) return 'pizza';
   if(nearPoi(P.x,P.z,'race')) return 'race';
   if(nearPoi(P.x,P.z,'garage',3)) return 'home';
-  if(nearPoi(P.x,P.z,'home',2) && !interiorZone(P)) return 'home';
+  if(nearPoi(P.x,P.z,'home',2) && !interiorZoneFor(houseSpec(),P)) return 'home';
   return null;
 }
 
@@ -889,10 +1150,10 @@ function openShop(kind){
   el.classList.remove('hidden');
   el.classList.toggle('mart', kind==='mart');
   if(kind==='mart'){
-    el.innerHTML=`<h2>BULLSEYE MART</h2><p>Pretend coins only. Furnish your house!</p><div>Your coins: <b>${save.coins}</b></div>`+
-      MART.map(it=>`<div class="item"><span>${it.name}${save.items.includes(it.id)?' ✓':''}</span><button data-buyitem="${it.id}" ${save.items.includes(it.id)?'disabled':''}>${it.price}</button></div>`).join('')+
+    el.innerHTML=`<h2>BULLSEYE MART</h2><p>Walk in the sliding doors! Push a cart, grab items with price tags, then pay the cashier. Pretend coins only.</p><div>Your coins: <b>${save.coins}</b></div>`+
+      MART.map(it=>`<div class="item"><span>${it.name}${save.items.includes(it.id)?' ✓':''}</span><span>${it.price}</span></div>`).join('')+
       `<div class="item"><span>Help stock shelves</span><button data-job="stock">EARN 10</button></div>`+
-      `<div style="margin-top:10px"><button id="shopClose">LEAVE STORE</button></div>`;
+      `<div style="margin-top:10px"><button id="shopClose">WALK INSIDE</button></div>`;
   } else if(kind==='nest'){
     el.innerHTML=`<h2>NEST REALTY</h2><p>Buy a bigger home. You always respawn there.</p><div>Your coins: <b>${save.coins}</b></div>`+
       HOUSES.map(h=>`<div class="item"><span>${h.name}${save.house===h.id?' (yours)':''}<br><small>${h.blurb}</small></span><button data-buyhouse="${h.id}" ${save.house===h.id||h.price===0?'disabled':''}>${h.price||'OWNED'}</button></div>`).join('')+
@@ -914,7 +1175,7 @@ function openShop(kind){
       cars.map(c=>`<div class="item"><span>${c.name}<br><small>$${c.price} · earn x${c.earn}</small></span><button data-buycar="${c.id}" ${save.owned.includes(c.id)?'disabled':''}>${save.owned.includes(c.id)?'OWNED':c.price}</button></div>`).join('')+
       `<div style="margin-top:10px"><button id="shopClose">LEAVE STORE</button></div>`;
   }
-  el.querySelector('#shopClose').onclick=()=>el.classList.add('hidden');
+  el.querySelector('#shopClose').onclick=()=>{ el.classList.add('hidden'); if(kind==='mart') enterMart(); };
   return true;
 }
 
@@ -933,11 +1194,9 @@ function buyHouse(id){
   const h=HOUSES.find(x=>x.id===id); if(!h) return false;
   if(save.house===id) return true;
   if(save.coins<h.price){ say('Keep saving for '+h.name+'!'); return false; }
-  save.coins-=h.price; save.house=id; persist();
-  rebuildHouse();
-  popup('NEW HOUSE!<small>You always come home here</small>');
-  say('Home sweet home! Furnish it at Bullseye Mart!');
-  openShop('nest');
+  save.coins-=h.price; persist();
+  $('shop').classList.add('hidden');
+  startMoving(save.house, id);
   return true;
 }
 function buyItem(id){
@@ -949,6 +1208,208 @@ function buyItem(id){
   popup('BOUGHT!<small>'+it.name+' is in your house</small>');
   say(it.kind==='toy'?'Toy time! Go home and play!':'Looks cozy already!');
   openShop('mart');
+  return true;
+}
+
+function startMoving(fromId, toId){
+  moving={from:fromId, to:toId, step:'pack', packed:[], carOn:false, t:0};
+  const old=specFor(houseDef(fromId));
+  const neu=specFor(houseDef(toId));
+  spawnHaul(old.x+8, old.z+old.d/2+7, 0);
+  if(haul && haul.trailer){
+    const ramp=haul.trailer.userData.ramp;
+    if(ramp){ ramp.rotation.x=0.55; ramp.position.set(0,.05,4.7); }
+  }
+  if(!save.items.length) moving.step=save.owned.filter(id=>id!=='haul').length?'car':'drive';
+  moving.mark=box(3.2,.35,3.2, new THREE.MeshStandardMaterial({color:0x4cff6a, emissive:0x228822, emissiveIntensity:1.3}), neu.x, .28, neu.z+neu.d/2+6);
+  popup('MOVING DAY!<small>Haul-It is here. Pack, load, then drive.</small>');
+  say(moving.step==='pack'?'Pack furniture into the orange box truck!':(moving.step==='car'?'Drive your car up the trailer ramp!':'Hop in the Haul-It and drive to your new house!'));
+  placeFurniture();
+  return moving;
+}
+function spawnHaul(x,z,yaw){
+  if(haul && haul.e){ removeCar(haul.e); if(haul.trailer && haul.trailer.parent) haul.trailer.parent.remove(haul.trailer); }
+  const rig=KIT.makeHaulRig();
+  const e=attachCityMesh(rig.truck, x, z, yaw||0, 'parked', {id:'haul', name:'HAUL-IT', top:28, acc:8, turn:1.32, mass:4.4, more:{}});
+  e.def.L=8.8; e.L=8.8; e.W=2.6;
+  scene.add(rig.trailer);
+  rig.trailer.position.set(x-Math.sin(yaw||0)*7.2, 0, z-Math.cos(yaw||0)*7.2);
+  rig.trailer.rotation.y=yaw||0;
+  haul={e, trailer:rig.trailer, carOn:null};
+  return e;
+}
+function haulCabNear(P){ return !!(haul && haul.e && Math.hypot(haul.e.G.position.x-P.x, haul.e.G.position.z-P.z)<5.5); }
+function haulBoxNear(P){
+  if(!haul || !haul.trailer) return false;
+  const t=haul.e.G.position, yaw=haul.e.yaw, bx=t.x-Math.sin(yaw)*2.2, bz=t.z-Math.cos(yaw)*2.2;
+  return Math.hypot(bx-P.x, bz-P.z)<4.2;
+}
+function onTrailer(e){
+  if(!haul || !haul.trailer || !e) return false;
+  const t=haul.trailer.position, yaw=haul.e.yaw;
+  const dx=e.G.position.x-t.x, dz=e.G.position.z-t.z;
+  const lx=dx*Math.cos(yaw)-dz*Math.sin(yaw), lz=dx*Math.sin(yaw)+dz*Math.cos(yaw);
+  return Math.abs(lx)<1.35 && lz>-2.4 && lz<2.8 && Math.abs(e.fwd)<5;
+}
+function packNearest(){
+  if(!moving || moving.step!=='pack' || form!=='cat') return false;
+  const P=pos();
+  if(carrying){
+    if(haulBoxNear(P)){
+      moving.packed.push(carrying);
+      const f=furnRoot.children.find(o=>o.userData.item===carrying);
+      if(f && f.parent) f.parent.remove(f);
+      popup('PACKED!<small>'+carrying+' in the truck</small>');
+      carrying=null;
+      if(moving.packed.length>=save.items.length){ moving.step=save.owned.length?'car':'drive'; say(moving.step==='car'?'Now drive your car up the trailer ramp!':'Hop in the Haul-It!'); }
+      return 'load';
+    }
+    return false;
+  }
+  const f=furnRoot.children.find(o=>save.items.includes(o.userData.item) && !moving.packed.includes(o.userData.item) && Math.hypot(o.position.x-P.x,o.position.z-P.z)<2.4);
+  if(!f) return false;
+  carrying=f.userData.item;
+  say('Got it! Carry it to the Haul-It box.');
+  return 'carry';
+}
+function loadCarOnTrailer(){
+  if(!moving || !me) return false;
+  if(!onTrailer(me)) return false;
+  moving.carOn=true; moving.step='drive';
+  haul.carOn=me; me.mode='towed'; me.fwd=0; me.V.set(0,0,0);
+  form='cat'; cat.visible=true;
+  cat.position.set(haul.e.G.position.x+2.4, 0, haul.e.G.position.z+1.2);
+  popup('CAR LOADED!<small>Hop in the Haul-It truck</small>');
+  say('Car is on the trailer! Drive the Haul-It to your new house.');
+  return true;
+}
+function boardHaul(){
+  if(!haul || !moving) return false;
+  if(form==='car' && me && me.id!=='haul') hopOut();
+  me=haul.e; me.mode='drive'; form='car'; cat.visible=false;
+  if(haul.trailer && haul.trailer.userData.ramp){ haul.trailer.userData.ramp.rotation.x=0; haul.trailer.userData.ramp.position.set(0,.18,4.55); }
+  moving.step='drive';
+  say('Drive to the glowing new house!');
+  return true;
+}
+function finishMoving(){
+  if(!moving) return false;
+  const dest=specFor(houseDef(moving.to));
+  save.house=moving.to; persist();
+  syncHomePoi();
+  if(haul && haul.carOn){
+    const c=haul.carOn; c.mode='parked'; c.fwd=0; c.V.set(0,0,0);
+    c.G.position.set(POI.garage.x, c.com, POI.garage.z+1); c.yaw=0; c.G.rotation.y=0;
+  }
+  for(const e of ents){
+    if(e.city || e.mode==='show' || e.mode==='ai' || e.mode==='net' || e.mode==='bus' || e.id==='haul') continue;
+    if(save.owned.includes(e.id) && e!==(haul&&haul.carOn)){
+      const n=Math.max(0, save.owned.indexOf(e.id));
+      e.G.position.set(POI.garage.x+(n%3)*4-4, e.com, POI.garage.z+2); e.mode='parked'; e.fwd=0;
+    }
+  }
+  if(form==='car' && me && me.id==='haul'){ hopOut(); }
+  if(haul){
+    if(haul.trailer && haul.trailer.parent) haul.trailer.parent.remove(haul.trailer);
+    removeCar(haul.e); haul=null;
+  }
+  if(moving.mark && moving.mark.parent) moving.mark.parent.remove(moving.mark);
+  carrying=null; moving=null;
+  rebuildHouse();
+  grantHouseCars(houseDef(), false);
+  cat.position.set(dest.x, 0, dest.z+dest.d/2+4);
+  cat.visible=true; form='cat';
+  popup('NEW HOUSE!<small>Your stuff is inside. Welcome home!</small>');
+  say(dest.pool?'Palm Villa! Swim in the pool and peek at the garage supercars!':'Home sweet home! Walk in the front door.');
+  return true;
+}
+
+function enterMart(){
+  if(form==='car') hopOut();
+  cat.visible=true; form='cat';
+  cat.position.set(mart.x, 0, mart.z+mart.d/2-2.4);
+  cat.rotation.y=Math.PI;
+  insideMart=true; applyMartInterior(true); camSnap=true;
+  $('shop').classList.add('hidden');
+  say('Bullseye Mart! Grab a cart, pick stuff off shelves, then pay the cashier.');
+  popup('BULLSEYE MART<small>cart · shelves · checkout</small>');
+  return true;
+}
+function leaveMart(){
+  insideMart=false; applyMartInterior(false);
+  if(cart && cart.held){ cart.held=false; cart.G.position.set(mart.cartSpot.x,0,mart.cartSpot.z); }
+  if(form==='car') hopOut();
+  cat.position.set(mart.x, 0, mart.doorZ+4.2); cat.rotation.y=0;
+  snapCam(); say('Back outside! Your bags go home if you paid.');
+  return true;
+}
+function grabCart(){
+  if(!cart || form!=='cat') return false;
+  cart.held=!cart.held;
+  if(!cart.held) say('Cart parked.');
+  else say('Push the cart! ENTER near a shelf to add stuff.');
+  return true;
+}
+function putInCart(id){
+  if(!cart || !cart.held) return false;
+  const g=martGoods.find(x=>x.id===id);
+  if(!g || g.taken) { say('Already at home!'); return false; }
+  if(save.items.includes(id) || cart.items.includes(id)){ say('You already have that!'); return false; }
+  cart.items.push(id); g.taken=true; g.mesh.visible=false;
+  popup('IN THE CART<small>'+g.it.name+' · '+g.it.price+' coins</small>');
+  say(g.it.name+' in the cart! Checkout when you are ready.');
+  return true;
+}
+function startCheckout(){
+  if(!cart || !cart.items.length){ say('Cart is empty!'); return false; }
+  checkout={phase:'scan', i:0, t:0, total:cart.items.reduce((s,id)=>{ const it=MART.find(m=>m.id===id); return s+(it?it.price:0); },0)};
+  popup('SCANNING<small>beep beep</small>');
+  say('Beep! The cashier is scanning your stuff.');
+  return true;
+}
+function payCheckout(){
+  if(!checkout || checkout.phase!=='pay') return false;
+  if(save.coins<checkout.total){ say('Need '+checkout.total+' coins. Save save!'); return false; }
+  save.coins-=checkout.total;
+  for(const id of cart.items){ if(!save.items.includes(id)) save.items.push(id); }
+  persist(); placeFurniture();
+  popup('PAID!<small>It all goes home with you</small>');
+  say('Bags are going to your house! Thanks for shopping.');
+  cart.items=[]; cart.held=false; cart.G.position.set(mart.cartSpot.x,0,mart.cartSpot.z);
+  checkout={phase:null,i:0,t:0,total:0};
+  stockMartShelves();
+  return true;
+}
+
+function waitBus(){
+  const s=nearestStop(pos(), 6);
+  if(!s) return false;
+  waitingStop=s.id;
+  popup('WAITING FOR THE BUS<small>'+s.name+' stop</small>');
+  say('City bus is coming. Hold tight!');
+  return true;
+}
+function boardBus(e, stop){
+  if(!e) return false;
+  if(form==='car') hopOut();
+  rideBus=e; form='bus'; cat.visible=true;
+  e.G.add(cat); cat.position.set(0, 0.15, 0.4); cat.rotation.y=0;
+  waitingStop=null;
+  popup('ALL ABOARD!<small>ENTER at a stop to hop off</small>');
+  say('City bus! Next stop coming up.');
+  return true;
+}
+function leaveBus(){
+  if(!rideBus) return false;
+  const e=rideBus;
+  const stop=nearestStop(e.G.position, 14) || BUS_STOPS[0];
+  e.G.remove(cat); scene.add(cat);
+  cat.position.set(stop.x, 0, stop.z); cat.rotation.y=e.yaw;
+  const po=pushOut(cat.position.x, cat.position.z, .5);
+  cat.position.x+=po.dx; cat.position.z+=po.dz;
+  form='cat'; rideBus=null; cat.visible=true;
+  popup('GOT OFF<small>'+stop.name+' stop</small>');
+  say('Thanks for riding the city bus!');
   return true;
 }
 
@@ -972,11 +1433,13 @@ function hopIn(e){
     e=ents.find(x=>x.mode!=='show' && x.mode!=='ai' && save.owned.includes(x.id) && Math.hypot(x.G.position.x-P.x,x.G.position.z-P.z)<6);
     if(!e && save.car) e=spawnOwnedCar(save.car, false);
   }
-  if(!e || !save.owned.includes(e.id)) return null;
+  if(!e) return null;
+  if(e.id!=='haul' && !save.owned.includes(e.id)) return null;
   if(me && me!==e && me.mode==='drive') me.mode='parked';
-  me=e; e.mode='drive'; e.G.visible=true; form='car'; save.car=e.id; persist();
+  me=e; e.mode='drive'; e.G.visible=true; form='car';
+  if(e.id!=='haul'){ save.car=e.id; persist(); }
   if(cat) cat.visible=false;
-  setHelp(); say('Seatbelt? Cats do not wear those. Drive drive!');
+  setHelp(); say(e.id==='haul'?'Haul-It time! Drive to the new house.':'Seatbelt? Cats do not wear those. Drive drive!');
   return e;
 }
 function hopOut(){
@@ -990,24 +1453,25 @@ function hopOut(){
   setHelp(); meow();
 }
 function snapCam(){ camSnap=true; chaseCam(1); }
-function enterHouse(){
-  if(form==='car') hopOut();
-  const H=houseSpec();
+function enterHouse(hid){
+  if(form==='car' || form==='bus') { if(form==='bus') leaveBus(); else hopOut(); }
+  const H=specFor(houseDef(hid||save.house));
   cat.visible=true; form='cat';
   cat.position.set(H.x, 0, H.z+H.d/2-1.85);
   cat.rotation.y=Math.PI;
   const po=pushOut(cat.position.x, cat.position.z, .45);
   cat.position.x+=po.dx; cat.position.z+=po.dz;
-  insideHouse=true; applyHouseInterior(true);
+  insideHouse=true; insideH=H; applyHouseInterior(true);
   $('shop').classList.add('hidden');
   snapCam();
-  say('Welcome home! Lights are on. ENTER or walk out the door to leave.');
-  popup('INSIDE!<small>toys · ENTER to leave</small>');
+  const yours=H.id===save.house;
+  say(yours?(H.pool?'Welcome home! Swim out back, or ENTER to leave.':'Welcome home! Lights are on. ENTER or walk out the door to leave.'):('A peek inside '+H.name+'! Buy it at Nest Realty.'));
+  popup(yours?'INSIDE!<small>toys · ENTER to leave</small>':'MODEL HOME<small>'+H.name+'</small>');
   return true;
 }
 function leaveHouse(){
-  const H=houseSpec();
-  insideHouse=false; applyHouseInterior(false);
+  const H=insideH||houseSpec();
+  insideHouse=false; insideH=null; applyHouseInterior(false);
   if(form==='car') hopOut();
   cat.visible=true; form='cat';
   cat.position.set(H.x, 0, H.z+H.d/2+3.5);
@@ -1019,13 +1483,15 @@ function leaveHouse(){
   return true;
 }
 function goHome(asCat=true){
-  if(insideHouse){ insideHouse=false; applyHouseInterior(false); }
+  if(insideHouse){ insideHouse=false; insideH=null; applyHouseInterior(false); }
+  if(insideMart){ insideMart=false; applyMartInterior(false); }
+  if(form==='bus') leaveBus();
   if(asCat && form==='car') hopOut();
   const h=houseSpec();
   cat.position.set(POI.home.x, 0, POI.home.z+h.d/2+6);
   cat.rotation.y=Math.PI;
   cat.visible=true; form='cat';
-  if(me){ me.mode='parked'; me.fwd=0; me.V.set(0,0,0); }
+  if(me && me.id!=='haul'){ me.mode='parked'; me.fwd=0; me.V.set(0,0,0); }
   $('shop').classList.add('hidden');
   say('Home! Walk to the green mat and ENTER to go inside.');
 }
@@ -1070,7 +1536,7 @@ function startStock(){
   jobBoxes.forEach(b=>worldRoot.remove(b.m));
   jobBoxes=[];
   for(let i=0;i<4;i++){
-    const m=box(.5,.5,.5, mat(0xffd21e), POI.mart.x+rand(-8,8), .7, POI.mart.z+rand(-6,6));
+    const m=box(.5,.5,.5, mat(0xffd21e), POI.mart.x+rand(-10,10), .7, POI.mart.z+rand(-8,4));
     jobBoxes.push({m, got:false});
   }
   $('shop').classList.add('hidden');
@@ -1086,8 +1552,10 @@ function playToy(id){
 }
 
 function setHelp(){
-  $('help').innerHTML = form==='cat'
-    ? '<b>WASD / arrows</b> walk · <b>ENTER</b> go in the house, shops, hop in · gold coins refill · save 20 for the used coupe'
+  $('help').innerHTML = form==='bus'
+    ? '<b>ENTER</b> hop off at a bus stop · ride around the city'
+    : form==='cat'
+    ? '<b>WASD / arrows</b> walk · <b>ENTER</b> house, mart doors, bus, cart, hop in · gold coins refill · save 20 for the used coupe'
     : '<b>WASD / arrows</b> drive · <b>SPACE</b> brake · <b>F / ENTER</b> get out · then walk to the door · horn <b>H</b>';
 }
 
@@ -1105,7 +1573,28 @@ function input(){
 function interact(){
   if(screen!=='play') return;
   const P=pos();
+  if(form==='bus'){ leaveBus(); return 'bus-off'; }
+  if(moving){
+    if(moving.step==='pack' && form==='cat'){ const r=packNearest(); if(r) return r; }
+    if(moving.step==='car' && form==='car' && loadCarOnTrailer()) return 'trailer';
+    if((moving.step==='drive' || moving.step==='car') && form==='cat' && haulCabNear(P)){ boardHaul(); return 'haul'; }
+    const dest=specFor(houseDef(moving.to));
+    if(moving.step==='drive' && form==='car' && me && me.id==='haul' && Math.hypot(P.x-dest.x,P.z-dest.z)<14){ finishMoving(); return 'moved'; }
+  }
+  if(insideMart){
+    if(checkout && checkout.phase==='pay'){ payCheckout(); return 'pay'; }
+    if(cart && cart.held && cart.items.length && Math.hypot(P.x-mart.checkoutPos.x, P.z-mart.checkoutPos.z)<3.2){ startCheckout(); return 'scan'; }
+    if(cart && Math.hypot(P.x-cart.G.position.x, P.z-cart.G.position.z)<2.4){ grabCart(); return 'cart'; }
+    const g=martGoods.find(x=>!x.taken && Math.hypot(P.x-x.mesh.position.x, P.z-x.mesh.position.z)<2.2);
+    if(g){
+      if(cart && cart.held){ putInCart(g.id); return 'shelf'; }
+      say('Grab a shopping cart first!'); return 'need-cart';
+    }
+    if(martDoorZone(P) || !martZone(P)){ leaveMart(); return 'leave-mart'; }
+    leaveMart(); return 'leave-mart';
+  }
   if(insideHouse){
+    if(moving && moving.step==='pack'){ const r=packNearest(); if(r) return r; }
     for(const id of save.items){
       if(!['ball','mouse','laser'].includes(id)) continue;
       const f=furnRoot.children.find(o=>o.userData.item===id);
@@ -1115,20 +1604,28 @@ function interact(){
   }
   if(doorZone(P)){
     if(form==='car') hopOut();
-    enterHouse(); return 'enter';
+    const hAt=houseAtPos(P);
+    enterHouse(hAt?hAt.id:save.house); return 'enter';
   }
+  if(martDoorZone(P) || (mart && Math.hypot(P.x-mart.x, P.z-mart.doorZ)<6 && form==='cat')){
+    enterMart(); return 'mart';
+  }
+  const stop=nearestStop(P, 5.5);
+  if(form==='cat' && stop){ waitBus(); return 'bus-wait'; }
   const shop=currentShop();
   if(form==='cat'){
+    if(moving && haulCabNear(P)){ boardHaul(); return 'haul'; }
     for(const id of save.items){
       if(!['ball','mouse','laser'].includes(id)) continue;
       const f=furnRoot.children.find(o=>o.userData.item===id);
       if(f && Math.hypot(f.position.x-P.x, f.position.z-P.z)<2.2){ playToy(id); return 'toy'; }
     }
-    const own=ents.find(x=>x.mode!=='show' && x.mode!=='ai' && save.owned.includes(x.id) && Math.hypot(x.G.position.x-P.x,x.G.position.z-P.z)<6);
+    const own=ents.find(x=>x.mode!=='show' && x.mode!=='ai' && x.mode!=='bus' && x.mode!=='city' && (save.owned.includes(x.id)||x.id==='haul') && Math.hypot(x.G.position.x-P.x,x.G.position.z-P.z)<6);
     if(own && shop!=='lot' && shop!=='bull' && shop!=='volt' && shop!=='horse' && shop!=='rig'){ hopIn(own); return 'hop'; }
     if(shop){ openShop(shop); return shop; }
     if(own){ hopIn(own); return 'hop'; }
   } else {
+    if(moving && moving.step==='car' && me && loadCarOnTrailer()) return 'trailer';
     if(pizza && Math.hypot(P.x-pizza.x, P.z-pizza.z)<8){ finishPizza(); return 'pizza'; }
     if(shop==='pizza'){ openShop('pizza'); return 'pizza'; }
     if(shop==='race'){ openShop('race'); return 'race'; }
@@ -1144,6 +1641,24 @@ function promptTick(){
   if(!$('shop').classList.contains('hidden')){ el.classList.add('hidden'); return; }
   const P=pos();
   const act=$('padAct');
+  if(form==='bus'){
+    const s=nearestStop(rideBus?rideBus.G.position:P, 12);
+    el.innerHTML='ON THE BUS<small>ENTER to hop off'+(s?' at '+s.name:'')+'</small>'; el.classList.remove('hidden');
+    if(act) act.textContent='GET OFF'; return;
+  }
+  if(moving){
+    if(moving.step==='pack'){ el.innerHTML=carrying?'LOAD TRUCK<small>ENTER at the Haul-It box</small>':'PACK FURNITURE<small>ENTER to pick up, then load the truck</small>'; el.classList.remove('hidden'); if(act) act.textContent=carrying?'LOAD':'PACK'; return; }
+    if(moving.step==='car'){ el.innerHTML='LOAD THE TRAILER<small>drive up the ramp, or ENTER on the Haul-It</small>'; el.classList.remove('hidden'); if(act) act.textContent='LOAD'; return; }
+    if(moving.step==='drive'){ el.innerHTML=form==='car'?'DRIVE TO THE NEW HOUSE<small>follow the glow</small>':'HAUL-IT TRUCK<small>ENTER to drive</small>'; el.classList.remove('hidden'); if(act) act.textContent=form==='car'?'GO':'DRIVE'; return; }
+  }
+  if(insideMart){
+    if(checkout && checkout.phase==='pay'){ el.innerHTML='TOTAL '+checkout.total+' COINS<small>ENTER to pay</small>'; el.classList.remove('hidden'); if(act) act.textContent='PAY'; return; }
+    if(cart && cart.held && cart.items.length && Math.hypot(P.x-mart.checkoutPos.x,P.z-mart.checkoutPos.z)<3.4){ el.innerHTML='CHECKOUT<small>cashier will scan your cart</small>'; el.classList.remove('hidden'); if(act) act.textContent='SCAN'; return; }
+    if(cart && Math.hypot(P.x-cart.G.position.x,P.z-cart.G.position.z)<2.4){ el.innerHTML=cart.held?'CART READY<small>ENTER near shelves to add stuff</small>':'SHOPPING CART<small>ENTER to push it</small>'; el.classList.remove('hidden'); if(act) act.textContent=cart.held?'HOLD':'CART'; return; }
+    const g=martGoods.find(x=>!x.taken && Math.hypot(P.x-x.mesh.position.x,P.z-x.mesh.position.z)<2.2);
+    if(g){ el.innerHTML=g.it.name.toUpperCase()+' · '+g.it.price+' COINS<small>'+(cart&&cart.held?'ENTER to put in cart':'grab a cart first')+'</small>'; el.classList.remove('hidden'); if(act) act.textContent='ADD'; return; }
+    el.innerHTML='LEAVE STORE<small>walk out the sliding doors</small>'; el.classList.remove('hidden'); if(act) act.textContent='LEAVE'; return;
+  }
   if(insideHouse){
     const toyNear=form==='cat' && save.items.some(id=>{
       const f=furnRoot.children.find(o=>o.userData.item===id); return f && ['ball','mouse','laser'].includes(id) && Math.hypot(f.position.x-P.x,f.position.z-P.z)<2.2;
@@ -1161,7 +1676,13 @@ function promptTick(){
     if(act) act.textContent=form==='car'?'GET OUT':'GO IN';
     return;
   }
+  if(martDoorZone(P) || (mart && form==='cat' && Math.hypot(P.x-mart.x,P.z-mart.doorZ)<7)){
+    el.innerHTML='BULLSEYE MART<small>walk in the sliding doors</small>'; el.classList.remove('hidden'); if(act) act.textContent='GO IN'; return;
+  }
+  if(swimming){ el.innerHTML='SWIMMING<small>paddle with WASD · walk out to dry off</small>'; el.classList.remove('hidden'); if(act) act.textContent='SWIM'; return; }
   if(act) act.textContent='ENTER';
+  const stop=nearestStop(P, 5.5);
+  if(form==='cat' && stop){ el.innerHTML='BUS STOP · '+stop.name+'<small>ENTER to wait for the city bus</small>'; el.classList.remove('hidden'); if(act) act.textContent='WAIT'; return; }
   const shop=currentShop();
   if(form==='cat' && save.items.some(id=>{
     const f=furnRoot.children.find(o=>o.userData.item===id); return f && ['ball','mouse','laser'].includes(id) && Math.hypot(f.position.x-P.x,f.position.z-P.z)<2.2;
@@ -1172,8 +1693,7 @@ function promptTick(){
   if(shop==='volt'){ el.innerHTML='VOLT MOTORS<small>ENTER · Roadster, truck, sedan</small>'; el.classList.remove('hidden'); return; }
   if(shop==='horse'){ el.innerHTML='PRANCING HORSE MOTORS<small>ENTER · red supercars</small>'; el.classList.remove('hidden'); return; }
   if(shop==='rig'){ el.innerHTML='BIG RIG TRUCKS<small>ENTER · Peterbilt-style semis</small>'; el.classList.remove('hidden'); return; }
-  if(shop==='mart'){ el.innerHTML='BULLSEYE MART<small>ENTER to buy house stuff</small>'; el.classList.remove('hidden'); return; }
-  if(shop==='nest'){ el.innerHTML='NEST REALTY<small>ENTER to buy a bigger house</small>'; el.classList.remove('hidden'); return; }
+  if(shop==='nest'){ el.innerHTML='NEST REALTY<small>ENTER to buy a bigger house · Haul-It moving truck!</small>'; el.classList.remove('hidden'); return; }
   if(shop==='pizza'){ el.innerHTML='PIZZA PALACE<small>ENTER to grab a delivery</small>'; el.classList.remove('hidden'); return; }
   if(shop==='race'){ el.innerHTML='TIME TRIAL<small>ENTER to race for coins</small>'; el.classList.remove('hidden'); return; }
   if(shop==='home'){ el.innerHTML='HOME GARAGE<small>ENTER for your cars · walk to the door to go inside</small>'; el.classList.remove('hidden'); return; }
@@ -1212,12 +1732,15 @@ function startPlay(){
 }
 
 function chaseCam(dt){
-  const target=form==='car'&&me?me.G:cat;
+  const busFollow=form==='bus'&&rideBus;
+  const target=busFollow?rideBus.G:(form==='car'&&me?me.G:cat);
   if(!target) return;
-  const yaw=form==='car'&&me?me.yaw:cat.rotation.y;
-  const H=houseSpec();
-  let back=form==='car'?11.2:8.4, up=form==='car'?4.6:3.8, side=form==='car'?3.2:2.6;
+  const yaw=busFollow?rideBus.yaw:(form==='car'&&me?me.yaw:cat.rotation.y);
+  const H=insideH||houseSpec();
+  let back=form==='car'||busFollow?11.2:8.4, up=form==='car'||busFollow?4.6:3.8, side=form==='car'?3.2:2.6;
+  if(swimming){ back=6.4; up=3.2; side=1.2; }
   if(insideHouse){ back=2.7; up=Math.min(1.85, H.h*0.36); side=0.15; }
+  if(insideMart){ back=3.4; up=2.2; side=0.2; }
   const want=new V3(
     target.position.x - Math.sin(yaw)*back + Math.cos(yaw)*side,
     target.position.y+up,
@@ -1229,8 +1752,14 @@ function chaseCam(dt){
     want.y=clamp(want.y, 1.4, Math.max(1.65, H.h-0.5));
     want.z=clamp(want.z, H.z-H.d/2+m, H.z+H.d/2-m);
   }
+  if(insideMart && mart){
+    const m=1.1;
+    want.x=clamp(want.x, mart.x-mart.w/2+m, mart.x+mart.w/2-m);
+    want.y=clamp(want.y, 1.5, mart.h-0.6);
+    want.z=clamp(want.z, mart.z-mart.d/2+m, mart.z+mart.d/2-m);
+  }
   camera.position.lerp(want, camSnap?1:Math.min(1,dt*5.2));
-  const lookFwd=insideHouse?1.2:2.4, lookY=insideHouse?0.72:1.05;
+  const lookFwd=insideHouse||insideMart?1.2:2.4, lookY=insideHouse||insideMart?0.72:1.05;
   const look=new V3(target.position.x + Math.sin(yaw)*lookFwd, target.position.y+lookY, target.position.z + Math.cos(yaw)*lookFwd);
   camera.lookAt(look);
   camSnap=false;
@@ -1238,10 +1767,163 @@ function chaseCam(dt){
   updateHouseCutaway();
 }
 
+function spinWheels(e, vf, dt){
+  for(const w of (e.g.userData.wheels||[])) if(w.userData.spin) w.userData.spin.rotation.x+=vf*dt/(w.userData.r||.3);
+}
+function followWaypoints(e, route, dt, speed, pauseNear){
+  if(e.pause>0){ e.pause-=dt; e.fwd=0; e.G.rotation.y=e.yaw; return 'pause'; }
+  const wp=route[e.wp%route.length];
+  const dx=wp[0]-e.G.position.x, dz=wp[1]-e.G.position.z, dist=Math.hypot(dx,dz);
+  if(dist<3.2){
+    e.wp=(e.wp+1)%route.length;
+    if(pauseNear){
+      const stop=nearestStop(e.G.position, 9);
+      if(stop){ e.pause=2.3; e.stopId=stop.id; return 'stop'; }
+    }
+  }
+  const want=Math.atan2(dx,dz);
+  let dYaw=want-e.yaw; while(dYaw>Math.PI) dYaw-=Math.PI*2; while(dYaw<-Math.PI) dYaw+=Math.PI*2;
+  e.yaw+=clamp(dYaw, -e.def.turn*dt, e.def.turn*dt);
+  e.fwd=clamp(e.fwd+dt*3.2, 0, speed);
+  e.G.position.x+=Math.sin(e.yaw)*e.fwd*dt;
+  e.G.position.z+=Math.cos(e.yaw)*e.fwd*dt;
+  e.G.rotation.y=e.yaw; e.G.position.y=e.com;
+  spinWheels(e, e.fwd, dt);
+  return 'go';
+}
+function tickDoors(dt){
+  if(!mart || !cat) return;
+  const P=pos();
+  const pairs=[[mart.outer, mart.outerDoorOb, mart.x, mart.doorZ, 5.5],[mart.innerDoors, mart.innerDoorOb, mart.x, mart.innerDoorZ, 4.2]];
+  for(const [pair, ob, sx, sz, range] of pairs){
+    if(!pair) continue;
+    const near=Math.hypot(P.x-sx, P.z-sz)<range;
+    pair.userData.open=clamp((pair.userData.open||0)+(near?1:-1)*dt*2.4, 0, 1);
+    const o=pair.userData.open, h=pair.userData.half||3.4;
+    pair.userData.left.position.x=-o*h*0.92;
+    pair.userData.right.position.x=o*h*0.92;
+    if(ob) ob.disabled=o>0.42;
+  }
+}
+function tickBuses(dt){
+  for(const e of buses){
+    const st=followWaypoints(e, BUS_ROUTE, dt, 15, true);
+    if(st==='stop' || (e.pause>0 && e.stopId)){
+      if(form==='cat' && waitingStop && waitingStop===e.stopId) boardBus(e);
+    }
+  }
+}
+function tickPeds(dt){
+  for(const p of peds){
+    p.t+=dt;
+    if(p.state==='wait'){
+      if(p.t>2.4){ p.state='walk'; p.t=0; p.dir*=-1; }
+    } else {
+      const sp=1.7;
+      if(p.alongX) p.x+=p.dir*sp*dt; else p.z+=p.dir*sp*dt;
+      if(p.t>4.2){ p.state='wait'; p.t=0; }
+    }
+    p.g.position.set(p.x, 0, p.z);
+    p.g.rotation.y=p.alongX?(p.dir>0?Math.PI/2:-Math.PI/2):(p.dir>0?0:Math.PI);
+    const legs=p.g.userData.legs||[];
+    if(p.state==='walk') legs.forEach((l,i)=> l.rotation.x=Math.sin(p.t*10+i)*0.5);
+    else legs.forEach(l=> l.rotation.x=0);
+  }
+  if(mart){
+    const wps=[[-10,-4],[10,-4],[10,8],[-10,8]];
+    for(const s of shoppers){
+      s.t+=dt;
+      if(s.t>3.2){ s.t=0; s.wp=(s.wp+1)%wps.length; }
+      const w=wps[s.wp], g=s.g;
+      g.position.x+=(mart.x+w[0]-g.position.x)*dt*0.7;
+      g.position.z+=(mart.z+w[1]-g.position.z)*dt*0.7;
+      g.rotation.y=Math.atan2(mart.x+w[0]-g.position.x, mart.z+w[1]-g.position.z);
+    }
+  }
+}
+function tickFire(dt){
+  fireT+=dt;
+  if(!fireCall && fireT>42){
+    fireT=0;
+    const spots=[[80,80],[-80,80],[80,-80],[-80,-40],[48,0],[-40,40]];
+    const s=pick(spots);
+    fireCall={x:s[0], z:s[1], t:0, phase:'go'};
+    smokePuff=KIT.makeSmoke(s[0], 2.2, s[1]);
+    popup('LITTLE SMOKE!<small>fire friends are on the way</small>');
+    say('Just a little smoke. The fire truck is coming with a friendly siren!');
+  }
+  const truck=cityCars.find(e=>e.id==='firetruck');
+  if(fireCall && truck){
+    fireCall.t+=dt;
+    if(fireCall.phase==='go'){
+      const dx=fireCall.x-truck.G.position.x, dz=fireCall.z-truck.G.position.z;
+      const dist=Math.hypot(dx,dz);
+      truck.yaw=Math.atan2(dx,dz);
+      truck.fwd=22; truck.G.position.x+=Math.sin(truck.yaw)*truck.fwd*dt; truck.G.position.z+=Math.cos(truck.yaw)*truck.fwd*dt;
+      truck.G.rotation.y=truck.yaw; spinWheels(truck, truck.fwd, dt);
+      if(dist<6){ fireCall.phase='work'; truck.fwd=0; }
+      if(AC && (fireCall.t*6|0)!==((fireCall.t-dt)*6|0)){ tone((fireCall.t*6|0)%2?880:620, .12, 'square', .05); }
+    } else if(fireCall.phase==='work'){
+      if(fireCall.t>6) fireCall.phase='back';
+      if(smokePuff) smokePuff.children.forEach(c=>{ c.material.opacity=Math.max(0.05,(c.material.opacity||.5)-dt*.2); });
+    } else {
+      const dx=truck.home[0]-truck.G.position.x, dz=truck.home[1]-truck.G.position.z;
+      truck.yaw=Math.atan2(dx,dz); truck.fwd=18;
+      truck.G.position.x+=Math.sin(truck.yaw)*truck.fwd*dt; truck.G.position.z+=Math.cos(truck.yaw)*truck.fwd*dt;
+      truck.G.rotation.y=truck.yaw; spinWheels(truck, truck.fwd, dt);
+      if(Math.hypot(dx,dz)<4){
+        truck.fwd=0; truck.G.position.set(truck.home[0], truck.com, truck.home[1]);
+        if(smokePuff && smokePuff.parent) smokePuff.parent.remove(smokePuff);
+        smokePuff=null; fireCall=null; say('All clear! Fire friends are back at the station.');
+      }
+    }
+  }
+  if(smokePuff){
+    smokePuff.children.forEach((c,i)=>{ c.position.y=0.4+i*.4+Math.sin(performance.now()/400+i)*.12; c.rotation.y+=dt; });
+  }
+  for(const a of ambulances){
+    if(!a.patrol) continue;
+    followWaypoints(a, BUS_ROUTE, dt, 13, false);
+  }
+}
+function tickHaul(dt){
+  if(!haul || !haul.e) return;
+  const e=haul.e, yaw=e.yaw;
+  if(haul.trailer){
+    haul.trailer.position.set(e.G.position.x-Math.sin(yaw)*7.3, 0, e.G.position.z-Math.cos(yaw)*7.3);
+    haul.trailer.rotation.y=yaw;
+    for(const w of (haul.trailer.userData.wheels||[])) if(w.userData.spin) w.userData.spin.rotation.x+=e.fwd*dt/(w.userData.r||.3);
+  }
+  if(haul.carOn){
+    const c=haul.carOn, t=haul.trailer.position;
+    c.G.position.set(t.x, c.com+0.35, t.z); c.yaw=yaw; c.G.rotation.y=yaw; c.fwd=0;
+  }
+  if(moving && moving.step==='car' && me && me.id!=='haul' && onTrailer(me)) loadCarOnTrailer();
+  if(moving && moving.step==='drive' && me && me.id==='haul'){
+    const dest=specFor(houseDef(moving.to));
+    const glow=Math.hypot(e.G.position.x-dest.x, e.G.position.z-dest.z);
+    if(glow<12) finishMoving();
+  }
+}
+function tickCheckout(dt){
+  if(!checkout || checkout.phase!=='scan') return;
+  checkout.t+=dt;
+  if(checkout.t>0.35){
+    checkout.t=0; checkout.i++;
+    tone(980,.06,'square',.05);
+    if(checkout.i>=(cart?cart.items.length:0)){
+      checkout.phase='pay';
+      popup('TOTAL: '+checkout.total+' COINS<small>ENTER to pay</small>');
+      say('That will be '+checkout.total+' coins, please!');
+    }
+  }
+}
+
 function simStep(dt){
   if(screen!=='play') return;
   const ctl=input();
   if(form==='cat') walkCat(dt, ctl);
+  else if(form==='bus'){ /* riding */ }
   else if(me){ drivePlayer(me, dt, ctl); collectCoins(me.G.position.x, me.G.position.z, 2.2); }
   for(const e of ents){
     if(e.mode==='ai'){
@@ -1251,11 +1933,12 @@ function simStep(dt){
       if(Math.abs(e.G.position.x)>210) e.G.position.x*=-1;
       if(Math.abs(e.G.position.z)>210) e.G.position.z*=-1;
       e.G.rotation.y=e.yaw;
-      for(const w of (e.g.userData.wheels||[])) if(w.userData.spin) w.userData.spin.rotation.x+=e.fwd*dt/(w.userData.r||.3);
+      spinWheels(e, e.fwd, dt);
     }
     e.cd=Math.max(0,(e.cd||0)-dt);
   }
-  if(me) for(const e of ents) if(e!==me && e.mode!=='show') hitPair(me,e);
+  tickDoors(dt); tickBuses(dt); tickPeds(dt); tickFire(dt); tickHaul(dt); tickCheckout(dt);
+  if(me) for(const e of ents) if(e!==me && e.mode!=='show' && e.mode!=='bus' && e.mode!=='city') hitPair(me,e);
   if(netKit) netKit.updateRemotes(dt);
   refillCoins(dt);
   for(const c of coins3d){ if(c.got) continue; c.t+=dt; c.m.position.y=1.15+Math.sin(c.t*3)*.18; c.m.rotation.z+=dt*2; }
@@ -1323,6 +2006,7 @@ addEventListener('keydown', ev=>{
   if(ev.code==='Escape'){ $('shop').classList.add('hidden'); $('how').classList.add('hidden'); $('ptPanel').classList.add('hidden'); }
   else if(ev.code==='Enter'){ interact(); }
   else if(ev.code==='KeyF' && form==='car') hopOut();
+  else if(ev.code==='KeyF' && form==='bus') leaveBus();
   else if(ev.code==='KeyH' && me) honk(me.def);
   else if(ev.code==='KeyR') goHome(true);
 });
@@ -1341,7 +2025,7 @@ renderer.domElement.addEventListener('webglcontextrestored', ()=>{ try{ applyQua
   const end=()=>{ pid=null; nub.style.left='45px'; nub.style.top='45px'; touchSteer=0; touchGas=0; };
   stick.addEventListener('pointerup', end); stick.addEventListener('pointercancel', end);
   $('padAct').addEventListener('pointerdown', e=>{ e.preventDefault(); interact(); });
-  $('padOut').addEventListener('pointerdown', e=>{ e.preventDefault(); if(form==='car') hopOut(); });
+  $('padOut').addEventListener('pointerdown', e=>{ e.preventDefault(); if(form==='car') hopOut(); else if(form==='bus') leaveBus(); });
   $('padHorn').addEventListener('pointerdown', ()=>{ if(me) honk(me.def); });
   const hold=(id,set)=>{ const el=$(id); el.addEventListener('pointerdown', e=>{ e.preventDefault(); set(true); }); el.addEventListener('pointerup', ()=>set(false)); el.addEventListener('pointerleave', ()=>set(false)); };
   hold('padBrake', v=>padBrake=v);
@@ -1481,29 +2165,57 @@ window.CATLIFE={
   get shopOpen(){ return !$('shop').classList.contains('hidden'); },
   get shopText(){ return $('shop').textContent||''; },
   get me(){ return me?{id:me.id,n:me.def.name,x:me.G.position.x,z:me.G.position.z,mode:me.mode,crush:me.crush,mph:Math.round(Math.abs(me.fwd)*2.237),top:me.def.top}:null; },
-  get cat(){ return cat?{x:cat.position.x,z:cat.position.z,vis:cat.visible}:null; },
+  get cat(){
+    if(!cat) return null;
+    if(form==='bus' && rideBus){ const p=new THREE.Vector3(); cat.getWorldPosition(p); return {x:p.x,z:p.z,vis:cat.visible,y:p.y}; }
+    return {x:cat.position.x,z:cat.position.z,vis:cat.visible,y:cat.position.y};
+  },
   get houseItems(){ return furnRoot.children.map(o=>({id:o.userData.item, vis:o.visible!==false, x:o.position.x, z:o.position.z})); },
   get toys(){ return save.items.filter(id=>['ball','mouse','laser'].includes(id)); },
   get pads(){ return {stick:!!$('stick'), act:!!$('padAct'), out:!!$('padOut'), horn:!!$('padHorn'), brake:!!$('padBrake')}; },
   get errs(){ return window.CATLIFE_ERRS||[]; },
   get inside(){ return !!insideHouse; },
+  get insideMart(){ return !!insideMart; },
+  get swimming(){ return !!swimming; },
+  get onBus(){ return form==='bus'; },
+  get moving(){ return moving?{from:moving.from,to:moving.to,step:moving.step,packed:moving.packed.slice(),carOn:!!moving.carOn}:null; },
+  get cart(){ return cart?{held:!!cart.held, items:cart.items.slice(), x:cart.G.position.x, z:cart.G.position.z}:null; },
+  get checkout(){ return checkout && checkout.phase?{phase:checkout.phase,total:checkout.total}:null; },
+  get doorOpen(){ return !!(mart && mart.outer && (mart.outer.userData.open||0)>0.4); },
+  get doors(){ return mart?{outer:mart.outer?mart.outer.userData.open||0:0, inner:mart.innerDoors?mart.innerDoors.userData.open||0:0}:null; },
+  get pool(){ return pools[0]?{x:pools[0].x,z:pools[0].z,w:pools[0].w,d:pools[0].d}:null; },
+  get peds(){ return peds.length; },
+  get buses(){ return buses.length; },
+  get fire(){ return {station:!!POI.fire, call:!!fireCall, trucks:cityCars.filter(e=>e.id==='firetruck').length}; },
+  get hospital(){ return {ok:!!POI.hosp, ambulances:ambulances.length}; },
   get liveCoins(){ return liveCoinCount(); },
   get prompt(){ return ($('prompt').classList.contains('hidden')?'':$('prompt').textContent)||''; },
-  SAVE_KEY, CARS, MART, HOUSES, POI, USED_COUPE_PRICE, COIN_RESPAWN_CAP,
+  SAVE_KEY, CARS, MART, HOUSES, POI, BUS_STOPS, USED_COUPE_PRICE, COIN_RESPAWN_CAP,
   startPlay, persist, loadSave,
-  resetSave(){ insideHouse=false; save={coins:0, owned:[], car:null, house:'starter', items:[], jobs:0}; persist(); rebuildHouse(); },
+  resetSave(){ insideHouse=false; insideH=null; insideMart=false; swimming=false; carrying=null; moving=null; rideBus=null; waitingStop=null; checkout={phase:null,i:0,t:0,total:0}; if(cart){ cart.held=false; cart.items=[]; } save={coins:0, owned:[], car:null, house:'starter', items:[], jobs:0}; persist(); rebuildHouse(); stockMartShelves(); },
   addCoins(n){ save.coins=Math.max(0,(save.coins|0)+(n|0)); persist(); },
   buyCar, buyHouse, buyItem, hopIn, hopOut, goHome, enterHouse, leaveHouse, playToy, interact, openShop, startPizza, finishPizza, startRace, spawnOwnedCar,
+  enterMart, leaveMart, grabCart, putInCart, startCheckout, payCheckout, waitBus, boardBus, leaveBus, startMoving, packNearest, loadCarOnTrailer, boardHaul, finishMoving, grantHouseCars,
   collectNearest(){ const P=pos(); return collectCoins(P.x,P.z, 80); },
   collectAllCoins(){ const P=pos(); return collectCoins(P.x,P.z, 500); },
   forceCoinRefill(){ coinRespawnT=99; refillCoins(10); return liveCoinCount(); },
-  setHouse(id){ if(!HOUSES.some(h=>h.id===id)) return false; if(insideHouse){ insideHouse=false; applyHouseInterior(false); } save.house=id; persist(); rebuildHouse(); return true; },
+  setHouse(id){ if(!HOUSES.some(h=>h.id===id)) return false; if(insideHouse){ insideHouse=false; insideH=null; applyHouseInterior(false); } save.house=id; persist(); rebuildHouse(); return true; },
   pose(x,z,yaw){
+    if(form==='bus' && rideBus){ this.leaveBus(); }
     if(form==='car'&&me){ me.G.position.set(x,me.com,z); me.yaw=yaw||0; me.G.rotation.y=me.yaw; }
-    else if(cat){ cat.position.set(x,0,z); cat.rotation.y=yaw||0; }
+    else if(cat){ if(cat.parent && cat.parent!==scene){ cat.parent.remove(cat); scene.add(cat); } cat.position.set(x,0,z); cat.rotation.y=yaw||0; }
   },
-  goTo(key){ const p=POI[key]; if(!p) return; this.pose(p.x+(key==='home'?8:0), p.z+(key==='home'?10:4), key==='home'?0.9:0); },
+  goTo(key){
+    if(key==='mart' && mart){ this.pose(mart.x, mart.doorZ+4.5, Math.PI); return; }
+    if(key==='bus'){ const s=BUS_STOPS.find(b=>b.id==='lot')||BUS_STOPS[0]; this.pose(s.x, s.z, 0); return; }
+    if(key==='pool'){ const p=pools[0]; if(p) this.pose(p.x, p.z, 0); return; }
+    const p=POI[key]; if(!p) return; this.pose(p.x+(key==='home'?8:0), p.z+(key==='home'?10:4), key==='home'?0.9:0);
+  },
   goToDoor(){ const H=houseSpec(); this.pose(H.x, H.z+H.d/2+2.4, Math.PI); },
+  goToMartDoor(){ if(mart) this.pose(mart.x, mart.doorZ+3.2, Math.PI); },
+  goToShelf(){ const g=martGoods.find(x=>!x.taken); if(g) this.pose(g.mesh.position.x, g.mesh.position.z+.9, Math.PI); },
+  goToCheckout(){ if(mart) this.pose(mart.checkoutPos.x-1.2, mart.checkoutPos.z, 0); },
+  goToCart(){ if(cart) this.pose(cart.G.position.x, cart.G.position.z+1.4, Math.PI); },
   setVel(v){ if(me){ me.fwd=v; me.V.set(Math.sin(me.yaw)*v,0,Math.cos(me.yaw)*v); } },
   sim(sec){ for(let t=0;t<sec;t+=1/30) simStep(1/30); },
   snapCam,
@@ -1520,6 +2232,13 @@ window.CATLIFE={
   },
   simulatePeer(p){ if(netKit) netKit.simulatePeer(p); },
   get remotes(){ return netKit?[...netKit.remotes.values()].map(r=>({id:r.id,form:r.form,name:r.name})): []; },
+  startFire(){ fireT=99; tickFire(1); return !!fireCall; },
+  parkBus(stopId){
+    const s=BUS_STOPS.find(b=>b.id===stopId)||BUS_STOPS[0];
+    const e=buses[0]; if(!e) return false;
+    e.G.position.set(s.x, e.com, s.z); e.pause=3.2; e.stopId=s.id; e.fwd=0;
+    return true;
+  },
 };
 window.CATLIFE_READY=false;
 
