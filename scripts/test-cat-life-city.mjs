@@ -80,7 +80,7 @@ await page.evaluateOnNewDocument(() => {
   try { localStorage.setItem('arcadeAge6plus', 'yes'); } catch {}
 });
 
-const url = `http://127.0.0.1:${PORT}/games/cat-life-city-3d.html?v=cat2`;
+const url = `http://127.0.0.1:${PORT}/games/cat-life-city-3d.html?v=cat3`;
 await page.goto(url, { waitUntil: 'load', timeout: 60000 });
 await page.waitForFunction(() => window.CATLIFE_READY === true, { timeout: 90000 });
 
@@ -101,6 +101,10 @@ const G = () => page.evaluate(() => {
     pt: !!(document.getElementById('ptPanel')),
     badge: !!document.querySelector('.age6-hud'),
     inside: C.inside, liveCoins: C.liveCoins, prompt: C.prompt,
+    insideMart: C.insideMart, swimming: C.swimming, onBus: C.onBus,
+    moving: C.moving, cart: C.cart, checkout: C.checkout, doorOpen: C.doorOpen,
+    doors: C.doors, pool: C.pool, peds: C.peds, buses: C.buses,
+    fire: C.fire, hospital: C.hospital,
   };
 });
 
@@ -219,7 +223,7 @@ st = await G();
 check(left && !st.inside, `left starter house inside=${st.inside}`);
 notBlack(await canvas(), 'outside after leave');
 
-for (const hid of ['cozy', 'town', 'mansion']) {
+for (const hid of ['cozy', 'town', 'mansion', 'villa']) {
   await page.evaluate((id) => {
     window.CATLIFE.setHouse(id);
     window.CATLIFE.enterHouse();
@@ -234,6 +238,21 @@ for (const hid of ['cozy', 'town', 'mansion']) {
   st = await G();
   check(!st.inside, `left ${hid}`);
 }
+
+st = await G();
+check(st.house === 'villa', 'still at villa after leave');
+check(st.owned.includes('horse-red') && st.owned.includes('bull-orange'), `villa includes garage supercars ${JSON.stringify(st.owned)}`);
+const swam = await page.evaluate(() => {
+  const p = window.CATLIFE.pool;
+  if (!p) return { ok:false, reason:'no pool' };
+  window.CATLIFE.goTo('pool');
+  window.CATLIFE.sim(0.5);
+  return { ok: window.CATLIFE.swimming, y: window.CATLIFE.cat && window.CATLIFE.cat.y, pool: p };
+});
+st = await G();
+check(swam.ok && st.swimming, `jumped in pool swimming=${st.swimming} y=${swam.y}`);
+notBlack(await canvas(), 'villa pool');
+await shot('cat-life-pool.jpg');
 await page.evaluate(() => window.CATLIFE.setHouse('starter'));
 
 await page.evaluate(() => {
@@ -283,6 +302,134 @@ await page.evaluate(() => window.CATLIFE.openShop('mart'));
 st = await G();
 check(/BULLSEYE/i.test(st.shopText), 'Bullseye Mart generic name');
 await page.evaluate(() => document.getElementById('shop').classList.add('hidden'));
+
+st = await G();
+check(st.buses >= 1, `city buses exist ${st.buses}`);
+check(st.peds >= 4, `pedestrians exist ${st.peds}`);
+check(st.fire && st.fire.station && st.fire.trucks >= 1, `fire station trucks=${st.fire && st.fire.trucks}`);
+check(st.hospital && st.hospital.ok && st.hospital.ambulances >= 1, `hospital ambulances=${st.hospital && st.hospital.ambulances}`);
+const fired = await page.evaluate(() => window.CATLIFE.startFire());
+check(fired, 'friendly smoke emergency started');
+await page.evaluate(() => window.CATLIFE.sim(0.4));
+notBlack(await canvas(), 'fire call');
+await shot('cat-life-fire.jpg');
+
+await page.evaluate(() => {
+  window.CATLIFE.goToMartDoor();
+  window.CATLIFE.sim(0.8);
+});
+st = await G();
+check(st.doors && st.doors.outer > 0.3, `sliding doors opened by motion outer=${st.doors && st.doors.outer}`);
+const walkedIn = await page.evaluate(() => window.CATLIFE.enterMart());
+await page.evaluate(() => { window.CATLIFE.snapCam(); window.CATLIFE.sim(0.2); });
+st = await G();
+check(walkedIn && st.insideMart, `walked into Bullseye Mart insideMart=${st.insideMart}`);
+notBlack(await canvas(), 'mart interior');
+await shot('cat-life-mart-inside.jpg');
+
+await page.evaluate(() => {
+  window.CATLIFE.goToCart();
+  window.CATLIFE.sim(0.1);
+  window.CATLIFE.grabCart();
+});
+st = await G();
+check(st.cart && st.cart.held, `pushing shopping cart held=${st.cart && st.cart.held}`);
+const shelved = await page.evaluate(() => {
+  window.CATLIFE.goToShelf();
+  window.CATLIFE.sim(0.1);
+  const goods = window.CATLIFE.MART.find(m => !(window.CATLIFE.items || []).includes(m.id));
+  return goods ? window.CATLIFE.putInCart(goods.id) : false;
+});
+st = await G();
+check(shelved && st.cart && st.cart.items.length >= 1, `item in cart ${JSON.stringify(st.cart && st.cart.items)}`);
+await page.evaluate(() => {
+  window.CATLIFE.goToCheckout();
+  window.CATLIFE.sim(0.1);
+  window.CATLIFE.startCheckout();
+  window.CATLIFE.sim(2.4);
+});
+st = await G();
+check(st.checkout && st.checkout.phase === 'pay', `cashier scanned total=${st.checkout && st.checkout.total} phase=${st.checkout && st.checkout.phase}`);
+await page.evaluate(() => window.CATLIFE.addCoins(200));
+const paid = await page.evaluate(() => window.CATLIFE.payCheckout());
+st = await G();
+check(paid && st.items.length >= 2, `paid cashier items went home ${JSON.stringify(st.items)}`);
+await page.evaluate(() => { window.CATLIFE.leaveMart(); window.CATLIFE.snapCam(); });
+st = await G();
+check(!st.insideMart, 'left mart through doors');
+notBlack(await canvas(), 'outside mart');
+
+const busRide = await page.evaluate(() => {
+  window.CATLIFE.goTo('bus');
+  window.CATLIFE.parkBus('lot');
+  window.CATLIFE.waitBus();
+  window.CATLIFE.sim(0.4);
+  const boarded = window.CATLIFE.onBus;
+  window.CATLIFE.parkBus('mart');
+  window.CATLIFE.sim(0.2);
+  const off = window.CATLIFE.leaveBus();
+  const cat = window.CATLIFE.cat;
+  const stop = window.CATLIFE.BUS_STOPS.find(s => s.id === 'mart');
+  const near = stop && cat && Math.hypot(cat.x - stop.x, cat.z - stop.z) < 8;
+  return { boarded, off, near, x: cat && cat.x, z: cat && cat.z };
+});
+st = await G();
+check(busRide.boarded, `boarded city bus boarded=${busRide.boarded}`);
+check(busRide.off && busRide.near, `got off at another stop near=${busRide.near} x=${busRide.x} z=${busRide.z}`);
+notBlack(await canvas(), 'after bus ride');
+await shot('cat-life-bus.jpg');
+
+const moveFlow = await page.evaluate(() => {
+  window.CATLIFE.resetSave();
+  window.CATLIFE.addCoins(400);
+  window.CATLIFE.buyItem('couch');
+  window.CATLIFE.buyCar('rusty');
+  window.CATLIFE.hopOut();
+  const bought = window.CATLIFE.buyHouse('cozy');
+  const started = window.CATLIFE.moving;
+  window.CATLIFE.goHome(true);
+  window.CATLIFE.enterHouse();
+  window.CATLIFE.sim(0.1);
+  window.CATLIFE.packNearest();
+  const haul = window.CATLIFE.me && window.CATLIFE.me.id === 'haul';
+  const packedCarry = window.CATLIFE.moving && window.CATLIFE.moving.packed;
+  const items = window.CATLIFE.houseItems;
+  const furn = items.find(h => h.id === 'couch');
+  if (furn) {
+    window.CATLIFE.pose(furn.x, furn.z, 0);
+    window.CATLIFE.packNearest();
+  }
+  const P = window.CATLIFE.cat;
+  if (window.CATLIFE.moving && window.CATLIFE.moving.step === 'pack') {
+    window.CATLIFE.interact();
+  }
+  window.CATLIFE.boardHaul();
+  const dest = window.CATLIFE.HOUSES.find(h => h.id === 'cozy');
+  if (dest) window.CATLIFE.pose(dest.lot[0], dest.lot[1] + dest.d / 2 + 8, Math.PI);
+  window.CATLIFE.sim(0.5);
+  if (window.CATLIFE.moving) window.CATLIFE.finishMoving();
+  return {
+    bought, started, after: window.CATLIFE.house,
+    items: window.CATLIFE.items, houseItems: window.CATLIFE.houseItems,
+    packedCarry, haulAfter: window.CATLIFE.form,
+  };
+});
+st = await G();
+check(moveFlow.bought && moveFlow.started, `Haul-It moving started ${JSON.stringify(moveFlow.started)}`);
+check(st.house === 'cozy', `moved into cozy house=${st.house}`);
+check(st.items.includes('couch') && st.houseItems.some(h => h.id === 'couch'), `furniture arrived at new house ${JSON.stringify(st.houseItems)}`);
+notBlack(await canvas(), 'after moving');
+await shot('cat-life-moved.jpg');
+await page.evaluate(() => {
+  window.CATLIFE.resetSave();
+  window.CATLIFE.addCoins(80);
+  window.CATLIFE.buyCar('rusty');
+  window.CATLIFE.buyCar('used');
+  window.CATLIFE.buyItem('ball');
+  window.CATLIFE.hopOut();
+  window.CATLIFE.setHouse('starter');
+  window.CATLIFE.goHome(true);
+});
 
 await page.evaluate(() => window.CATLIFE.beautyCam());
 await new Promise(r => setTimeout(r, 200));
