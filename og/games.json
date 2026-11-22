@@ -85,6 +85,12 @@
       "title": "CAT AIRPLANE PILOT 3D",
       "href": "games/cat-airplane-pilot-3d.html?v=air1",
       "thumb": "og/cat-airplane-pilot-3d.jpg"
+    },
+    {
+      "slug": "cat-parkour-3d",
+      "title": "CAT PARKOUR 3D",
+      "href": "games/cat-parkour-3d.html?v=park1",
+      "thumb": "og/cat-parkour-3d.jpg"
     }
   ]
 }
