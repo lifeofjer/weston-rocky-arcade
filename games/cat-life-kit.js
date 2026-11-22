@@ -434,9 +434,214 @@ export function installCatLifeKit(THREE, helpers){
     B(4.2,.12,1.8, mat(0x2a6b4e), x, .08, z+d/2+2.1, houseGroup);
   }
 
+  function slab(x0,x1,z0,z1,y,m,parent){
+    const ww=x1-x0, dd=z1-z0;
+    if(ww<0.2||dd<0.2) return null;
+    return B(ww, 0.14, dd, m, (x0+x1)/2, y, (z0+z1)/2, parent);
+  }
+
+  function addSecondFloor(g, H, x, z, w, d, h){
+    const floorY = H.pool ? 4.35 : 3.28;
+    const run = H.pool ? 5.8 : 4.15;
+    const stairW = H.pool ? 1.72 : 1.38;
+    const leftX = x - w/2 + stairW/2 + 0.42;
+    const zBot = z + d/2 - 0.95;
+    const zTop = zBot - run;
+    const steps = H.pool ? 11 : 8;
+    const wood=mat(0x8a5a32), rail=mat(H.pool?0xf2e6c8:0xe8d8b8), floorM=mat(H.pool?0xe8dcc8:0xd4b48a);
+    for(let i=0;i<steps;i++){
+      const t=i/(steps-1);
+      const sy = 0.1 + t*floorY;
+      const sz = zBot - t*run;
+      B(stairW, 0.13, run/steps+0.05, wood, leftX, sy, sz, g);
+    }
+    B(.08, floorY+0.55, run+0.2, rail, leftX+stairW/2+0.14, (floorY+0.55)/2, (zBot+zTop)/2, g);
+    for(let i=0;i<4;i++){
+      B(.07, 0.55, .07, rail, leftX+stairW/2+0.14, floorY+0.55, zBot-i*(run/3), g);
+    }
+    const inset=0.32;
+    const x0=x-w/2+inset, x1=x+w/2-inset, z0=z-d/2+inset, z1=z+d/2-inset;
+    const hole={minx:leftX-stairW/2-0.08, maxx:leftX+stairW/2+0.22, minz:zTop-0.12, maxz:zBot+0.18};
+    slab(hole.maxx, x1, z0, z1, floorY, floorM, g);
+    slab(x0, hole.maxx, z0, hole.minz, floorY, floorM, g);
+    slab(x0, hole.maxx, hole.maxz, z1, floorY, floorM, g);
+    const rug=B(Math.min(w-3.4, H.pool?8:4.2), .05, Math.min(d-3.2, H.pool?6:3.4), mat(H.pool?0x8b1e3f:0x3a6ea5), x+1.1, floorY+0.1, z-0.2, g);
+    rug.receiveShadow=true;
+    const fancy=!!H.pool;
+    B(fancy?2.4:1.7, .28, fancy?1.3:1.05, mat(0xfff2df), x+w*.18, floorY+0.22, z-d*.18, g);
+    B(fancy?.6:.48, .22, fancy?1.3:1.05, mat(0xf0983c), x+w*.18-(fancy?0.9:0.6), floorY+0.42, z-d*.18, g);
+    B(1.3, .7, .7, mat(0x8a6a48), x-w*.08, floorY+0.45, z-d*.28, g);
+    B(1.1, .55, .5, mat(0xdde4ea), x+w*.28, floorY+0.38, z+d*.12, g);
+    if(fancy){
+      B(2.6, .9, 1.05, mat(0x3a6ea5), x-w*.16, floorY+0.55, z+d*.16, g);
+      B(2.6, .45, .24, mat(0x2d5680), x-w*.16, floorY+0.95, z+d*.16-.4, g);
+      B(1.6, 1.0, .14, mat(0x151518), x+w*.22, floorY+1.1, z-d*.32, g);
+      sph(.32, mat(0x2f9e44), x-w*.28, floorY+0.85, z-d*.12, g, 8);
+      B(.55, 1.2, .55, mat(0xd4af37,'shiny'), x+w*.32, floorY+0.7, z+d*.22, g);
+    } else {
+      B(.9, .55, .55, mat(0x3a6ea5), x+w*.12, floorY+0.38, z+d*.18, g);
+      sph(.22, mat(0x2f9e44), x-w*.12, floorY+0.55, z+d*.2, g, 8);
+    }
+    const lamp=new THREE.Mesh(new THREE.SphereGeometry(.22,10,8), new THREE.MeshStandardMaterial({color:0xfff6d8, emissive:0xffe08a, emissiveIntensity:1.8, toneMapped:false}));
+    lamp.position.set(x, floorY+1.55, z); g.add(lamp);
+    return {
+      floorY,
+      stairs:{
+        along:'z', flip:true, y0:0, y1:floorY,
+        minx:leftX-stairW/2, maxx:leftX+stairW/2,
+        minz:Math.min(zTop,zBot), maxz:Math.max(zTop,zBot),
+        cx:leftX, zBot, zTop, w:stairW, run,
+      },
+      hole,
+      upper:{y:floorY, minx:x0, maxx:x1, minz:z0, maxz:z1},
+    };
+  }
+
+  function makeFireRig(){
+    const g=new THREE.Group();
+    const flameM=new THREE.MeshBasicMaterial({color:0xff6a10, transparent:true, opacity:.92, depthWrite:false});
+    const flameM2=new THREE.MeshBasicMaterial({color:0xffee66, transparent:true, opacity:.85, depthWrite:false});
+    const smokeM=new THREE.MeshStandardMaterial({color:0x9a968e, transparent:true, opacity:.55, roughness:1, depthWrite:false});
+    const flames=[];
+    for(let i=0;i<7;i++){
+      const cone=new THREE.Mesh(new THREE.ConeGeometry(.45+i*.12, 1.3+i*.35, 7), i%2?flameM2:flameM);
+      cone.position.set((i%3-1)*.35, .7+i*.18, (i%2?-.2:.2));
+      cone.userData.ph=i*0.7;
+      g.add(cone); flames.push(cone);
+    }
+    const smokes=[];
+    for(let i=0;i<8;i++){
+      const s=sph(.5+i*.18, smokeM, (i%2?-.25:.25), 1.4+i*.7, 0, g, 8);
+      s.userData.ph=i;
+      smokes.push(s);
+    }
+    const glow=new THREE.Mesh(new THREE.SphereGeometry(2.4, 12, 10), new THREE.MeshBasicMaterial({color:0xff8020, transparent:true, opacity:.28, depthWrite:false}));
+    glow.position.y=1.4; g.add(glow);
+    const halo=new THREE.PointLight(0xff6a18, 4.2, 90, 1.1);
+    halo.position.set(0, 2.2, 0); g.add(halo);
+    g.userData={flames, smokes, glow, halo, flameM, smokeM};
+    return g;
+  }
+
+  function tickFireRig(g, dt, t, strength){
+    if(!g || !g.userData) return;
+    const k=Math.max(0.15, strength||1);
+    for(const f of g.userData.flames){
+      const ph=f.userData.ph+t*4;
+      f.scale.set(k*(0.8+Math.sin(ph)*0.25), k*(1.05+Math.sin(ph*1.4)*0.35), k*(0.8+Math.cos(ph)*0.2));
+      f.position.y=0.55+Math.sin(ph)*0.18;
+      f.rotation.y+=dt*2;
+    }
+    for(const s of g.userData.smokes){
+      const i=s.userData.ph;
+      s.position.y=1.2+i*.75+Math.sin(t*1.4+i)*.2;
+      s.position.x=Math.sin(t*.7+i)*.28;
+      s.material.opacity=Math.max(0.08, .5*k - i*.04);
+      s.scale.setScalar(k*(1+i*.08));
+    }
+    if(g.userData.glow){
+      const pulse=0.22+Math.sin(t*6)*0.08;
+      g.userData.glow.material.opacity=pulse*k;
+      g.userData.glow.scale.setScalar(1.1+Math.sin(t*3)*0.15);
+    }
+    if(g.userData.halo) g.userData.halo.intensity=3.4*k+Math.sin(t*8)*0.6;
+  }
+
+  function makeSprayRig(){
+    const g=new THREE.Group();
+    const m=new THREE.MeshBasicMaterial({color:0x9ee7ff, transparent:true, opacity:.8, depthWrite:false});
+    const drops=[];
+    for(let i=0;i<28;i++){
+      const d=new THREE.Mesh(new THREE.SphereGeometry(.07,6,6), m);
+      d.userData.t=Math.random();
+      g.add(d); drops.push(d);
+    }
+    g.userData={drops, m};
+    g.visible=false;
+    return g;
+  }
+
+  function tickSpray(g, from, to, dt){
+    if(!g || !g.userData) return;
+    g.visible=true;
+    const drops=g.userData.drops;
+    const dx=to.x-from.x, dy=(to.y+1.2)-from.y, dz=to.z-from.z;
+    for(const d of drops){
+      d.userData.t=(d.userData.t+dt*1.8)%1;
+      const u=d.userData.t;
+      d.position.set(
+        from.x+dx*u+(Math.sin(u*18+d.userData.t)*0.12),
+        from.y+dy*u - u*u*1.4,
+        from.z+dz*u+(Math.cos(u*14)*0.12)
+      );
+    }
+  }
+
+  function makeStarRing(){
+    const g=new THREE.Group();
+    const m=new THREE.MeshBasicMaterial({color:0xffe14a, depthWrite:false});
+    const stars=[];
+    for(let i=0;i<6;i++){
+      const s=new THREE.Mesh(new THREE.ConeGeometry(.12, .28, 5), m);
+      s.rotation.x=Math.PI;
+      g.add(s); stars.push(s);
+    }
+    g.userData={stars};
+    g.visible=false;
+    return g;
+  }
+
+  function tickStars(g, t){
+    if(!g) return;
+    g.visible=true;
+    const stars=g.userData.stars||[];
+    stars.forEach((s,i)=>{
+      const a=t*2.2+i*(Math.PI*2/stars.length);
+      s.position.set(Math.cos(a)*.55, 1.15+Math.sin(t*5+i)*.08, Math.sin(a)*.55);
+      s.rotation.y=a;
+    });
+  }
+
+  function makeHospitalRoom(){
+    const g=new THREE.Group();
+    const white=mat(0xf4f7fb), sheet=mat(0xe8f4ff), wood=mat(0xd8c4a0);
+    B(8.4,.12,6.4, white, 0,.06,0, g);
+    B(8.4, 3.4, .2, white, 0, 1.7, -3.2, g);
+    B(.2, 3.4, 6.4, white, -4.2, 1.7, 0, g);
+    B(.2, 3.4, 6.4, white, 4.2, 1.7, 0, g);
+    B(2.6,.42,1.3, wood, 0, .32, -0.4, g);
+    B(2.4,.12,1.2, sheet, 0, .58, -0.4, g);
+    B(.7,.28,1.2, mat(0xffffff), -1.0, .72, -0.4, g);
+    B(.18,1.4,.18, mat(0xc0c6cc,'shiny'), 2.2, .8, 1.4, g);
+    const bulb=new THREE.Mesh(new THREE.SphereGeometry(.16,8,8), new THREE.MeshStandardMaterial({color:0xfff6d8, emissive:0xffe08a, emissiveIntensity:1.6}));
+    bulb.position.set(2.2, 1.55, 1.4); g.add(bulb);
+    const L=new THREE.PointLight(0xfff1d0, 1.4, 12, 1.2);
+    L.position.set(0, 2.6, 0); g.add(L);
+    g.userData={bed:[0, .7, -0.4], doctor:[1.6, 0, 0.3]};
+    g.visible=false;
+    return g;
+  }
+
+  function addSirenLights(parent, y=2.4){
+    const red=new THREE.Mesh(new THREE.BoxGeometry(.42,.16,.42), new THREE.MeshBasicMaterial({color:0xff2020}));
+    const blu=new THREE.Mesh(new THREE.BoxGeometry(.42,.16,.42), new THREE.MeshBasicMaterial({color:0x2040ff}));
+    red.position.set(-.35, y, 0); blu.position.set(.35, y, 0);
+    parent.add(red, blu);
+    parent.userData.sirenMats=[red.material, blu.material];
+    return [red, blu];
+  }
+
+  function bandageOn(cat){
+    const b=B(.14,.08,.18, mat(0xf4f4f6), .12, .12, .26, cat);
+    b.userData.bandage=true;
+    return b;
+  }
+
   return {
     makePerson, makeBusMesh, makeHaulRig, makeAmbulanceMesh, makeCartMesh,
     makePriceTag, makeSlidingDoorPair, makePool, makeSmoke, makeStopSign,
     makeCrosswalk, buildFireStation, buildHospital, buildMart, decorateVilla, canvasTex,
+    addSecondFloor, makeFireRig, tickFireRig, makeSprayRig, tickSpray, makeStarRing, tickStars,
+    makeHospitalRoom, addSirenLights, bandageOn,
   };
 }

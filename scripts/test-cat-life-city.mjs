@@ -80,7 +80,7 @@ await page.evaluateOnNewDocument(() => {
   try { localStorage.setItem('arcadeAge6plus', 'yes'); } catch {}
 });
 
-const url = `http://127.0.0.1:${PORT}/games/cat-life-city-3d.html?v=cat3`;
+const url = `http://127.0.0.1:${PORT}/games/cat-life-city-3d.html?v=cat4`;
 await page.goto(url, { waitUntil: 'load', timeout: 60000 });
 await page.waitForFunction(() => window.CATLIFE_READY === true, { timeout: 90000 });
 
@@ -104,7 +104,8 @@ const G = () => page.evaluate(() => {
     insideMart: C.insideMart, swimming: C.swimming, onBus: C.onBus,
     moving: C.moving, cart: C.cart, checkout: C.checkout, doorOpen: C.doorOpen,
     doors: C.doors, pool: C.pool, peds: C.peds, buses: C.buses,
-    fire: C.fire, hospital: C.hospital,
+    fire: C.fire, hospital: C.hospital, floors: C.floors, upstairs: C.upstairs,
+    tip: C.tip, howText: C.howText,
   };
 });
 
@@ -136,8 +137,8 @@ check(st.form === 'cat', `spawn as cat form=${st.form}`);
 check(st.cat && st.cat.vis, 'tabby visible');
 check(st.house === 'starter', `starter house house=${st.house}`);
 check(st.owned.length === 0, `no cars yet owned=${JSON.stringify(st.owned)}`);
-check(st.goal && /coin|rusty|\$1/i.test(st.goal), `goal hint teaches saving: ${st.goal}`);
-check(st.pads && st.pads.stick && st.pads.act, 'iPad touch pads present');
+check(st.goal && /20|coin/i.test(st.goal), `goal hint teaches saving: ${st.goal}`);
+check(st.pads && st.pads.stick && st.pads.act && st.pads.fly && st.pads.grip && st.pads.climb && st.pads.dive, 'iPad touch pads present with fly/grip/climb/dive');
 check(st.pt, 'Play Together panel exists');
 check(st.badge, '6+ HUD badge mounted');
 notBlack(await canvas(), 'spawn');
@@ -146,19 +147,24 @@ await shot('cat-life-spawn.jpg');
 const collected = await page.evaluate(() => window.CATLIFE.collectNearest());
 st = await G();
 check(collected > 0 || st.coins > 0, `earned coins collected=${collected} coins=${st.coins}`);
-if (st.coins < 1) await page.evaluate(() => window.CATLIFE.addCoins(5));
+if (st.coins < 20) await page.evaluate(() => window.CATLIFE.addCoins(20));
 st = await G();
-check(st.coins >= 1, `have coins to buy rusty car coins=${st.coins}`);
+check(st.coins >= 20, `have 20 coins to buy rusty car coins=${st.coins}`);
+
+const catalog = await page.evaluate(() => window.CATLIFE.CARS.map(c => ({ id: c.id, price: c.price, name: c.name })));
+check(catalog.length >= 8 && catalog.every(c => c.price === 20), `every car for sale costs 20 ${JSON.stringify(catalog)}`);
+check(catalog.some(c => /VOLT SKY ROADSTER/i.test(c.name)), 'Volt Sky Roadster is in the catalog');
+check(!catalog.some(c => /TESLA/i.test(c.name)), 'no Tesla brand names on sale cars');
 
 const bought = await page.evaluate(() => window.CATLIFE.buyCar('rusty'));
 await page.evaluate(() => window.CATLIFE.sim(0.3));
 st = await G();
-check(bought, 'bought $1 rusty car');
+check(bought, 'bought 20-coin rusty car');
 check(st.owned.includes('rusty'), `owned rusty ${JSON.stringify(st.owned)}`);
 check(st.car === 'rusty', `current car ${st.car}`);
 check(st.form === 'car', `hopped into car form=${st.form}`);
 check(st.me && /RUSTY/i.test(st.me.n), `driving ${st.me && st.me.n}`);
-check(/20|used coupe/i.test(st.goal), `HUD hints save for used coupe: ${st.goal}`);
+check(/20/i.test(st.goal), `HUD still teaches 20-coin cars: ${st.goal}`);
 notBlack(await canvas(), 'after buy car');
 await shot('cat-life-rusty-car.jpg');
 
@@ -167,7 +173,7 @@ const usedTop = await page.evaluate(() => (window.CATLIFE.CARS.find(c => c.id ==
 const hatchTop = await page.evaluate(() => (window.CATLIFE.CARS.find(c => c.id === 'hatch') || {}).top);
 check(usedTop > rustyTop, `used coupe faster than rusty usedTop=${usedTop} rustyTop=${rustyTop}`);
 check(usedTop < hatchTop, `used coupe slower than hatch usedTop=${usedTop} hatchTop=${hatchTop}`);
-check(await page.evaluate(() => window.CATLIFE.USED_COUPE_PRICE === 20), 'used coupe costs 20');
+check(await page.evaluate(() => window.CATLIFE.USED_COUPE_PRICE === 20 && window.CATLIFE.CAR_PRICE === 20), 'used coupe and every car cost 20');
 
 await page.evaluate(() => window.CATLIFE.addCoins(25));
 const usedBought = await page.evaluate(() => window.CATLIFE.buyCar('used'));
@@ -190,7 +196,90 @@ check(st.me && Math.abs(st.me.x) + Math.abs(st.me.z) > 1, `drove somewhere x=${s
 await page.evaluate(() => window.CATLIFE.smash());
 await page.evaluate(() => window.CATLIFE.sim(0.2));
 st = await G();
-check(st.me && st.me.crush > 0, `crash dent crush=${st.me && st.me.crush}`);
+check(st.me && st.me.crush > 0, `small crash dent crush=${st.me && st.me.crush}`);
+
+await page.evaluate(() => window.CATLIFE.addCoins(40));
+const skyBought = await page.evaluate(() => window.CATLIFE.buyCar('volt-roadster'));
+await page.evaluate(() => window.CATLIFE.sim(0.2));
+st = await G();
+check(skyBought && st.owned.includes('volt-roadster'), 'bought Volt Sky Roadster for 20 coins');
+check(st.me && /VOLT SKY ROADSTER/i.test(st.me.n), `driving ${st.me && st.me.n}`);
+const flew = await page.evaluate(() => {
+  window.CATLIFE.pose(0, -48, 0);
+  const on = window.CATLIFE.setFly(true);
+  const flyingOn = !!(window.CATLIFE.me && window.CATLIFE.me.flying);
+  const y0 = window.CATLIFE.me && window.CATLIFE.me.y;
+  const y1 = window.CATLIFE.climb(0.8);
+  const y2 = window.CATLIFE.dive(0.35);
+  return { on, flyingOn, y0, y1, y2, flying: window.CATLIFE.me && window.CATLIFE.me.flying };
+});
+check(flew.on && flew.flyingOn && flew.flying, `fly toggle flyingOn=${flew.flyingOn} flying=${flew.flying}`);
+check(flew.y1 > (flew.y0 || 0) + 1.2, `climbed in fly mode y0=${flew.y0} y1=${flew.y1}`);
+notBlack(await canvas(), 'sky roadster flying');
+await shot('cat-life-sky-fly.jpg');
+const gripped = await page.evaluate(() => {
+  window.CATLIFE.setFly(false);
+  window.CATLIFE.pose(12, 12, 0);
+  const g = window.CATLIFE.forceGripWall();
+  window.CATLIFE.setVel(10);
+  window.CATLIFE.sim(0.4);
+  return { g, wall: window.CATLIFE.me && window.CATLIFE.me.wall, y: window.CATLIFE.me && window.CATLIFE.me.y };
+});
+check(gripped.g && gripped.wall, `grip mode stuck to wall wall=${gripped.wall} y=${gripped.y}`);
+await page.evaluate(() => { window.CATLIFE.setGrip(false); window.CATLIFE.pose(10, 8, 0); });
+notBlack(await canvas(), 'sky roadster grip');
+await shot('cat-life-sky-grip.jpg');
+
+const hard = await page.evaluate(() => {
+  window.CATLIFE.setFly(false);
+  window.CATLIFE.setGrip(false);
+  const fire = window.CATLIFE.smashHard();
+  window.CATLIFE.sim(0.3);
+  const arrived = window.CATLIFE.arriveResponders();
+  window.CATLIFE.sim(1.2);
+  return {
+    fire, state: window.CATLIFE.fire, tip: window.CATLIFE.tip, how: window.CATLIFE.howText,
+    arrived, alert: document.getElementById('fireAlert') && !document.getElementById('fireAlert').classList.contains('hidden'),
+  };
+});
+st = await G();
+check(hard.fire && st.fire && st.fire.crash, `hard crash started fire phase=${st.fire && st.fire.phase}`);
+check(hard.alert && st.fire.alert, 'FIRE! Help is coming alert visible');
+check(st.fire.compass, 'minimap/compass marker for fire');
+check(hard.arrived && hard.arrived.truck && hard.arrived.police && hard.arrived.amb, `responders arrived ${JSON.stringify(hard.arrived)}`);
+check(/Slow down at corners/i.test(hard.tip || st.tip || ''), `crash tip ${hard.tip || st.tip}`);
+check(/follow the roads/i.test(hard.how || st.howText || ''), 'How it works explains fire trucks follow roads');
+notBlack(await canvas(), 'crash fire');
+await shot('cat-life-crash-fire.jpg');
+const out = await page.evaluate(() => window.CATLIFE.extinguishNow());
+check(out, 'firefighters extinguished the fire');
+st = await G();
+check(!st.fire.crash, 'fire cleared after spray');
+
+const hurt = await page.evaluate(() => {
+  window.CATLIFE.spawnOwnedCar('used', true);
+  const h = window.CATLIFE.smashHurt();
+  window.CATLIFE.sim(0.5);
+  const stars = window.CATLIFE.hospital;
+  const inside = window.CATLIFE.skipToHospitalInside();
+  window.CATLIFE.sim(0.4);
+  window.CATLIFE.finishHospital();
+  return { h, stars, inside, after: window.CATLIFE.hospital, cat: window.CATLIFE.cat, form: window.CATLIFE.form };
+});
+st = await G();
+check(hurt.h, 'very hard crash hurt the cat');
+check(hurt.stars && hurt.stars.hurt === 'stars', `cartoon stars phase=${hurt.stars && hurt.stars.hurt}`);
+check(hurt.inside && hurt.inside.room && hurt.inside.doctor, `hospital cutscene room=${hurt.inside && hurt.inside.room} doctor=${hurt.inside && hurt.inside.doctor}`);
+check(st.form === 'cat' && st.cat && st.cat.vis !== false, `hospital flow returned to walking cat form=${st.form}`);
+check(!st.hospital.hurt, `hospital cutscene finished hurt=${st.hospital && st.hospital.hurt}`);
+const nearHosp = await page.evaluate(() => {
+  const c = window.CATLIFE.cat, p = window.CATLIFE.POI.hosp;
+  return c && p && Math.hypot(c.x - p.x, c.z - p.z) < 28;
+});
+check(nearHosp, 'cat walked out at the hospital door');
+await page.evaluate(() => { if (window.CATLIFE.fire && window.CATLIFE.fire.crash) window.CATLIFE.extinguishNow(); });
+notBlack(await canvas(), 'hospital healed');
+await shot('cat-life-hospital.jpg');
 
 await page.evaluate(() => window.CATLIFE.addCoins(20));
 const itemOk = await page.evaluate(() => window.CATLIFE.buyItem('ball'));
@@ -215,8 +304,16 @@ await page.evaluate(() => { window.CATLIFE.snapCam(); window.CATLIFE.sim(0.15); 
 st = await G();
 check(entered && st.inside, `entered starter house inside=${st.inside}`);
 check(st.form === 'cat', 'inside on foot as cat');
+check(st.floors && st.floors.stairs, `starter house has stairs floors=${JSON.stringify(st.floors)}`);
 notBlack(await canvas(), 'starter interior');
 await shot('cat-life-inside-starter.jpg');
+const climbed = await page.evaluate(() => window.CATLIFE.climbStairs());
+st = await G();
+check(climbed && climbed.upstairs && climbed.y > 2.4, `walked starter stairs upstairs y=${climbed && climbed.y} upstairs=${st.upstairs}`);
+notBlack(await canvas(), 'starter upstairs');
+await shot('cat-life-upstairs-starter.jpg');
+const down = await page.evaluate(() => window.CATLIFE.descendStairs());
+check(down && down.downstairs && down.y < 1.2, `walked starter stairs down y=${down && down.y}`);
 const left = await page.evaluate(() => window.CATLIFE.leaveHouse());
 await page.evaluate(() => window.CATLIFE.snapCam());
 st = await G();
@@ -234,6 +331,13 @@ for (const hid of ['cozy', 'town', 'mansion', 'villa']) {
   check(st.inside && st.house === hid, `inside ${hid} house=${st.house} inside=${st.inside}`);
   notBlack(await canvas(), `${hid} interior`);
   await shot(`cat-life-inside-${hid}.jpg`);
+  if (hid === 'villa') {
+    const v = await page.evaluate(() => window.CATLIFE.climbStairs());
+    check(v && v.upstairs && v.y > 3.2, `Palm Villa stairs upstairs y=${v && v.y}`);
+    notBlack(await canvas(), 'villa upstairs');
+    await shot('cat-life-upstairs-villa.jpg');
+    await page.evaluate(() => window.CATLIFE.descendStairs());
+  }
   await page.evaluate(() => { window.CATLIFE.leaveHouse(); window.CATLIFE.snapCam(); });
   st = await G();
   check(!st.inside, `left ${hid}`);
@@ -289,9 +393,12 @@ await page.evaluate(() => window.CATLIFE.openShop('bull'));
 st = await G();
 check(st.shopOpen, 'Bull Motors shop opens');
 check(/BULL/i.test(st.shopText), `Bull Motors generic name ${st.shopText.slice(0,80)}`);
+check(/20/i.test(st.shopText), `Bull Motors prices are 20 coins ${st.shopText.slice(0,120)}`);
 await page.evaluate(() => window.CATLIFE.openShop('volt'));
 st = await G();
 check(/VOLT/i.test(st.shopText), 'Volt Motors generic name');
+check(/SKY ROADSTER/i.test(st.shopText) && /20/i.test(st.shopText), 'Volt Sky Roadster listed for 20 coins');
+check(!/TESLA/i.test(st.shopText), 'Volt shop has no Tesla brand name');
 await page.evaluate(() => window.CATLIFE.openShop('horse'));
 st = await G();
 check(/PRANCING HORSE/i.test(st.shopText), 'Prancing Horse Motors generic name');
@@ -474,6 +581,30 @@ check(st.owned.includes('rusty') && !st.owned.includes('used'), `old save withou
 check(st.coins === 9, `old save coins=${st.coins}`);
 check(st.items.includes('ball'), 'old save kept ball');
 notBlack(await canvas(), 'old save load');
+
+await page.setViewport({ width: 1024, height: 768, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+await page.evaluate(() => {
+  window.CATLIFE.showPads();
+  window.CATLIFE.startPlay();
+  window.CATLIFE.sim(0.2);
+});
+st = await G();
+const padBox = await page.evaluate(() => {
+  const ids = ['stick', 'padAct', 'padOut', 'padHorn', 'padBrake', 'padFly', 'padGrip', 'padClimb', 'padDive'];
+  const vis = {};
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    const r = el && el.getBoundingClientRect();
+    vis[id] = !!(el && r && r.width > 8 && r.height > 8);
+  }
+  const pads = document.getElementById('pads');
+  const shown = pads && (pads.classList.contains('show') || getComputedStyle(pads).display !== 'none');
+  return { vis, shown, w: innerWidth, h: innerHeight };
+});
+check(padBox.shown && padBox.w === 1024, `iPad viewport pads shown w=${padBox.w} h=${padBox.h}`);
+check(padBox.vis.stick && padBox.vis.padFly && padBox.vis.padGrip && padBox.vis.padClimb && padBox.vis.padDive, `iPad fly/grip/climb/dive buttons ${JSON.stringify(padBox.vis)}`);
+notBlack(await canvas(), 'iPad tablet viewport');
+await shot('cat-life-ipad.jpg');
 
 const gameErrs = await page.evaluate(() => window.CATLIFE.errs || []);
 for (const e of gameErrs) errors.push('game: ' + e);

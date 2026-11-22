@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Cat Life City 3D - Weston &amp; Rocky Arcade</title>
-<!-- cat-life-fix-v3-city-life-mart-move -->
+<!-- cat-life-fix-v4-stairs-sky-roadster-fire -->
 <!-- arcade-share -->
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -45,6 +45,11 @@ button.on{background:#ff4040;border-color:#fff}
 #mphl{position:absolute;left:0;right:0;top:88px;text-align:center;font-size:12px;color:#ffd21e;font-weight:bold;letter-spacing:2px}
 #help{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;background:rgba(0,0,0,.62);border:2px solid #7cf;padding:6px 12px;font-size:13px;max-width:calc(100vw - 360px);text-align:center;line-height:1.5}
 #help b{color:#ffd21e}
+#fireAlert{position:absolute;left:50%;top:102px;transform:translateX(-50%);background:rgba(120,10,0,.88);border:3px solid #ffd21e;padding:8px 16px;font-weight:900;font-size:18px;letter-spacing:1px;box-shadow:4px 4px 0 #000;z-index:10;text-align:center}
+#fireAlert small{display:block;font-size:12px;color:#ffd21e;letter-spacing:0;margin-top:2px}
+#compass{position:absolute;right:170px;top:18px;width:64px;height:64px;border-radius:50%;background:rgba(0,0,0,.55);border:3px solid #ff6a10;box-shadow:4px 4px 0 #000}
+#compass .needle{position:absolute;left:28px;top:8px;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:28px solid #ff6a10;transform-origin:8px 24px}
+#tip{position:absolute;left:50%;transform:translateX(-50%);bottom:52px;background:rgba(0,20,40,.72);border:2px solid #4cff6a;padding:5px 12px;font-size:13px;max-width:min(520px,86vw);text-align:center;line-height:1.35}
 #prompt{position:absolute;left:50%;top:28%;transform:translateX(-50%);background:rgba(0,0,0,.82);border:3px solid #4cff6a;padding:12px 16px;font-weight:bold;font-size:18px;text-align:center;min-width:min(400px,90vw);pointer-events:auto;z-index:9}
 #prompt small{display:block;color:#ffd21e;font-size:13px;margin-top:4px}
 #prompt .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
@@ -96,7 +101,10 @@ body.touch #pads, #pads.show{display:block!important}
     <button id="howOpen" class="pe" style="margin-left:6px">HOW IT'S BUILT</button>
   </div>
   <div id="ptMini" class="hidden"></div>
-  <div id="goal" class="hidden">Save 20 coins for the used coupe!</div>
+  <div id="goal" class="hidden">Save 20 coins for any car!</div>
+  <div id="fireAlert" class="hidden">FIRE! Help is coming<small>trucks follow the roads</small></div>
+  <div id="compass" class="hidden"><div class="needle" id="needle"></div></div>
+  <div id="tip" class="hidden">Slow down at corners to avoid crashing!</div>
   <div id="vname" class="hidden">🐱 ORANGE TABBY</div>
   <div id="hud" class="hidden">COINS <b id="sc">0</b><br>CAR <b id="scar">none yet</b><br>HOME <b id="shouse">Starter</b></div>
   <canvas id="mini" width="148" height="148" class="hidden"></canvas>
@@ -112,7 +120,7 @@ body.touch #pads, #pads.show{display:block!important}
 <div id="title">
   <h1>CAT LIFE<br>CITY 3D</h1>
   <div class="by">by Weston and Rocky · for ages 8–9 (Weston is 7 and saving up!)</div>
-  <p>You are the orange tabby with green eyes. Walk a big colorful city. Start with a tiny house. Buy a rusty $1 car, then save 20 coins for a nicer used coupe. Ride city buses, shop inside Bullseye Mart with a cart, and when you buy a bigger house a Haul-It truck helps you move. The Palm Villa has a swimming pool and supercars in the garage. No weapons — just cat life!</p>
+  <p>You are the orange tabby with green eyes. Walk a big colorful city. Start with a tiny house that has real stairs to a second floor. Every car for sale costs 20 coins — even the fancy Volt Sky Roadster that can fly and drive on walls. Ride city buses, shop inside Bullseye Mart with a cart, and when you buy a bigger house a Haul-It truck helps you move. The Palm Villa has upstairs rooms, a swimming pool, and supercars in the garage. No weapons — just cat life!</p>
   <button id="bStart">▶ PLAY</button>
   <p style="margin-top:16px"><button id="ptOpen" class="pe">PLAY TOGETHER</button> <a href="../index.html" style="color:#7cf;margin-left:12px">← arcade</a></p>
 </div>
@@ -145,9 +153,11 @@ body.touch #pads, #pads.show{display:block!important}
 <div id="how" class="hidden pe">
   <h2>HOW IT'S BUILT</h2>
   <p>A few game-dev ideas, said simply:</p>
-  <p><b>Saving is a superpower.</b> Coins stay in a tiny notebook on this iPad (localStorage). Gold coins refill around the city, so you can always earn more. Save 20 for the used coupe before the fancy cars. Old saves still load!</p>
-  <p><b>Better tools earn faster.</b> A rusty car can deliver pizza. The $20 used coupe is nicer and quicker. A supercar finishes the same job even faster. The Palm Villa even comes with garage supercars.</p>
-  <p><b>City life.</b> Sliding doors open when you walk near them. Push a shopping cart, pay the cashier, ride a bus, and a Haul-It truck moves your furniture when you buy a new house.</p>
+  <p><b>Saving is a superpower.</b> Coins stay in a tiny notebook on this iPad (localStorage). Gold coins refill around the city, so you can always earn more. Every car costs 20 coins — rusty, used coupe, or the fanciest supercar. Old saves still load!</p>
+  <p><b>Better tools earn faster.</b> A rusty car can deliver pizza. The used coupe is nicer and quicker. A supercar finishes the same job even faster. The Palm Villa even comes with garage supercars.</p>
+  <p><b>City life.</b> Sliding doors open when you walk near them. Push a shopping cart, pay the cashier, ride a bus, and a Haul-It truck moves your furniture when you buy a new house. Walk upstairs on real stairs in the starter house and Palm Villa.</p>
+  <p><b>How fire trucks find a fire.</b> They do not fly. They follow the roads, turn at corners, and drive to the smoke — just like following a map. Slow down at corners so you do not crash!</p>
+  <p><b>Volt Sky Roadster.</b> Tap FLY (or Y) to hover. CLIMB / DIVE (or E / Q) change altitude. GRIP (or G) sticks you to a building wall so you can drive on it. Jump or turn grip off to drop back to the street.</p>
   <p><b>Play Together.</b> A WebSocket room shares where each cat and car is so two screens match.</p>
   <div style="margin-top:10px"><button id="howClose">GOT IT</button></div>
 </div>
@@ -158,6 +168,10 @@ body.touch #pads, #pads.show{display:block!important}
     <button id="padOut">GET OUT</button>
     <button id="padHorn">HORN</button>
     <button id="padBrake">BRAKE</button>
+    <button id="padFly">FLY</button>
+    <button id="padGrip">GRIP</button>
+    <button id="padClimb">CLIMB</button>
+    <button id="padDive">DIVE</button>
   </div>
 </div>
 <div id="loading">Rocky is building Cat Life City... wait wait</div>
@@ -171,12 +185,12 @@ window.addEventListener('unhandledrejection', function(ev){ (window.CATLIFE_ERRS
 import * as THREE from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
-import { makeRoster, findRosterIndex, createVehicleSystem, wreckDeform, popChance } from './arcade-cars.js?v=cat3';
-import { makeWorldMats, loadHdris, setupLook } from './race-city-look.js?v=cat3';
-import { loadCarKit } from './race-city-gltf.js?v=cat3';
+import { makeRoster, findRosterIndex, createVehicleSystem, wreckDeform, popChance } from './arcade-cars.js?v=cat4';
+import { makeWorldMats, loadHdris, setupLook } from './race-city-look.js?v=cat4';
+import { loadCarKit } from './race-city-gltf.js?v=cat4';
 import { makeCat } from '../shared/tabby-cat.js';
 import { PlayTogether, EMOJI, roomFromUrl } from '../shared/play-together.js';
-import { installCatLifeKit } from './cat-life-kit.js?v=cat3';
+import { installCatLifeKit } from './cat-life-kit.js?v=cat4';
 
 const $ = id => document.getElementById(id);
 const V3 = THREE.Vector3;
@@ -185,24 +199,27 @@ function h3(x,y,z){ const s=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453; return 
 
 const SAVE_KEY='catLifeCity3d';
 const USED_COUPE_PRICE=20;
+const CAR_PRICE=20;
 const COIN_RESPAWN_CAP=14;
+const FIRE_BURN_SEC=240;
+const FIRE_SPRAY_SEC=9;
 const CATALOG=[
-  {id:'rusty', name:'RUSTY BEATER', price:1, earn:1, store:'lot', match:d=>d.name==='TOYOTA CAMRY', rusty:true, top:34, acc:9},
-  {id:'used', name:'USED COUPE', price:USED_COUPE_PRICE, earn:1.15, store:'lot', match:d=>d.name==='FORD MUSTANG GT', color:0x2eb8e8, top:50, acc:13},
-  {id:'hatch', name:'CITY HATCH', price:50, earn:1.3, store:'lot', match:d=>d.name==='HONDA CIVIC', top:62, acc:15},
-  {id:'volt-sedan', name:'VOLT SEDAN', price:120, earn:1.6, store:'volt', match:d=>d.name==='TESLA MODEL 3'},
-  {id:'volt-truck', name:'VOLT TRUCK', price:180, earn:1.85, store:'volt', match:d=>d.type==='cyber' && !d.police},
-  {id:'volt-roadster', name:'VOLT ROADSTER', price:280, earn:2.2, store:'volt', match:d=>!!d.roadster},
-  {id:'horse-red', name:'PRANCING COUPE', price:400, earn:2.45, store:'horse', match:d=>d.name==='FERRARI SF90 STRADALE'},
-  {id:'bull-orange', name:'BULL SUPER', price:500, earn:2.7, store:'bull', match:d=>d.name==='LAMBORGHINI AVENTADOR'},
-  {id:'big-rig', name:'BIG RIG', price:350, earn:2.05, store:'rig', match:d=>d.name==='PETERBILT 579'},
+  {id:'rusty', name:'RUSTY BEATER', price:CAR_PRICE, earn:1, store:'lot', match:d=>d.name==='TOYOTA CAMRY', rusty:true, top:34, acc:9},
+  {id:'used', name:'USED COUPE', price:CAR_PRICE, earn:1.15, store:'lot', match:d=>d.name==='FORD MUSTANG GT', color:0x2eb8e8, top:50, acc:13},
+  {id:'hatch', name:'CITY HATCH', price:CAR_PRICE, earn:1.3, store:'lot', match:d=>d.name==='HONDA CIVIC', top:62, acc:15},
+  {id:'volt-sedan', name:'VOLT SEDAN', price:CAR_PRICE, earn:1.6, store:'volt', match:d=>d.name==='TESLA MODEL 3'},
+  {id:'volt-truck', name:'VOLT TRUCK', price:CAR_PRICE, earn:1.85, store:'volt', match:d=>d.type==='cyber' && !d.police},
+  {id:'volt-roadster', name:'VOLT SKY ROADSTER', price:CAR_PRICE, earn:2.2, store:'volt', match:d=>!!d.roadster, fly:true, wallGrip:true, top:118, acc:32},
+  {id:'horse-red', name:'PRANCING COUPE', price:CAR_PRICE, earn:2.45, store:'horse', match:d=>d.name==='FERRARI SF90 STRADALE'},
+  {id:'bull-orange', name:'BULL SUPER', price:CAR_PRICE, earn:2.7, store:'bull', match:d=>d.name==='LAMBORGHINI AVENTADOR'},
+  {id:'big-rig', name:'BIG RIG', price:CAR_PRICE, earn:2.05, store:'rig', match:d=>d.name==='PETERBILT 579'},
 ];
 const HOUSES=[
-  {id:'starter', name:'STARTER PAD', price:0, w:9, d:8, h:4.6, color:0xd8c4a0, lot:[0,28], blurb:'Tiny plain house. It is yours!'},
+  {id:'starter', name:'STARTER PAD', price:0, w:11, d:10, h:7.4, color:0xd8c4a0, lot:[0,28], floors:2, blurb:'Tiny house with real stairs up to a bedroom!'},
   {id:'cozy', name:'COZY COTTAGE', price:80, w:13, d:11, h:6.2, color:0xe8b070, lot:[-48,96], blurb:'Porch, chimney, room for a couch.'},
-  {id:'town', name:'TOWNHOUSE', price:200, w:12, d:12, h:10.5, color:0xc45c48, lot:[96,48], blurb:'Two stories. Fancy windows.'},
+  {id:'town', name:'TOWNHOUSE', price:200, w:12, d:12, h:10.5, color:0xc45c48, lot:[96,48], floors:2, blurb:'Two stories. Fancy windows.'},
   {id:'mansion', name:'SUN MANSION', price:500, w:22, d:16, h:9.2, color:0xf2e6c8, lot:[-96,-48], blurb:'Columns, a wide yard, cat royalty.'},
-  {id:'villa', name:'PALM VILLA', price:800, w:26, d:20, h:10.5, color:0xf7efe2, lot:[48,-96], pool:true, cars:['horse-red','bull-orange'], blurb:'Pool, fancy rooms, and supercars in the garage!'},
+  {id:'villa', name:'PALM VILLA', price:800, w:26, d:20, h:12.4, color:0xf7efe2, lot:[48,-96], pool:true, floors:2, cars:['horse-red','bull-orange'], blurb:'Pool, upstairs rooms, and supercars in the garage!'},
 ];
 const MART=[
   {id:'trash', name:'Trash can', price:8, kind:'furn'},
@@ -327,10 +344,10 @@ const worldRoot=new THREE.Group(); scene.add(worldRoot);
 const furnRoot=new THREE.Group(); scene.add(furnRoot);
 const coinRoot=new THREE.Group(); scene.add(coinRoot);
 const OB=new Map(), OBC=16; const okey=(i,j)=>i*10007+j; let OST=0;
-function addOb(x,z,w,d,kind,extra){ const o={minx:x-w/2,maxx:x+w/2,minz:z-d/2,maxz:z+d/2,st:0,kind:kind||'wall', disabled:false, ...(extra||{})}; for(let i=Math.floor(o.minx/OBC); i<=Math.floor(o.maxx/OBC); i++) for(let j=Math.floor(o.minz/OBC); j<=Math.floor(o.maxz/OBC); j++){ const k=okey(i,j); if(!OB.has(k)) OB.set(k,[]); OB.get(k).push(o); } return o; }
-function pushOut(x,z,r){ OST++; let dx=0,dz=0, hit=null;
+function addOb(x,z,w,d,kind,extra){ const o={minx:x-w/2,maxx:x+w/2,minz:z-d/2,maxz:z+d/2,st:0,kind:kind||'wall', disabled:false, h:extra&&extra.h!=null?extra.h:99, y0:extra&&extra.y0!=null?extra.y0:0, ...(extra||{})}; for(let i=Math.floor(o.minx/OBC); i<=Math.floor(o.maxx/OBC); i++) for(let j=Math.floor(o.minz/OBC); j<=Math.floor(o.maxz/OBC); j++){ const k=okey(i,j); if(!OB.has(k)) OB.set(k,[]); OB.get(k).push(o); } return o; }
+function pushOut(x,z,r,y){ OST++; let dx=0,dz=0, hit=null;
   for(let i=Math.floor((x-r)/OBC); i<=Math.floor((x+r)/OBC); i++) for(let j=Math.floor((z-r)/OBC); j<=Math.floor((z+r)/OBC); j++){ const Lst=OB.get(okey(i,j)); if(!Lst) continue;
-    for(const b of Lst){ if(b.st===OST || b.disabled) continue; b.st=OST; if(x<b.minx-r || x>b.maxx+r || z<b.minz-r || z>b.maxz+r) continue;
+    for(const b of Lst){ if(b.st===OST || b.disabled) continue; b.st=OST; if(y!=null && y> (b.h||99)+0.45) continue; if(y!=null && y < (b.y0||0)-0.2) continue; if(x<b.minx-r || x>b.maxx+r || z<b.minz-r || z>b.maxz+r) continue;
       const nx=clamp(x,b.minx,b.maxx), nzz=clamp(z,b.minz,b.maxz), ex=x-nx, ez=z-nzz, dd=Math.hypot(ex,ez);
       if(dd<r){ hit=b; if(dd>0){ dx+=ex/dd*(r-dd); dz+=ez/dd*(r-dd); } else { const l=x-b.minx, rr=b.maxx-x, tt=z-b.minz, bb=b.maxz-z, m=Math.min(l,rr,tt,bb); if(m===l) dx-=l+r; else if(m===rr) dx+=rr+r; else if(m===tt) dz-=tt+r; else dz+=bb+r; } } } }
   return {dx,dz,hit}; }
@@ -359,7 +376,16 @@ let housesBuilt=new Map(), insideH=null, pools=[], swimming=false;
 let mart=null, insideMart=false, martGoods=[], cart=null, checkout={phase:null,i:0,t:0,total:0};
 let carrying=null, moving=null, haul=null, rideBus=null, waitingStop=null;
 let buses=[], peds=[], cityCars=[], shoppers=[], fireCall=null, fireT=0, smokePuff=null;
-let fireCrew=[], ambulances=[];
+let fireCrew=[], ambulances=[], policeCar=null, crashFire=null, hurt=null;
+let hospRoom=null, doctorCat=null, starRing=null, sprayRig=null, bandageMesh=null;
+let padClimb=false, padDive=false, tipT=0, tipI=0;
+const TIPS=[
+  'Slow down at corners to avoid crashing!',
+  'Fire trucks follow the roads to find the fire — just like a map!',
+  'The Volt Sky Roadster can FLY (Y) and GRIP walls (G)!',
+  'Walk the stairs inside to reach the second floor.',
+  'Every car costs 20 coins. Save save!',
+];
 function clearHouseObs(){
   for(const o of houseObs){
     for(const list of OB.values()){
@@ -423,7 +449,7 @@ function buildCity(){
       const facade=(WMAT.dayFacades&&WMAT.dayFacades.length)?WMAT.dayFacades[(ix*5+iz+k)%WMAT.dayFacades.length]:mat(col);
       const bodyMat = (ix+iz+k)%3===0 ? mat(col) : facade;
       box(bw,bh,bd, bodyMat, x+ox, bh/2, z+oz);
-      addOb(x+ox, z+oz, bw, bd, 'wall');
+      addOb(x+ox, z+oz, bw, bd, 'wall', {h:bh});
       // window strips
       for(let wy=2; wy<bh-1; wy+=2.2){
         box(bw*.7,.5,.08, WMAT.glassB, x+ox, wy, z+oz+bd/2+.04);
@@ -461,6 +487,16 @@ function buildCity(){
   spawnShoppers();
   KIT.buildFireStation(POI.fire.x, POI.fire.z);
   KIT.buildHospital(POI.hosp.x, POI.hosp.z);
+  hospRoom=KIT.makeHospitalRoom();
+  hospRoom.position.set(POI.hosp.x, 0.02, POI.hosp.z+4);
+  scene.add(hospRoom);
+  doctorCat=makeCat(THREE); doctorCat.scale.setScalar(1.45);
+  const coat=new THREE.Mesh(new THREE.BoxGeometry(.55,.7,.4), mat(0xf4f6f8));
+  coat.position.set(0,.7,0); doctorCat.add(coat);
+  doctorCat.position.set(POI.hosp.x+1.6, 0, POI.hosp.z+4.3);
+  doctorCat.visible=false; scene.add(doctorCat);
+  starRing=KIT.makeStarRing(); scene.add(starRing);
+  sprayRig=KIT.makeSprayRig(); scene.add(sprayRig);
   storeHall(POI.nest.x, POI.nest.z, 22, 18, 8, 0x3d8b6e, 'NEST REALTY', '#2a6b4e');
   storeHall(POI.pizza.x, POI.pizza.z, 20, 16, 7, 0xffb703, 'PIZZA PALACE', '#e85d04');
 
@@ -480,7 +516,7 @@ function buildCity(){
 }
 
 function specFor(H){
-  return {id:H.id, name:H.name, w:H.w, d:H.d, h:H.h, x:H.lot[0], z:H.lot[1], color:H.color, doorW:H.pool?5.4:4.6, doorH:H.pool?3.1:2.7, pool:!!H.pool, cars:H.cars||[]};
+  return {id:H.id, name:H.name, w:H.w, d:H.d, h:H.h, x:H.lot[0], z:H.lot[1], color:H.color, doorW:H.pool?5.4:4.6, doorH:H.pool?3.1:2.7, pool:!!H.pool, floors:H.floors||1, cars:H.cars||[]};
 }
 function houseDef(id){ return HOUSES.find(h=>h.id===(id||save.house))||HOUSES[0]; }
 function houseSpec(){ return specFor(houseDef()); }
@@ -510,6 +546,30 @@ function doorZone(P){
 function interiorZone(P){
   const H=insideH || houseSpec();
   return interiorZoneFor(H,P);
+}
+function floorsFor(H){
+  const rec=H && housesBuilt.get(H.id);
+  return rec && rec.floors ? rec.floors : null;
+}
+function inHole(fl,x,z){
+  if(!fl || !fl.hole) return false;
+  const h=fl.hole;
+  return x>h.minx && x<h.maxx && z>h.minz && z<h.maxz;
+}
+function houseFloorY(x,z,H){
+  H=H||insideH||houseSpec();
+  const fl=floorsFor(H);
+  if(!fl) return 0;
+  const s=fl.stairs;
+  if(s && x>=s.minx && x<=s.maxx && z>=s.minz && z<=s.maxz){
+    const span=Math.max(0.2, s.maxz-s.minz);
+    const t=s.flip ? (s.maxz-z)/span : (z-s.minz)/span;
+    return s.y0 + clamp(t,0,1)*(s.y1-s.y0);
+  }
+  if(fl.upper && x>fl.upper.minx && x<fl.upper.maxx && z>fl.upper.minz && z<fl.upper.maxz && !inHole(fl,x,z)){
+    return fl.upper.y;
+  }
+  return 0;
 }
 function addHouseLight(x,y,z, inI, outI, dist){
   const L=new THREE.PointLight(0xfff1d0, insideHouse?inI:outI, dist, 1.15);
@@ -589,11 +649,11 @@ function buildOneHouse(raw){
   for(const s of [-1,1]) box(.2,doorH,.2, mat(0x5a3a22), x+s*(doorW/2), doorH/2, z+d/2+.08, g);
   box(doorW,.18,.2, mat(0x5a3a22), x, doorH+.05, z+d/2+.08, g);
   box(H.pool?3.4:2.6,.07,1.7, mat(0x2a6b4e), x, .08, z+d/2+1.55, g);
-  houseObs.push(addOb(x, z-d/2, w, .7, 'wall'));
-  houseObs.push(addOb(x-(doorW+sideW)/2, z+d/2, sideW, .7, 'wall'));
-  houseObs.push(addOb(x+(doorW+sideW)/2, z+d/2, sideW, .7, 'wall'));
-  houseObs.push(addOb(x-w/2, z, .7, d, 'wall'));
-  houseObs.push(addOb(x+w/2, z, .7, d, 'wall'));
+  houseObs.push(addOb(x, z-d/2, w, .7, 'wall', {h}));
+  houseObs.push(addOb(x-(doorW+sideW)/2, z+d/2, sideW, .7, 'wall', {h}));
+  houseObs.push(addOb(x+(doorW+sideW)/2, z+d/2, sideW, .7, 'wall', {h}));
+  houseObs.push(addOb(x-w/2, z, .7, d, 'wall', {h}));
+  houseObs.push(addOb(x+w/2, z, .7, d, 'wall', {h}));
   for(const s of [-1,1]) box(1.6,1.3,.08, WMAT.glassB, x+s*(w*.28), 2.2, z+d/2+.08, g);
   if(H.id!=='starter'){
     box(3.6,.35,1.8, mat(0x8a6a48), x, .22, z+d/2+1.15, g);
@@ -615,6 +675,11 @@ function buildOneHouse(raw){
   const amb=new THREE.HemisphereLight(0xfff6e8, 0xb08958, 0.28);
   amb.position.set(x, 2.2, z); g.add(amb);
   if(H.pool) KIT.decorateVilla(g, H, x, z, w, d, h);
+  let floors=null;
+  if(H.floors>=2){
+    floors=KIT.addSecondFloor(g, H, x, z, w, d, h);
+    addL(x, (floors.floorY||3.3)+1.2, z, 1.4, 0.28, 14);
+  }
   const yours=save.house===H.id;
   label(yours?('HOME · '+H.name):H.name, yours?'#2a6b4e':'#6b4a2a', x, h+1.5, z+d/2+.4, 9);
   let pool=null;
@@ -622,7 +687,7 @@ function buildOneHouse(raw){
     pool=KIT.makePool(x, z+d/2+8.5, 12, 7.5);
     pools.push(pool);
   }
-  const rec={id:H.id, group:g, roof:rf, cuts, lights, amb, insideMat, spec:H, pool};
+  const rec={id:H.id, group:g, roof:rf, cuts, lights, amb, insideMat, spec:H, pool, floors};
   housesBuilt.set(H.id, rec);
   if(H.id===save.house){
     houseGroup=g; houseRoof=rf; houseCuts=cuts; houseLights=lights; houseAmb=amb; houseInsideMat=insideMat; houseDoorZ=z+d/2;
@@ -825,10 +890,20 @@ function spawnFireCrew(){
   g.position.y=-com; const G=new THREE.Group(); G.add(g); G.position.set(fx, com, fz+4); scene.add(G);
   const e={sid:nextSid++, id:'firetruck', ci:i, def:{...def, L:def.L||10.8, W:def.W||2.55, top:40, acc:8, turn:1.5, grip:6, mass:5, big:true, siren:true}, G, g, mode:'city', yaw:0, L:def.L||10.8, W:2.55, fwd:0, V:new V3(), com, top, crush:0, cd:0, steer:0, mass:5, city:true, home:[fx, fz+4], wp:0};
   ents.push(e); cityCars.push(e);
+  KIT.addSirenLights(g, (g.userData.top||2.8)+0.15);
   for(let k=0;k<3;k++){
     const p=KIT.makePerson({cloth:0xffd21e, pants:0x1a1c22, hair:0x3b2a1a}, fx-4+k*2.2, 0, fz+8);
-    fireCrew.push({g:p, home:[fx-4+k*2.2, fz+8], t:Math.random()*10});
+    fireCrew.push({g:p, home:[fx-4+k*2.2, fz+8], t:Math.random()*10, spray:false});
   }
+  const pi=findRosterIndex(ROSTER, d=>d.type==='police' && !d.cyber);
+  const pdef={...ROSTER[pi], id:'police', name:'POLICE CAR', rosterI:pi};
+  const pg=(gltfKit && gltfKit.build && gltfKit.build(pdef,{detail:'lod'})) || buildVehicle(pdef);
+  if(!pg.userData.wheels) pg.userData.wheels=[];
+  const ptop=pg.userData.top||1.6, pcom=ptop*.4;
+  pg.position.y=-pcom; const PG=new THREE.Group(); PG.add(pg); PG.position.set(fx+8, pcom, fz+2); scene.add(PG);
+  KIT.addSirenLights(pg, ptop+0.05);
+  policeCar={sid:nextSid++, id:'police', ci:pi, def:{...pdef, L:pdef.L||5.1, W:pdef.W||2, top:50, acc:12, turn:2, grip:7, mass:1.6, siren:true}, G:PG, g:pg, mode:'city', yaw:0, L:pdef.L||5.1, W:2, fwd:0, V:new V3(), com:pcom, top:ptop, crush:0, cd:0, steer:0, mass:1.6, city:true, home:[fx+8, fz+2], wp:0};
+  ents.push(policeCar); cityCars.push(policeCar);
 }
 
 function spawnAmbulances(){
@@ -836,6 +911,7 @@ function spawnAmbulances(){
   for(const off of [-4, 4]){
     const mesh=KIT.makeAmbulanceMesh();
     const e=attachCityMesh(mesh, hx+off, hz+14, Math.PI, 'city', {id:'ambulance', name:'AMBULANCE', top:28, acc:9, turn:1.4, mass:3.2, siren:true, more:{home:[hx+off, hz+14], patrol:off>0, wp:0, pause:2}});
+    KIT.addSirenLights(mesh, 2.6);
     ambulances.push(e); cityCars.push(e);
   }
   KIT.makePerson({cloth:0xf4f6f8, pants:0x2a6ea5, hair:0x5a3a22}, hx+8, 0, hz+12);
@@ -953,49 +1029,307 @@ function circlesInto(e,out){ const fx=Math.sin(e.yaw), fz=Math.cos(e.yaw);
   for(let i=0;i<n;i++){ const o=n===1?0:(e.L/2-r)-(e.L-2*r)*i/(n-1); const c=out[i]||(out[i]={x:0,z:0,r:0}); c.x=e.G.position.x+fx*o; c.z=e.G.position.z+fz*o; c.r=r; out[i]=c; } return out; }
 
 let shake=0;
-function smash(e,pt,dir,speed){
+function canFlyDef(d){ return !!(d && (d.fly || d.wallGrip || d.roadster)); }
+function showTip(text, hold=4.2){
+  const el=$('tip'); if(!el) return;
+  el.textContent=text||TIPS[tipI%TIPS.length];
+  el.classList.remove('hidden');
+  tipT=hold;
+}
+function nextTip(){ showTip(TIPS[(tipI++)%TIPS.length]); }
+
+function smash(e,pt,dir,speed, opts){
+  const kind=(opts&&opts.kind)|| (speed>=26?'hurt': speed>=15?'hard': speed>=8?'smoke':'bump');
+  if(e.flying && kind!=='hurt'){
+    e.fwd*=.5; if(e.V) e.V.multiplyScalar(.5);
+    return;
+  }
   const sev=clamp(speed/20,.16,1);
   wreck(e, pt, dir, sev);
   e.fwd*=.35; e.V.multiplyScalar(.35);
+  if(e.flying) setFlight(e,false);
+  if(e.wall) detachWall(e);
+  if(kind==='smoke') startCrashSmoke(e);
+  if(kind==='hard' || kind==='hurt') startCrashFire(e, kind==='hurt');
+  if(kind==='hurt' && me===e) startHurt(e);
+  if(kind==='hard' || kind==='hurt') showTip('Slow down at corners to avoid crashing!', 5);
 }
 
 function drivePlayer(e,dt,ctl){
   if(!e || e.mode!=='drive') return;
   const d=e.def;
   const up=ctl.up, dn=ctl.down, lf=ctl.left, rt=ctl.right, brake=ctl.brake;
+  const climb=!!(ctl.climb||padClimb||keys.KeyE);
+  const dive=!!(ctl.dive||padDive||keys.KeyQ);
   const crip=1-Math.min(.45,e.crush*.4);
-  const top=d.top*crip, acc=d.acc*crip;
+  let top=d.top*crip, acc=d.acc*crip;
+  const flying=!!(e.flying && canFlyDef(d));
+  const wall=!!e.wall;
   const st=((lf?1:0)-(rt?1:0)) + (-touchSteer);
   e.steer+=(clamp(st,-1,1)-e.steer)*Math.min(1,dt*7);
-  const sp0=Math.abs(e.fwd), turn=d.turn*clamp(sp0/5,0,1)/(1+sp0/45)*(brake?1.4:1);
-  e.yaw+=e.steer*turn*Math.sign(e.fwd||1)*dt;
+  const sp0=Math.abs(e.fwd), turn=d.turn*clamp(sp0/5,0,1)/(1+sp0/45)*((brake&&!flying&&!wall)?1.4:1);
+  e.yaw+=e.steer*(flying||wall?d.turn*1.2:turn)*Math.sign(e.fwd||1)*dt;
   const F=new V3(Math.sin(e.yaw),0,Math.cos(e.yaw)), R=new V3(-F.z,0,F.x);
   let vf=e.V.dot(F), vl=e.V.dot(R);
   const gas=up || touchGas>.2;
   const rev=dn || touchGas<-.25;
-  if(gas){ if(vf<-.5) vf+=24*dt; else vf+=acc*dt*Math.max(.06,1-Math.max(0,vf)/top); }
-  else if(rev||brake){ if(vf>.5) vf-=28*dt; else vf=Math.max(-12,vf-acc*.55*dt); }
-  else vf-=Math.sign(vf)*Math.min(Math.abs(vf),(1.5+Math.abs(vf)*.012)*dt);
+  if(flying){
+    if(gas){ if(vf<-.5) vf+=24*dt; else vf+=acc*dt*Math.max(.06,1-Math.max(0,vf)/top); }
+    else vf-=Math.sign(vf)*Math.min(Math.abs(vf),(0.3+Math.abs(vf)*.006)*dt);
+    if(gas && vf<8) vf+=(8-vf)*Math.min(1,dt*.9);
+    if(brake) vf-=Math.sign(vf)*Math.min(Math.abs(vf),16*dt);
+  } else if(wall){
+    if(gas) vf+=acc*dt;
+    else if(rev||brake) vf-=acc*.7*dt;
+    else vf-=Math.sign(vf)*Math.min(Math.abs(vf), 4*dt);
+    vf=clamp(vf, -18, top*0.7);
+  } else {
+    if(gas){ if(vf<-.5) vf+=24*dt; else vf+=acc*dt*Math.max(.06,1-Math.max(0,vf)/top); }
+    else if(rev||brake){ if(vf>.5) vf-=28*dt; else vf=Math.max(-12,vf-acc*.55*dt); }
+    else vf-=Math.sign(vf)*Math.min(Math.abs(vf),(1.5+Math.abs(vf)*.012)*dt);
+  }
   if(vf>top) vf-=(vf-top)*Math.min(1,dt*2);
   vl*=Math.exp(-(d.grip)*dt);
   e.V.copy(F).multiplyScalar(vf).addScaledVector(R,vl); e.fwd=vf;
   const P=e.G.position;
-  P.x+=e.V.x*dt; P.z+=e.V.z*dt;
-  let hitSp=0, hitN=null;
+  if(wall){
+    driveOnWall(e, dt, {gas, rev, brake, climb, dive});
+  } else {
+    P.x+=e.V.x*dt; P.z+=e.V.z*dt;
+    if(flying){
+      e.vy=e.vy||0;
+      if(climb) e.vy+=22*dt;
+      else if(dive) e.vy-=22*dt;
+      else e.vy+=(0-e.vy)*Math.min(1,dt*4);
+      e.vy=clamp(e.vy,-26,26);
+      P.y+=e.vy*dt;
+      if(P.y<e.com+0.8){ P.y=e.com+0.8; if(e.vy<0) e.vy=0; }
+      if(P.y>68){ P.y=68; if(e.vy>0) e.vy=0; }
+    } else {
+      if(P.y>e.com+0.15){
+        e.vy=(e.vy||0)-22*dt;
+        P.y+=e.vy*dt;
+        if(P.y<=e.com){ P.y=e.com; e.vy=0; }
+      } else {
+        P.y=e.com; e.vy=0;
+      }
+    }
+  }
+  let hitSp=0, hitN=null, hitB=null;
   for(const c of circlesInto(e,_circA)){
-    const po=pushOut(c.x,c.z,c.r);
+    const po=pushOut(c.x,c.z,c.r, P.y);
     if(po.dx||po.dz){
       P.x+=po.dx; P.z+=po.dz;
       const l=Math.hypot(po.dx,po.dz)||1, nx=po.dx/l, nz=po.dz/l;
       const vn=e.V.x*nx+e.V.z*nz;
-      if(vn<0){ e.V.x-=1.3*vn*nx; e.V.z-=1.3*vn*nz; if(-vn>5){ hitSp=-vn; hitN=new V3(nx,0,nz); } }
+      if(vn<0){ e.V.x-=1.3*vn*nx; e.V.z-=1.3*vn*nz; if(-vn>5){ hitSp=-vn; hitN=new V3(nx,0,nz); hitB=po.hit; } }
+      if(e.gripOn && canFlyDef(d) && po.hit && !e.wall){
+        attachWall(e, nx, nz, po.hit);
+      }
     }
   }
-  if(hitN && e.cd<=0){ e.cd=.22; smash(e, P.clone().setY(1), hitN, hitSp); }
+  if(hitN && e.cd<=0 && !e.wall && !flying){ e.cd=.22; smash(e, P.clone().setY(1), hitN, hitSp); }
   e.cd=Math.max(0,e.cd-dt);
-  P.y=e.com;
-  e.G.rotation.set(0,e.yaw,0);
+  if(!e.wall){
+    if(P.y<e.com) P.y=e.com;
+    e.G.rotation.set(flying?clamp((dive?0.28:0)-(climb?0.28:0),-0.4,0.4):0, e.yaw, flying?-e.steer*.35:0);
+  }
   for(const w of (e.g.userData.wheels||[])){ if(w.userData.spin) w.userData.spin.rotation.x+=vf*dt/(w.userData.r||.3); if(w.userData.front) w.rotation.y=e.steer*.42; }
+}
+
+function setFlight(e,on){
+  if(!e || !canFlyDef(e.def)) return false;
+  e.flying=!!on;
+  if(e.flying){
+    e.wall=null;
+    if(e.G.position.y<e.com+1.2) e.G.position.y=e.com+1.4;
+    e.vy=0;
+    popup('FLY!<small>E climb · Q dive · Y to land</small>');
+    say('Sky roadster! Hold altitude with FLY. Climb and dive with E and Q.');
+  } else {
+    e.vy=0;
+    say('Wheels down... gliding back to the street.');
+  }
+  syncFlyPads();
+  return e.flying;
+}
+function toggleFlight(e){ return setFlight(e, !(e&&e.flying)); }
+function setGrip(e,on){
+  if(!e || !canFlyDef(e.def)) return false;
+  e.gripOn=!!on;
+  if(!e.gripOn && e.wall) detachWall(e);
+  syncFlyPads();
+  say(e.gripOn?'Grip on! Touch a building wall to stick and drive on it.':'Grip off.');
+  return e.gripOn;
+}
+function toggleGrip(e){ return setGrip(e, !(e&&e.gripOn)); }
+function syncFlyPads(){
+  const fly=$('padFly'), grip=$('padGrip');
+  if(fly) fly.classList.toggle('on', !!(me&&me.flying));
+  if(grip) grip.classList.toggle('on', !!(me&&me.gripOn));
+}
+function attachWall(e, nx, nz, hit){
+  const n=new V3(nx,0,nz); if(n.lengthSq()<0.01) return;
+  n.normalize();
+  e.wall={n, hit, h: (hit&&hit.h)||18};
+  e.flying=false; e.vy=0;
+  e.G.position.y=Math.max(e.com+0.4, e.G.position.y);
+  popup('WALL GRIP!<small>drive up the building · jump or GRIP off</small>');
+  say('Stuck to the wall! Drive along it. Jump or turn grip off to drop.');
+}
+function detachWall(e){
+  if(!e) return;
+  e.wall=null;
+  e.G.rotation.set(0,e.yaw,0);
+  if(e.G.position.y<e.com) e.G.position.y=e.com;
+}
+function driveOnWall(e, dt, ctl){
+  const P=e.G.position, N=e.wall.n, maxH=Math.max(6, (e.wall.h||18)-0.6);
+  const up=new V3(0,1,0);
+  let F=up.clone().addScaledVector(N, -up.dot(N));
+  if(F.lengthSq()<0.04) F=new V3(-N.z,0,N.x);
+  F.normalize();
+  F.applyAxisAngle(N, e.yaw);
+  const R=new V3().crossVectors(N, F).normalize();
+  let vf=e.fwd;
+  e.V.copy(F).multiplyScalar(vf);
+  e.V.addScaledVector(N, -16*dt);
+  P.addScaledVector(e.V, dt);
+  const po=pushOut(P.x,P.z, e.W*0.48, P.y);
+  P.x+=po.dx; P.z+=po.dz;
+  if(po.hit){ e.wall.hit=po.hit; e.wall.h=po.hit.h||e.wall.h; e.wall.n.set(po.dx,0,po.dz); if(e.wall.n.lengthSq()>0.0001) e.wall.n.normalize(); }
+  P.y=clamp(P.y, e.com+0.2, maxH);
+  if(P.y<=e.com+0.12 || ctl.brake || !e.gripOn){
+    detachWall(e);
+    e.vy=ctl.brake?6:0;
+    return;
+  }
+  if(F.lengthSq()>0.01){
+    const q=new THREE.Quaternion();
+    q.setFromUnitVectors(new V3(0,1,0), N.clone().normalize());
+    e.G.quaternion.copy(q);
+    e.G.rotateOnWorldAxis(N, e.yaw);
+  }
+}
+
+function ROAD_AXES(){ return [-168,-120,-72,-24,24,72,120,168]; }
+function nearestRoadPoint(x,z){
+  const A=ROAD_AXES();
+  let bx=x, bz=z, bd=1e9;
+  for(const rx of A){ const d=Math.abs(x-rx); if(d<bd){ bd=d; bx=rx; bz=z; } }
+  for(const rz of A){ const d=Math.abs(z-rz); if(d<bd){ bd=d; bx=x; bz=rz; } }
+  return [bx,bz];
+}
+function roadPath(sx,sz,tx,tz){
+  const a=nearestRoadPoint(sx,sz), b=nearestRoadPoint(tx,tz);
+  const path=[[sx,sz],[a[0],a[1]]];
+  if(Math.abs(a[0]-b[0])>10 && Math.abs(a[1]-b[1])>10) path.push([b[0], a[1]]);
+  path.push([b[0],b[1]],[tx,tz]);
+  return path;
+}
+function followPath(e, path, dt, speed){
+  if(!e._pi) e._pi=0;
+  if(e._pi>=path.length) return true;
+  const wp=path[e._pi];
+  const dx=wp[0]-e.G.position.x, dz=wp[1]-e.G.position.z, dist=Math.hypot(dx,dz);
+  if(dist<3.4){ e._pi++; e.fwd=Math.max(6,e.fwd*0.6); return e._pi>=path.length; }
+  const want=Math.atan2(dx,dz);
+  let dYaw=want-e.yaw; while(dYaw>Math.PI) dYaw-=Math.PI*2; while(dYaw<-Math.PI) dYaw+=Math.PI*2;
+  e.yaw+=clamp(dYaw, -2.4*dt, 2.4*dt);
+  e.fwd=clamp(e.fwd+dt*8, 0, speed);
+  e.G.position.x+=Math.sin(e.yaw)*e.fwd*dt;
+  e.G.position.z+=Math.cos(e.yaw)*e.fwd*dt;
+  e.G.position.y=e.com;
+  e.G.rotation.set(0,e.yaw,0);
+  spinWheels(e, e.fwd, dt);
+  return false;
+}
+function blinkSiren(e, t){
+  const mats=(e.g&&e.g.userData&&e.g.userData.sirenMats)||[];
+  const on=Math.sin(t*18)>0;
+  for(let i=0;i<mats.length;i++) mats[i].color.setHex((on?i===0:i===1)?0xff2020:0x2040ff);
+}
+
+function startCrashSmoke(e){
+  if(!e) return;
+  if(e.smokeFx && e.smokeFx.parent) e.smokeFx.parent.remove(e.smokeFx);
+  e.smokeFx=KIT.makeSmoke(0, 1.4, 0);
+  e.G.add(e.smokeFx);
+  e.smokeT=8;
+  popup('PUFF!<small>just a little smoke</small>');
+}
+function clearCrashFire(){
+  if(!crashFire) return;
+  if(crashFire.rig && crashFire.rig.parent) crashFire.rig.parent.remove(crashFire.rig);
+  if(sprayRig) sprayRig.visible=false;
+  $('fireAlert').classList.add('hidden');
+  $('compass').classList.add('hidden');
+  crashFire=null;
+}
+function startCrashFire(e, hurtToo){
+  if(!e) return crashFire;
+  clearCrashFire();
+  const rig=KIT.makeFireRig();
+  e.G.add(rig); rig.position.set(0, 0.6, 0);
+  const P=e.G.position;
+  crashFire={
+    e, rig, x:P.x, z:P.z, y:P.y,
+    t:0, life:FIRE_BURN_SEC, phase:'call',
+    kind:hurtToo?'hurt':'hard',
+    paths:{}, arrived:{},
+  };
+  e.fire=1;
+  $('fireAlert').classList.remove('hidden');
+  $('fireAlert').innerHTML='FIRE! Help is coming<small>trucks follow the roads</small>';
+  $('compass').classList.remove('hidden');
+  popup('FIRE!<small>Help is coming</small>');
+  say('FIRE! Help is coming. Fire trucks follow the roads to find it.');
+  showTip('Fire trucks follow the roads to find the fire — just like a map!', 6);
+  dispatchResponders(P.x, P.z);
+  return crashFire;
+}
+function dispatchResponders(x,z){
+  const truck=cityCars.find(c=>c.id==='firetruck');
+  const amb=ambulances[0];
+  const cop=policeCar;
+  const list=[['truck',truck],['amb',amb],['cop',cop]];
+  for(const [k,e] of list){
+    if(!e) continue;
+    e._pi=0; e.pause=0; e.sirenOn=true;
+    e.path=roadPath(e.G.position.x, e.G.position.z, x, z);
+    if(crashFire) crashFire.paths[k]=e.path;
+  }
+  for(const f of fireCrew){ f.busy=true; f.spray=false; }
+}
+
+function startHurt(e){
+  if(hurt) return hurt;
+  hurt={phase:'stars', t:0, e};
+  if(form==='car') hopOut();
+  if(starRing && cat){ cat.add(starRing); starRing.position.set(0,0.2,0); }
+  popup('OUCH!<small>cartoon stars · ambulance is coming</small>');
+  say('Ouch! Cartoon stars. The ambulance is taking you to City Hospital. No gore, just a bandage!');
+  showTip('Slow down at corners to avoid crashing!', 5);
+  return hurt;
+}
+function finishHospital(){
+  if(!hurt) return false;
+  if(starRing){ if(starRing.parent) starRing.parent.remove(starRing); scene.add(starRing); starRing.visible=false; }
+  if(hospRoom) hospRoom.visible=false;
+  if(doctorCat) doctorCat.visible=false;
+  if(form==='bus') leaveBus();
+  if(form==='car') hopOut();
+  cat.visible=true; form='cat';
+  cat.position.set(POI.hosp.x, 0, POI.hosp.z+16);
+  cat.rotation.y=0;
+  if(!bandageMesh && cat) bandageMesh=KIT.bandageOn(cat);
+  if(bandageMesh) bandageMesh.visible=true;
+  hurt=null;
+  popup('ALL BETTER!<small>Doctor Cat wrapped a bandage</small>');
+  say('Doctor Cat says go slow at corners! You can walk home now.');
+  showTip('Slow down at corners to avoid crashing!', 5);
+  camSnap=true;
+  return true;
 }
 
 function hitPair(A,B){
@@ -1008,7 +1342,7 @@ function hitPair(A,B){
   const nx=bp.dx/(bp.d||1), nz=bp.dz/(bp.d||1);
   A.G.position.x-=nx*bp.ov*.5; A.G.position.z-=nz*bp.ov*.5; B.G.position.x+=nx*bp.ov*.5; B.G.position.z+=nz*bp.ov*.5;
   const rv=(A.fwd-B.fwd);
-  if(Math.abs(rv)>4){ if(A.cd<=0 && A.mode==='drive'){ smash(A,new V3(bp.px,1,bp.pz), new V3(-nx,0,-nz), Math.abs(rv)); A.cd=.2; } }
+  if(Math.abs(rv)>4){ if(A.cd<=0 && A.mode==='drive' && !A.flying){ smash(A,new V3(bp.px,1,bp.pz), new V3(-nx,0,-nz), Math.abs(rv)); A.cd=.2; } }
 }
 
 function walkCat(dt, ctl){
@@ -1021,7 +1355,7 @@ function walkCat(dt, ctl){
   cat.userData.walkSp=(cat.userData.walkSp||0)+(want-(cat.userData.walkSp||0))*Math.min(1,dt*9);
   const sp=cat.userData.walkSp;
   cat.position.x+=Math.sin(yaw)*sp*dt; cat.position.z+=Math.cos(yaw)*sp*dt;
-  const po=pushOut(cat.position.x, cat.position.z, .45);
+  const po=pushOut(cat.position.x, cat.position.z, .45, cat.position.y);
   cat.position.x+=po.dx; cat.position.z+=po.dz;
   if(pool){
     if(!swimming){ swimming=true; cat.userData.vy=2.8; popup('SPLASH!<small>paddle around the pool</small>'); say('Swim swim! The water is nice.'); tone(520,.08,'sine',.06); }
@@ -1030,7 +1364,18 @@ function walkCat(dt, ctl){
     if(cat.position.y<pool.y){ cat.position.y=pool.y+Math.sin(performance.now()/260)*0.07; cat.userData.vy=0; }
   } else {
     if(swimming){ swimming=false; popup('DRIP DRY<small>back on the deck</small>'); }
-    cat.position.y=0; cat.userData.vy=0;
+    const H=insideHouse ? (insideH||houseSpec()) : houseAtPos(cat.position);
+    const wantY=(insideHouse && H) ? houseFloorY(cat.position.x, cat.position.z, H) : 0;
+    const y=cat.position.y||0;
+    if(y>wantY+0.35){
+      cat.userData.vy=(cat.userData.vy||0)-22*dt;
+      cat.position.y=y+cat.userData.vy*dt;
+      if(cat.position.y<=wantY){ cat.position.y=wantY; cat.userData.vy=0; }
+    } else {
+      cat.userData.vy=0;
+      cat.position.y+=(wantY-y)*Math.min(1,dt*14);
+    }
+    if(cat.position.y<0) cat.position.y=0;
   }
   const u=cat.userData, ph=performance.now()/90;
   if(Math.abs(sp)>.15){ u.legs.forEach((l,i)=> l.rotation.x = Math.sin(ph + (i%3===0?0:Math.PI))*(pool?0.85:0.6)); u.tail.rotation.y=Math.sin(ph*.7)*0.25; }
@@ -1071,21 +1416,20 @@ function collectCoins(x,z,r){
       c.got=true; c.m.visible=false; save.coins+=3; n++; coinSnd(); persist();
     }
   }
-  if(n) popup('+'+ (n*3) +' COINS<small>'+(save.owned.includes('used')?'save for the next upgrade!':'save 20 for the used coupe!')+'</small>');
+  if(n) popup('+'+ (n*3) +' COINS<small>'+(save.owned.length?'save 20 for the next car!':'save 20 coins for a car!')+'</small>');
   return n;
 }
 
 let pizza=null, race=null, playToyT=0, playToyId=null, jobBoxes=[];
 
 function goalHint(){
-  if(!save.owned.includes('rusty')) return 'Collect coins, then buy the $1 rusty car!';
-  if(!save.owned.includes('used') && !save.owned.some(id=>{ const c=carById(id); return c && c.price>=50; })) return 'Save 20 coins for the used coupe — nicer and faster!';
-  if(!save.owned.some(id=>{ const c=carById(id); return c && c.price>=50; })) return 'Save 50 coins for a city hatch!';
+  if(!save.owned.length) return 'Collect 20 coins, then buy any car — even the supercars!';
+  if(!save.owned.includes('used') && !save.owned.includes('volt-roadster')) return 'Save 20 coins for the used coupe or the Volt Sky Roadster!';
+  if(!save.owned.includes('volt-roadster')) return 'Save 20 coins for the Volt Sky Roadster — it can fly and grip walls!';
   if(save.house==='starter') return 'Save for a bigger house at Nest Realty — a Haul-It truck will move you!';
-  if(save.house!=='villa') return 'Save for Palm Villa — a pool and garage supercars!';
+  if(save.house!=='villa') return 'Save for Palm Villa — upstairs rooms, a pool, and garage supercars!';
   if(!save.items.length) return 'Walk into Bullseye Mart and shop with a cart!';
-  if(!save.owned.includes('bull-orange') && !save.owned.includes('horse-red')) return 'Save up for a supercar — they earn faster!';
-  return 'Ride the bus, swim, shop, live your cat life!';
+  return 'Ride the bus, swim, fly, shop, live your cat life!';
 }
 function hud(){
   if(screen!=='play') return;
@@ -1110,10 +1454,17 @@ function drawMini(){
   g.fillStyle='#3d8b4a'; g.fillRect(4,4,W-8,H-8);
   const marks=[['home','#e8b070'],['lot','#8a6a48'],['bull','#ff7f00'],['volt','#dde'],['horse','#d40000'],['rig','#c4141c'],['mart','#ff3030'],['nest','#4cff6a'],['pizza','#ffb703'],['race','#2a6cff'],['fire','#c8101a'],['hosp','#e02020']];
   for(const [k,col] of marks){ const p=POI[k], [mx,my]=map(p.x,p.z); g.fillStyle=col; g.beginPath(); g.arc(mx,my,4,0,6.3); g.fill(); }
-  for(const c3 of coins3d){ if(c3.got) continue; const [mx,my]=map(c3.x,c3.z); g.fillStyle='#ffd21e'; g.fillRect(mx-1,my-1,2,2); }
-  g.fillStyle='#f0983c'; g.beginPath();
+  for(const c3 of coins3d){ if(c3.got) continue; const [cx,cy]=map(c3.x,c3.z); g.fillStyle='#ffd21e'; g.fillRect(cx-1,cy-1,2,2); }
   const yaw=form==='car'&&me?me.yaw:cat.rotation.y;
   const [mx,my]=map(px,pz);
+  if(crashFire){
+    const [fx,fy]=map(crashFire.x, crashFire.z);
+    g.fillStyle='#ff6a10'; g.beginPath(); g.arc(fx,fy,6+Math.sin(performance.now()/120)*1.5,0,6.3); g.fill();
+    g.fillStyle='#ffe14a'; g.beginPath(); g.arc(fx,fy,2.5,0,6.3); g.fill();
+    const ang=Math.atan2(crashFire.x-px, crashFire.z-pz);
+    g.strokeStyle='#ff6a10'; g.lineWidth=3; g.beginPath(); g.moveTo(mx,my); g.lineTo(mx+Math.sin(ang)*18, my+Math.cos(ang)*18); g.stroke();
+  }
+  g.fillStyle='#f0983c'; g.beginPath();
   g.moveTo(mx+Math.sin(yaw)*7, my+Math.cos(yaw)*7);
   g.lineTo(mx-Math.sin(yaw)*5+Math.cos(yaw)*4, my-Math.cos(yaw)*5-Math.sin(yaw)*4);
   g.lineTo(mx-Math.sin(yaw)*5-Math.cos(yaw)*4, my-Math.cos(yaw)*5+Math.sin(yaw)*4);
@@ -1165,12 +1516,12 @@ function openShop(kind){
   } else if(kind==='home'){
     const list=save.owned.length?save.owned.map(id=>{
       const c=carById(id); return `<div class="item"><span>${c.name}</span><button data-drive="${id}">${save.car===id?'PARKED':'DRIVE'}</button></div>`;
-    }).join(''):`<p>No cars yet. Buy the $1 rusty one at the lot!</p>`;
+    }).join(''):`<p>No cars yet. Every car costs 20 coins — even the fancy ones!</p>`;
     el.innerHTML=`<h2>HOME GARAGE</h2><p>Owned cars wait here. Respawn is always at this house.</p>${list}<div style="margin-top:10px"><button id="shopClose">CLOSE</button></div>`;
   } else {
     const cars=CARS.filter(c=>c.store===kind);
     const title={lot:'RUSTY LOT',bull:'BULL MOTORS',volt:'VOLT MOTORS',horse:'PRANCING HORSE MOTORS',rig:'BIG RIG TRUCKS'}[kind]||'CARS';
-    const blurb=kind==='lot'?'$1 rusty beater, then the $20 used coupe — nicer paint and a bit more speed.':'Buy, then drive any car you own. Better cars earn faster on jobs.';
+    const blurb=kind==='lot'?'Every car is 20 coins. Rusty beater, used coupe, or city hatch — same price!':'Every car is 20 coins, even the fanciest supercar. Buy, then drive. Better cars earn faster on jobs.';
     el.innerHTML=`<h2>${title}</h2><p>${blurb}</p><div>Your coins: <b>${save.coins}</b></div>`+
       cars.map(c=>`<div class="item"><span>${c.name}<br><small>$${c.price} · earn x${c.earn}</small></span><button data-buycar="${c.id}" ${save.owned.includes(c.id)?'disabled':''}>${save.owned.includes(c.id)?'OWNED':c.price}</button></div>`).join('')+
       `<div style="margin-top:10px"><button id="shopClose">LEAVE STORE</button></div>`;
@@ -1186,7 +1537,7 @@ function buyCar(id){
   save.coins-=c.price; save.owned.push(id); save.car=id; persist();
   spawnOwnedCar(id, true);
   popup('NEW CAR!<small>'+c.name+' · pretend coins</small>');
-  say(c.rusty?'Rusty ride! Vroom vroom... kinda. Save 20 for the used coupe!':(c.id==='used'?'Used coupe! Shiny, and faster than rusty.':'Shiny new ride! Save for the next one too!'));
+  say(c.rusty?'Rusty ride! Vroom vroom... kinda. Another 20 coins buys any other car!':(c.id==='volt-roadster'?'Volt Sky Roadster! Tap FLY or Y to take off. GRIP sticks to walls!':(c.id==='used'?'Used coupe! Shiny, and faster than rusty.':'Shiny new ride! Every car is 20 coins.')));
   openShop();
   return true;
 }
@@ -1439,7 +1790,8 @@ function hopIn(e){
   me=e; e.mode='drive'; e.G.visible=true; form='car';
   if(e.id!=='haul'){ save.car=e.id; persist(); }
   if(cat) cat.visible=false;
-  setHelp(); say(e.id==='haul'?'Haul-It time! Drive to the new house.':'Seatbelt? Cats do not wear those. Drive drive!');
+  syncFlyPads();
+  setHelp(); say(e.id==='haul'?'Haul-It time! Drive to the new house.':(canFlyDef(e.def)?'Volt Sky Roadster! Y or FLY to take off. G or GRIP for walls.':'Seatbelt? Cats do not wear those. Drive drive!'));
   return e;
 }
 function hopOut(){
@@ -1447,8 +1799,10 @@ function hopOut(){
   const P=me.G.position;
   me.mode='parked'; me.fwd=0; me.V.set(0,0,0);
   form='cat'; cat.visible=true;
+  if(me.flying) setFlight(me,false);
+  if(me.wall) detachWall(me);
   let nx=P.x+Math.cos(me.yaw)*2.5, nz=P.z-Math.sin(me.yaw)*2.5;
-  const po=pushOut(nx,nz,.5);
+  const po=pushOut(nx,nz,.5, 0);
   cat.position.set(nx+po.dx,0,nz+po.dz); cat.rotation.y=me.yaw;
   setHelp(); meow();
 }
@@ -1555,8 +1909,8 @@ function setHelp(){
   $('help').innerHTML = form==='bus'
     ? '<b>ENTER</b> hop off at a bus stop · ride around the city'
     : form==='cat'
-    ? '<b>WASD / arrows</b> walk · <b>ENTER</b> house, mart doors, bus, cart, hop in · gold coins refill · save 20 for the used coupe'
-    : '<b>WASD / arrows</b> drive · <b>SPACE</b> brake · <b>F / ENTER</b> get out · then walk to the door · horn <b>H</b>';
+    ? '<b>WASD / arrows</b> walk · <b>ENTER</b> house, mart doors, bus, cart, hop in · gold coins refill · every car is 20 coins'
+    : '<b>WASD / arrows</b> drive · <b>SPACE</b> brake · <b>F / ENTER</b> get out · sky roadster <b>Y</b> fly · <b>E/Q</b> climb/dive · <b>G</b> grip · horn <b>H</b>';
 }
 
 const keys={}; let touchSteer=0, touchGas=0, padBrake=false;
@@ -1660,11 +2014,15 @@ function promptTick(){
     el.innerHTML='LEAVE STORE<small>walk out the sliding doors</small>'; el.classList.remove('hidden'); if(act) act.textContent='LEAVE'; return;
   }
   if(insideHouse){
+    const fl=floorsFor(insideH||houseSpec());
+    const onStairs=fl && fl.stairs && P.x>=fl.stairs.minx && P.x<=fl.stairs.maxx && P.z>=fl.stairs.minz && P.z<=fl.stairs.maxz;
+    if(onStairs){ el.innerHTML='STAIRS<small>walk up or down to the other floor</small>'; el.classList.remove('hidden'); if(act) act.textContent='WALK'; return; }
+    if(fl && (P.y||0)>(fl.floorY||3)-0.6){ el.innerHTML='UPSTAIRS<small>bedroom · walk the stairs down, or ENTER to leave</small>'; el.classList.remove('hidden'); if(act) act.textContent='LEAVE'; return; }
     const toyNear=form==='cat' && save.items.some(id=>{
       const f=furnRoot.children.find(o=>o.userData.item===id); return f && ['ball','mouse','laser'].includes(id) && Math.hypot(f.position.x-P.x,f.position.z-P.z)<2.2;
     });
     if(toyNear){ el.innerHTML='TOY!<small>ENTER to play · or walk to the door to leave</small>'; el.classList.remove('hidden'); if(act) act.textContent='PLAY'; return; }
-    el.innerHTML='LEAVE HOUSE<small>ENTER or walk out the front door</small>'; el.classList.remove('hidden');
+    el.innerHTML='LEAVE HOUSE<small>ENTER or walk out the front door · stairs go up</small>'; el.classList.remove('hidden');
     if(act) act.textContent='LEAVE';
     return;
   }
@@ -1688,9 +2046,9 @@ function promptTick(){
     const f=furnRoot.children.find(o=>o.userData.item===id); return f && ['ball','mouse','laser'].includes(id) && Math.hypot(f.position.x-P.x,f.position.z-P.z)<2.2;
   })){ el.innerHTML='TOY!<small>ENTER to play</small>'; el.classList.remove('hidden'); return; }
   if(pizza && Math.hypot(P.x-pizza.x,P.z-pizza.z)<10){ el.innerHTML='DELIVER PIZZA!<small>ENTER</small>'; el.classList.remove('hidden'); return; }
-  if(shop==='lot'){ el.innerHTML='RUSTY LOT<small>ENTER · $1 rusty or $20 used coupe</small>'; el.classList.remove('hidden'); return; }
+  if(shop==='lot'){ el.innerHTML='RUSTY LOT<small>ENTER · every car is 20 coins</small>'; el.classList.remove('hidden'); return; }
   if(shop==='bull'){ el.innerHTML='BULL MOTORS<small>ENTER · stylish bull supercars</small>'; el.classList.remove('hidden'); return; }
-  if(shop==='volt'){ el.innerHTML='VOLT MOTORS<small>ENTER · Roadster, truck, sedan</small>'; el.classList.remove('hidden'); return; }
+  if(shop==='volt'){ el.innerHTML='VOLT MOTORS<small>ENTER · Volt Sky Roadster flies!</small>'; el.classList.remove('hidden'); return; }
   if(shop==='horse'){ el.innerHTML='PRANCING HORSE MOTORS<small>ENTER · red supercars</small>'; el.classList.remove('hidden'); return; }
   if(shop==='rig'){ el.innerHTML='BIG RIG TRUCKS<small>ENTER · Peterbilt-style semis</small>'; el.classList.remove('hidden'); return; }
   if(shop==='nest'){ el.innerHTML='NEST REALTY<small>ENTER to buy a bigger house · Haul-It moving truck!</small>'; el.classList.remove('hidden'); return; }
@@ -1727,7 +2085,8 @@ function startPlay(){
     });
   }
   setHelp(); hud();
-  say('You are the orange tabby! Grab coins, buy the $1 car, then save 20 for the used coupe!');
+  say('You are the orange tabby! Grab coins, then 20 coins buys ANY car — even the flying Volt Sky Roadster!');
+  showTip('Slow down at corners to avoid crashing!', 5);
   popup('WELCOME HOME<small>tiny house · big city dreams</small>');
 }
 
@@ -1739,8 +2098,13 @@ function chaseCam(dt){
   const H=insideH||houseSpec();
   let back=form==='car'||busFollow?11.2:8.4, up=form==='car'||busFollow?4.6:3.8, side=form==='car'?3.2:2.6;
   if(swimming){ back=6.4; up=3.2; side=1.2; }
-  if(insideHouse){ back=2.7; up=Math.min(1.85, H.h*0.36); side=0.15; }
+  const fy=target.position.y||0;
+  const fl=insideHouse?floorsFor(H):null;
+  const floor2=fl?fl.floorY||fl.upper.y:0;
+  const upstairs=!!(insideHouse && floor2 && fy>floor2-0.85);
+  if(insideHouse){ back=upstairs?3.1:2.7; up=upstairs?1.65:Math.min(1.75, (floor2?floor2-0.55:H.h*0.36)); side=0.12; }
   if(insideMart){ back=3.4; up=2.2; side=0.2; }
+  if(form==='car' && me && (me.flying || me.wall)){ back=13.5; up=5.4; }
   const want=new V3(
     target.position.x - Math.sin(yaw)*back + Math.cos(yaw)*side,
     target.position.y+up,
@@ -1749,7 +2113,12 @@ function chaseCam(dt){
   if(insideHouse){
     const m=0.9;
     want.x=clamp(want.x, H.x-H.w/2+m, H.x+H.w/2-m);
-    want.y=clamp(want.y, 1.4, Math.max(1.65, H.h-0.5));
+    if(floor2){
+      if(upstairs) want.y=clamp(want.y, floor2+1.15, Math.max(floor2+1.4, H.h-0.42));
+      else want.y=clamp(want.y, 1.35, Math.max(1.5, floor2-0.32));
+    } else {
+      want.y=clamp(want.y, 1.4, Math.max(1.65, H.h-0.5));
+    }
     want.z=clamp(want.z, H.z-H.d/2+m, H.z+H.d/2-m);
   }
   if(insideMart && mart){
@@ -1843,7 +2212,7 @@ function tickPeds(dt){
 }
 function tickFire(dt){
   fireT+=dt;
-  if(!fireCall && fireT>42){
+  if(!fireCall && !crashFire && fireT>42){
     fireT=0;
     const spots=[[80,80],[-80,80],[80,-80],[-80,-40],[48,0],[-40,40]];
     const s=pick(spots);
@@ -1853,37 +2222,147 @@ function tickFire(dt){
     say('Just a little smoke. The fire truck is coming with a friendly siren!');
   }
   const truck=cityCars.find(e=>e.id==='firetruck');
-  if(fireCall && truck){
+  const now=performance.now()/1000;
+  if(crashFire){
+    crashFire.t+=dt;
+    const target=crashFire.e && crashFire.e.G ? crashFire.e.G.position : crashFire;
+    crashFire.x=target.x; crashFire.z=target.z; crashFire.y=target.y||1;
+    const str=crashFire.phase==='out'?0: Math.max(0.2, 1-crashFire.t/crashFire.life);
+    if(crashFire.rig) KIT.tickFireRig(crashFire.rig, dt, crashFire.t, str);
+    if(crashFire.phase==='call' || crashFire.phase==='go'){
+      crashFire.phase='go';
+      let arrived=0, need=0;
+      for(const e of [truck, ambulances[0], policeCar]){
+        if(!e || !e.path) continue;
+        need++;
+        const done=followPath(e, e.path, dt, e.id==='firetruck'?28:26);
+        blinkSiren(e, crashFire.t);
+        if(AC && (crashFire.t*7|0)!==((crashFire.t-dt)*7|0)) tone((crashFire.t*7|0)%2?880:520, .1, 'square', .05);
+        if(done){ arrived++; e.fwd=0; crashFire.arrived[e.id]=true; }
+      }
+      if(need && arrived>=1 && crashFire.arrived.firetruck) crashFire.phase='spray';
+      if(crashFire.t>18 && crashFire.arrived.firetruck) crashFire.phase='spray';
+    }
+    if(crashFire.phase==='spray'){
+      const fx=crashFire.x, fz=crashFire.z;
+      for(let i=0;i<fireCrew.length;i++){
+        const f=fireCrew[i];
+        const tx=fx-1.4+i*1.1, tz=fz+2.2;
+        const dx=tx-f.g.position.x, dz=tz-f.g.position.z, dist=Math.hypot(dx,dz);
+        if(dist>0.4){
+          f.g.position.x+=dx*Math.min(1,dt*1.8);
+          f.g.position.z+=dz*Math.min(1,dt*1.8);
+          f.g.rotation.y=Math.atan2(fx-f.g.position.x, fz-f.g.position.z);
+          f.spray=false;
+        } else f.spray=true;
+      }
+      const sprayer=fireCrew.find(f=>f.spray) || fireCrew[0];
+      if(sprayer && sprayRig){
+        KIT.tickSpray(sprayRig, sprayer.g.position, {x:fx,y:crashFire.y||1.2,z:fz}, dt);
+      }
+      crashFire.sprayT=(crashFire.sprayT||0)+dt;
+      if(crashFire.sprayT>FIRE_SPRAY_SEC) crashFire.phase='out';
+    }
+    if(crashFire.phase!=='out' && crashFire.t>crashFire.life) crashFire.phase='out';
+    if(crashFire.phase==='out'){
+      if(crashFire.rig && crashFire.rig.parent) crashFire.rig.parent.remove(crashFire.rig);
+      if(sprayRig) sprayRig.visible=false;
+      if(crashFire.e) crashFire.e.fire=0;
+      $('fireAlert').classList.add('hidden');
+      $('compass').classList.add('hidden');
+      say('All clear! The fire is out. Fire friends head back.');
+      for(const e of [truck, ambulances[0], policeCar]){
+        if(!e || !e.home) continue;
+        e.path=roadPath(e.G.position.x, e.G.position.z, e.home[0], e.home[1]);
+        e._pi=0; e.sirenOn=false;
+      }
+      for(const f of fireCrew) f.busy=false;
+      crashFire=null;
+    }
+    const needle=$('needle');
+    if(needle && crashFire){
+      const px=form==='car'&&me?me.G.position.x:cat.position.x;
+      const pz=form==='car'&&me?me.G.position.z:cat.position.z;
+      const ang=Math.atan2(crashFire.x-px, crashFire.z-pz);
+      needle.style.transform='rotate('+((ang)*180/Math.PI)+'deg)';
+    }
+  } else if(fireCall && truck){
     fireCall.t+=dt;
     if(fireCall.phase==='go'){
-      const dx=fireCall.x-truck.G.position.x, dz=fireCall.z-truck.G.position.z;
-      const dist=Math.hypot(dx,dz);
-      truck.yaw=Math.atan2(dx,dz);
-      truck.fwd=22; truck.G.position.x+=Math.sin(truck.yaw)*truck.fwd*dt; truck.G.position.z+=Math.cos(truck.yaw)*truck.fwd*dt;
-      truck.G.rotation.y=truck.yaw; spinWheels(truck, truck.fwd, dt);
-      if(dist<6){ fireCall.phase='work'; truck.fwd=0; }
+      if(!fireCall.path){ fireCall.path=roadPath(truck.G.position.x, truck.G.position.z, fireCall.x, fireCall.z); truck.path=fireCall.path; truck._pi=0; }
+      const done=followPath(truck, truck.path, dt, 24);
+      blinkSiren(truck, fireCall.t);
       if(AC && (fireCall.t*6|0)!==((fireCall.t-dt)*6|0)){ tone((fireCall.t*6|0)%2?880:620, .12, 'square', .05); }
+      if(done){ fireCall.phase='work'; truck.fwd=0; }
     } else if(fireCall.phase==='work'){
       if(fireCall.t>6) fireCall.phase='back';
       if(smokePuff) smokePuff.children.forEach(c=>{ c.material.opacity=Math.max(0.05,(c.material.opacity||.5)-dt*.2); });
     } else {
-      const dx=truck.home[0]-truck.G.position.x, dz=truck.home[1]-truck.G.position.z;
-      truck.yaw=Math.atan2(dx,dz); truck.fwd=18;
-      truck.G.position.x+=Math.sin(truck.yaw)*truck.fwd*dt; truck.G.position.z+=Math.cos(truck.yaw)*truck.fwd*dt;
-      truck.G.rotation.y=truck.yaw; spinWheels(truck, truck.fwd, dt);
-      if(Math.hypot(dx,dz)<4){
-        truck.fwd=0; truck.G.position.set(truck.home[0], truck.com, truck.home[1]);
+      if(!truck.homePath){ truck.path=roadPath(truck.G.position.x, truck.G.position.z, truck.home[0], truck.home[1]); truck._pi=0; truck.homePath=true; }
+      const done=followPath(truck, truck.path, dt, 20);
+      if(done){
+        truck.fwd=0; truck.G.position.set(truck.home[0], truck.com, truck.home[1]); truck.homePath=false;
         if(smokePuff && smokePuff.parent) smokePuff.parent.remove(smokePuff);
         smokePuff=null; fireCall=null; say('All clear! Fire friends are back at the station.');
       }
     }
   }
+  if(!crashFire){
+    for(const f of fireCrew){
+      if(f.busy) continue;
+      const dx=f.home[0]-f.g.position.x, dz=f.home[1]-f.g.position.z;
+      if(Math.hypot(dx,dz)>0.4){ f.g.position.x+=dx*dt; f.g.position.z+=dz*dt; }
+    }
+  }
   if(smokePuff){
     smokePuff.children.forEach((c,i)=>{ c.position.y=0.4+i*.4+Math.sin(performance.now()/400+i)*.12; c.rotation.y+=dt; });
   }
+  for(const e of ents){
+    if(e.smokeT>0){
+      e.smokeT-=dt;
+      if(e.smokeFx) e.smokeFx.children.forEach((c,i)=>{ c.position.y=0.3+i*.35+Math.sin(now*2+i)*.1; });
+      if(e.smokeT<=0 && e.smokeFx){ if(e.smokeFx.parent) e.smokeFx.parent.remove(e.smokeFx); e.smokeFx=null; }
+    }
+  }
+  tickHurt(dt);
   for(const a of ambulances){
+    if(crashFire || hurt) continue;
     if(!a.patrol) continue;
     followWaypoints(a, BUS_ROUTE, dt, 13, false);
+  }
+}
+function tickHurt(dt){
+  if(!hurt) return;
+  hurt.t+=dt;
+  if(hurt.phase==='stars'){
+    if(starRing) KIT.tickStars(starRing, hurt.t);
+    if(hurt.t>1.6){ hurt.phase='ride'; hurt.t=0; }
+  } else if(hurt.phase==='ride'){
+    if(starRing) KIT.tickStars(starRing, hurt.t+1.6);
+    const amb=ambulances[0];
+    if(amb){
+      if(!amb.path || amb._pi==null){
+        amb.path=roadPath(amb.G.position.x, amb.G.position.z, POI.hosp.x, POI.hosp.z+16);
+        amb._pi=0; amb.sirenOn=true;
+      }
+      cat.visible=false; form='cat';
+      const done=followPath(amb, amb.path, dt, 32);
+      blinkSiren(amb, hurt.t);
+      cat.position.copy(amb.G.position);
+      if(done || hurt.t>16){ hurt.phase='inside'; hurt.t=0; }
+    } else if(hurt.t>1){ hurt.phase='inside'; hurt.t=0; }
+  } else if(hurt.phase==='inside'){
+    if(hospRoom) hospRoom.visible=true;
+    if(doctorCat){ doctorCat.visible=true; doctorCat.position.set(POI.hosp.x+1.6, 0, POI.hosp.z+4.3); }
+    cat.visible=true; form='cat';
+    cat.position.set(POI.hosp.x, 0.7, POI.hosp.z+3.6);
+    cat.rotation.y=Math.PI*.5;
+    if(starRing){ KIT.tickStars(starRing, hurt.t); if(hurt.t>2.2) starRing.visible=false; }
+    camera.position.set(POI.hosp.x+3.2, 2.4, POI.hosp.z+7.2);
+    camera.lookAt(POI.hosp.x, 1.1, POI.hosp.z+3.8);
+    if(hurt.t>4.2){ hurt.phase='out'; hurt.t=0; }
+  } else if(hurt.phase==='out'){
+    finishHospital();
   }
 }
 function tickHaul(dt){
@@ -1970,6 +2449,7 @@ function simStep(dt){
     save.coins+=10; save.jobs++; persist(); jobBoxes=[]; popup('+10 COINS<small>thanks for helping!</small>');
   }
   promptTick();
+  if(tipT>0){ tipT-=dt; if(tipT<=0) $('tip').classList.add('hidden'); }
 }
 
 let last=performance.now();
@@ -1978,7 +2458,7 @@ function frame(now){
   const dt=clamp((now-last)/1000, .001, .05); last=now;
   simStep(dt);
   if(popT>0){ popT-=dt; if(popT<=0) $('pop').style.opacity=0; }
-  if(screen==='play'){ chaseCam(dt); hud(); }
+  if(screen==='play'){ if(!(hurt && hurt.phase==='inside')) chaseCam(dt); hud(); }
   else {
     camera.position.set(18, 14, 36); camera.lookAt(0, 2, 16);
   }
@@ -2009,6 +2489,9 @@ addEventListener('keydown', ev=>{
   else if(ev.code==='KeyF' && form==='bus') leaveBus();
   else if(ev.code==='KeyH' && me) honk(me.def);
   else if(ev.code==='KeyR') goHome(true);
+  else if(ev.code==='KeyY' && form==='car' && me) toggleFlight(me);
+  else if(ev.code==='KeyG' && form==='car' && me) toggleGrip(me);
+  else if(ev.code==='Space' && form==='car' && me && me.wall){ ev.preventDefault(); detachWall(me); me.vy=8; }
 });
 addEventListener('keyup', ev=>{ keys[ev.code]=false; });
 addEventListener('blur', ()=>{ for(const k in keys) keys[k]=false; });
@@ -2027,8 +2510,12 @@ renderer.domElement.addEventListener('webglcontextrestored', ()=>{ try{ applyQua
   $('padAct').addEventListener('pointerdown', e=>{ e.preventDefault(); interact(); });
   $('padOut').addEventListener('pointerdown', e=>{ e.preventDefault(); if(form==='car') hopOut(); else if(form==='bus') leaveBus(); });
   $('padHorn').addEventListener('pointerdown', ()=>{ if(me) honk(me.def); });
-  const hold=(id,set)=>{ const el=$(id); el.addEventListener('pointerdown', e=>{ e.preventDefault(); set(true); }); el.addEventListener('pointerup', ()=>set(false)); el.addEventListener('pointerleave', ()=>set(false)); };
+  $('padFly').addEventListener('pointerdown', e=>{ e.preventDefault(); if(form==='car'&&me) toggleFlight(me); });
+  $('padGrip').addEventListener('pointerdown', e=>{ e.preventDefault(); if(form==='car'&&me) toggleGrip(me); });
+  const hold=(id,set)=>{ const el=$(id); if(!el) return; el.addEventListener('pointerdown', e=>{ e.preventDefault(); set(true); }); el.addEventListener('pointerup', ()=>set(false)); el.addEventListener('pointerleave', ()=>set(false)); };
   hold('padBrake', v=>padBrake=v);
+  hold('padClimb', v=>padClimb=v);
+  hold('padDive', v=>padDive=v);
   if((navigator.maxTouchPoints||0)>0) document.body.classList.add('touch');
 })();
 
@@ -2164,7 +2651,7 @@ window.CATLIFE={
   get goal(){ return goalHint(); },
   get shopOpen(){ return !$('shop').classList.contains('hidden'); },
   get shopText(){ return $('shop').textContent||''; },
-  get me(){ return me?{id:me.id,n:me.def.name,x:me.G.position.x,z:me.G.position.z,mode:me.mode,crush:me.crush,mph:Math.round(Math.abs(me.fwd)*2.237),top:me.def.top}:null; },
+  get me(){ return me?{id:me.id,n:me.def.name,x:me.G.position.x,y:me.G.position.y,z:me.G.position.z,mode:me.mode,crush:me.crush,mph:Math.round(Math.abs(me.fwd)*2.237),top:me.def.top,flying:!!me.flying,gripOn:!!me.gripOn,wall:!!me.wall,fire:me.fire||0}:null; },
   get cat(){
     if(!cat) return null;
     if(form==='bus' && rideBus){ const p=new THREE.Vector3(); cat.getWorldPosition(p); return {x:p.x,z:p.z,vis:cat.visible,y:p.y}; }
@@ -2172,7 +2659,7 @@ window.CATLIFE={
   },
   get houseItems(){ return furnRoot.children.map(o=>({id:o.userData.item, vis:o.visible!==false, x:o.position.x, z:o.position.z})); },
   get toys(){ return save.items.filter(id=>['ball','mouse','laser'].includes(id)); },
-  get pads(){ return {stick:!!$('stick'), act:!!$('padAct'), out:!!$('padOut'), horn:!!$('padHorn'), brake:!!$('padBrake')}; },
+  get pads(){ return {stick:!!$('stick'), act:!!$('padAct'), out:!!$('padOut'), horn:!!$('padHorn'), brake:!!$('padBrake'), fly:!!$('padFly'), grip:!!$('padGrip'), climb:!!$('padClimb'), dive:!!$('padDive'), flyOn:!!$('padFly')&&$('padFly').classList.contains('on'), gripOn:!!$('padGrip')&&$('padGrip').classList.contains('on')}; },
   get errs(){ return window.CATLIFE_ERRS||[]; },
   get inside(){ return !!insideHouse; },
   get insideMart(){ return !!insideMart; },
@@ -2186,13 +2673,17 @@ window.CATLIFE={
   get pool(){ return pools[0]?{x:pools[0].x,z:pools[0].z,w:pools[0].w,d:pools[0].d}:null; },
   get peds(){ return peds.length; },
   get buses(){ return buses.length; },
-  get fire(){ return {station:!!POI.fire, call:!!fireCall, trucks:cityCars.filter(e=>e.id==='firetruck').length}; },
-  get hospital(){ return {ok:!!POI.hosp, ambulances:ambulances.length}; },
+  get fire(){ return {station:!!POI.fire, call:!!fireCall, trucks:cityCars.filter(e=>e.id==='firetruck').length, crash:!!crashFire, phase:crashFire?crashFire.phase:null, kind:crashFire?crashFire.kind:null, t:crashFire?crashFire.t:0, police:!!policeCar, alert:!$('fireAlert').classList.contains('hidden'), compass:!$('compass').classList.contains('hidden'), spraying:!!(crashFire&&crashFire.phase==='spray')}; },
+  get hospital(){ return {ok:!!POI.hosp, ambulances:ambulances.length, hurt:hurt?hurt.phase:null, room:!!(hospRoom&&hospRoom.visible), doctor:!!(doctorCat&&doctorCat.visible), bandage:!!(bandageMesh&&bandageMesh.visible)}; },
+  get floors(){ const fl=floorsFor(houseSpec()); return fl?{floorY:fl.floorY, stairs:!!fl.stairs, id:houseSpec().id}:null; },
+  get upstairs(){ const fl=floorsFor(insideH||houseSpec()); return !!(insideHouse && fl && cat && cat.position.y>(fl.floorY||3)-0.55); },
+  get tip(){ return ($('tip').classList.contains('hidden')?'':$('tip').textContent)||''; },
+  get howText(){ return $('how').textContent||''; },
   get liveCoins(){ return liveCoinCount(); },
   get prompt(){ return ($('prompt').classList.contains('hidden')?'':$('prompt').textContent)||''; },
-  SAVE_KEY, CARS, MART, HOUSES, POI, BUS_STOPS, USED_COUPE_PRICE, COIN_RESPAWN_CAP,
+  SAVE_KEY, CARS, MART, HOUSES, POI, BUS_STOPS, USED_COUPE_PRICE, COIN_RESPAWN_CAP, CAR_PRICE, FIRE_BURN_SEC, FIRE_SPRAY_SEC,
   startPlay, persist, loadSave,
-  resetSave(){ insideHouse=false; insideH=null; insideMart=false; swimming=false; carrying=null; moving=null; rideBus=null; waitingStop=null; checkout={phase:null,i:0,t:0,total:0}; if(cart){ cart.held=false; cart.items=[]; } save={coins:0, owned:[], car:null, house:'starter', items:[], jobs:0}; persist(); rebuildHouse(); stockMartShelves(); },
+  resetSave(){ insideHouse=false; insideH=null; insideMart=false; swimming=false; carrying=null; moving=null; rideBus=null; waitingStop=null; hurt=null; checkout={phase:null,i:0,t:0,total:0}; if(cart){ cart.held=false; cart.items=[]; } clearCrashFire(); if(starRing){ if(starRing.parent) starRing.parent.remove(starRing); scene.add(starRing); starRing.visible=false; } if(hospRoom) hospRoom.visible=false; if(doctorCat) doctorCat.visible=false; save={coins:0, owned:[], car:null, house:'starter', items:[], jobs:0}; persist(); rebuildHouse(); stockMartShelves(); },
   addCoins(n){ save.coins=Math.max(0,(save.coins|0)+(n|0)); persist(); },
   buyCar, buyHouse, buyItem, hopIn, hopOut, goHome, enterHouse, leaveHouse, playToy, interact, openShop, startPizza, finishPizza, startRace, spawnOwnedCar,
   enterMart, leaveMart, grabCart, putInCart, startCheckout, payCheckout, waitBus, boardBus, leaveBus, startMoving, packNearest, loadCarOnTrailer, boardHaul, finishMoving, grantHouseCars,
@@ -2202,7 +2693,7 @@ window.CATLIFE={
   setHouse(id){ if(!HOUSES.some(h=>h.id===id)) return false; if(insideHouse){ insideHouse=false; insideH=null; applyHouseInterior(false); } save.house=id; persist(); rebuildHouse(); return true; },
   pose(x,z,yaw){
     if(form==='bus' && rideBus){ this.leaveBus(); }
-    if(form==='car'&&me){ me.G.position.set(x,me.com,z); me.yaw=yaw||0; me.G.rotation.y=me.yaw; }
+    if(form==='car'&&me){ me.G.position.set(x, me.flying?Math.max(me.G.position.y, me.com+1.2):me.com, z); me.yaw=yaw||0; me.G.rotation.y=me.yaw; me.fwd=0; me.V.set(0,0,0); me.vy=0; }
     else if(cat){ if(cat.parent && cat.parent!==scene){ cat.parent.remove(cat); scene.add(cat); } cat.position.set(x,0,z); cat.rotation.y=yaw||0; }
   },
   goTo(key){
@@ -2219,7 +2710,62 @@ window.CATLIFE={
   setVel(v){ if(me){ me.fwd=v; me.V.set(Math.sin(me.yaw)*v,0,Math.cos(me.yaw)*v); } },
   sim(sec){ for(let t=0;t<sec;t+=1/30) simStep(1/30); },
   snapCam,
-  smash(){ if(me) smash(me, me.G.position.clone().add(new V3(Math.sin(me.yaw)*me.L*.5,1,Math.cos(me.yaw)*me.L*.5)), new V3(Math.sin(me.yaw),0,Math.cos(me.yaw)), 22); },
+  smash(){ if(me) smash(me, me.G.position.clone().add(new V3(Math.sin(me.yaw)*me.L*.5,1,Math.cos(me.yaw)*me.L*.5)), new V3(Math.sin(me.yaw),0,Math.cos(me.yaw)), 12, {kind:'smoke'}); },
+  smashHard(){ if(!me) return false; smash(me, me.G.position.clone().add(new V3(Math.sin(me.yaw)*me.L*.5,1,Math.cos(me.yaw)*me.L*.5)), new V3(Math.sin(me.yaw),0,Math.cos(me.yaw)), 20, {kind:'hard'}); return !!crashFire; },
+  smashHurt(){ if(!me) return false; smash(me, me.G.position.clone().add(new V3(Math.sin(me.yaw)*me.L*.5,1,Math.cos(me.yaw)*me.L*.5)), new V3(Math.sin(me.yaw),0,Math.cos(me.yaw)), 32, {kind:'hurt'}); return !!hurt; },
+  setFly(on){ return me?setFlight(me,on):false; },
+  setGrip(on){ return me?setGrip(me,on):false; },
+  forceGripWall(){ if(!me) return false; me.gripOn=true; attachWall(me,1,0,{h:14,minx:me.G.position.x+2,maxx:me.G.position.x+6,minz:me.G.position.z-4,maxz:me.G.position.z+4}); return !!me.wall; },
+  climb(sec){ padClimb=true; this.sim(sec||0.6); padClimb=false; return me?me.G.position.y:0; },
+  dive(sec){ padDive=true; this.sim(sec||0.6); padDive=false; return me?me.G.position.y:0; },
+  goToStairs(){
+    const H=insideH||houseSpec(); const fl=floorsFor(H); if(!fl||!fl.stairs) return false;
+    if(form==='car') hopOut();
+    const s=fl.stairs;
+    cat.position.set(s.cx, 0.05, s.zBot-0.2); cat.rotation.y=Math.PI;
+    insideHouse=true; insideH=H; applyHouseInterior(true); camSnap=true;
+    return true;
+  },
+  climbStairs(){
+    this.goToStairs();
+    keys.KeyW=true; keys.ArrowUp=true;
+    for(let i=0;i<100;i++) simStep(1/30);
+    keys.KeyW=false; keys.ArrowUp=false;
+    const fl=floorsFor(insideH||houseSpec());
+    return {y:cat.position.y, upstairs:cat.position.y>(fl.floorY||3)-0.55, x:cat.position.x, z:cat.position.z, floorY:fl&&fl.floorY};
+  },
+  descendStairs(){
+    const H=insideH||houseSpec(); const fl=floorsFor(H); if(!fl||!fl.stairs) return false;
+    const s=fl.stairs;
+    cat.position.set(s.cx, fl.floorY, s.zTop+0.25); cat.rotation.y=0;
+    keys.KeyW=true; keys.ArrowUp=true;
+    for(let i=0;i<100;i++) simStep(1/30);
+    keys.KeyW=false; keys.ArrowUp=false;
+    return {y:cat.position.y, downstairs:cat.position.y<1.1};
+  },
+  arriveResponders(){
+    if(!crashFire) return false;
+    const truck=cityCars.find(c=>c.id==='firetruck');
+    const amb=ambulances[0];
+    const list=[truck, amb, policeCar];
+    for(const e of list){
+      if(!e) continue;
+      e.G.position.set(crashFire.x+5, e.com, crashFire.z+ (e.id==='police'?-4:e.id==='ambulance'?4:0));
+      e.path=null; e._pi=99; e.fwd=0; crashFire.arrived[e.id]=true;
+    }
+    crashFire.phase='spray'; crashFire.sprayT=0;
+    for(const f of fireCrew){ f.g.position.set(crashFire.x-1+Math.random(), 0, crashFire.z+2); f.spray=true; }
+    tickFire(0.05);
+    return {phase:crashFire.phase, truck:!!truck, police:!!policeCar, amb:!!amb};
+  },
+  extinguishNow(){ if(!crashFire) return false; crashFire.phase='out'; crashFire.sprayT=99; tickFire(0.2); return !crashFire; },
+  skipToHospitalInside(){
+    if(!hurt) startHurt(me);
+    hurt.phase='inside'; hurt.t=0.2;
+    tickHurt(0.05);
+    return {phase:hurt&&hurt.phase, room:!!(hospRoom&&hospRoom.visible), doctor:!!(doctorCat&&doctorCat.visible), stars:!!(starRing&&starRing.visible)};
+  },
+  finishHospital, startHurt, startCrashFire, startCrashSmoke,
   sampleCanvas, renderer, scene, camera,
   showPads(){ $('pads').classList.add('show'); document.body.classList.add('touch'); return true; },
   beautyCam(){
