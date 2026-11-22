@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Cat Airplane Pilot 3D - Weston &amp; Rocky Arcade</title>
+<!-- arcade-share -->
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0b0b2a">
+<link rel="canonical" href="https://westonandrockysarcade.com/games/cat-airplane-pilot-3d.html">
+<meta name="description" content="Be the orange tabby and fly! Pick a plane, take off, loop through rings, and land like a pro. Rated 6+. Play together!">
+<meta property="og:site_name" content="Weston &amp; Rocky&#8217;s Arcade">
+<meta property="og:title" content="Cat Airplane Pilot 3D · Weston &amp; Rocky&#8217;s Arcade">
+<meta property="og:description" content="Walk the orange tabby to the hangar, hop in a plane, taxi, take off, and fly over a city, mountains, and ocean. Easy arcade flying with rings, packages, and smooth landings. Rated 6+.">
+<meta property="og:image" content="https://westonandrockysarcade.com/og/cat-airplane-pilot-3d.jpg">
+<meta property="og:url" content="https://westonandrockysarcade.com/games/cat-airplane-pilot-3d.html">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cat Airplane Pilot 3D · Weston &amp; Rocky&#8217;s Arcade">
+<meta name="twitter:description" content="The orange tabby learns to fly. Speed plus lift equals takeoff! Rated 6+.">
+<meta name="twitter:image" content="https://westonandrockysarcade.com/og/cat-airplane-pilot-3d.jpg">
+<!-- /arcade-share -->
+<script src="/shared/age-rating.js" defer></script>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0b0b2a;font-family:"Courier New",monospace;color:#fff;user-select:none;-webkit-user-select:none;touch-action:none}
+#c{position:fixed;inset:0;display:block}
+button,.btn{font-family:inherit;font-weight:bold;font-size:14px;background:#1d1d48;color:#fff;border:3px solid #ffd21e;box-shadow:4px 4px 0 #000;padding:7px 10px;cursor:pointer;text-decoration:none;display:inline-block;line-height:1.1}
+button:hover,.btn:hover{border-color:#ff4040}
+button.on{background:#ff4040;border-color:#fff}
+.hidden{display:none!important}
+#ui{position:fixed;inset:0;pointer-events:none;z-index:2}
+#ui .pe{pointer-events:auto}
+#topl{position:absolute;left:12px;top:10px}
+#logo{font-size:20px;font-weight:bold;color:#ff8a1e;text-shadow:3px 3px 0 #000;letter-spacing:1px;margin-bottom:8px}
+#logo small{display:block;font-size:11px;color:#7cf;letter-spacing:1px}
+#hud{position:absolute;left:12px;top:96px;background:rgba(0,0,0,.55);border:3px solid #7cf;padding:6px 10px;font-weight:bold;font-size:13px;line-height:1.5;box-shadow:4px 4px 0 #000}
+#hud b{color:#ffd21e}
+#goal{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:rgba(0,0,0,.62);border:3px solid #ffd21e;padding:6px 14px;font-weight:bold;font-size:14px;box-shadow:4px 4px 0 #000;max-width:min(560px,86vw);text-align:center}
+#vname{position:absolute;left:50%;top:56px;transform:translateX(-50%);background:rgba(0,0,0,.5);border:2px solid #ff8a1e;padding:4px 10px;font-size:13px;white-space:nowrap}
+#speedo{position:absolute;right:14px;bottom:14px;width:150px;height:150px}
+#mph{position:absolute;left:0;right:0;top:34px;text-align:center;font-size:40px;font-weight:900;text-shadow:3px 3px 0 #000}
+#mphl{position:absolute;left:0;right:0;top:80px;text-align:center;font-size:12px;color:#ffd21e;font-weight:bold;letter-spacing:2px}
+#altl{position:absolute;left:0;right:0;top:98px;text-align:center;font-size:11px;color:#7cf}
+#throt{position:absolute;left:18px;right:18px;bottom:12px;height:8px;background:#333;border:2px solid #000}
+#throt i{display:block;height:100%;width:0;background:linear-gradient(90deg,#3f3,#ffd21e,#ff4040)}
+#help{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;background:rgba(0,0,0,.62);border:2px solid #7cf;padding:6px 12px;font-size:13px;max-width:calc(100vw - 360px);text-align:center;line-height:1.5}
+#help b{color:#ffd21e}
+#prompt{position:absolute;left:50%;top:28%;transform:translateX(-50%);background:rgba(0,0,0,.82);border:3px solid #4cff6a;padding:12px 16px;font-weight:bold;font-size:18px;text-align:center;min-width:min(400px,90vw);pointer-events:auto;z-index:9}
+#prompt small{display:block;color:#ffd21e;font-size:13px;margin-top:4px}
+#prompt .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+#pop{position:absolute;left:0;right:0;top:18%;text-align:center;font-size:clamp(24px,5vw,52px);font-weight:bold;color:#ffd21e;text-shadow:4px 4px 0 #000;transition:opacity .4s;pointer-events:none}
+#pop small{display:block;font-size:.42em;color:#fff}
+#rocky{position:absolute;left:10px;bottom:70px;display:flex;align-items:flex-end;gap:6px;transition:opacity .3s}
+#bubble{background:#fff;color:#111;border:3px solid #000;border-radius:14px;padding:8px 12px;font-weight:bold;font-size:15px;max-width:280px;box-shadow:4px 4px 0 #000;margin-bottom:30px}
+#hangar,#ptPanel,#how{position:fixed;right:14px;top:50%;transform:translateY(-50%);width:min(340px,94vw);max-height:82vh;overflow:auto;background:rgba(8,10,30,.96);border:3px solid #ffd21e;box-shadow:4px 4px 0 #000;padding:12px;z-index:11;pointer-events:auto}
+#hangar h2,#ptPanel h2,#how h2{margin:0 0 6px;color:#ff8a1e;text-shadow:2px 2px 0 #000}
+#hangar p,#ptPanel p,#how p{margin:4px 0 8px;font-size:13px;color:#cde;line-height:1.35}
+.item{display:flex;justify-content:space-between;align-items:center;margin:6px 0;gap:8px;font-size:13px}
+#ptCode{font-size:46px;letter-spacing:10px;text-align:center;color:#ffd21e;text-shadow:3px 3px 0 #000;margin:6px 0}
+#ptLink,#ptJoin,#chatIn{font-family:inherit;font-weight:bold;border:2px solid #7cf;background:#111428;color:#fff;padding:6px 8px}
+#ptLink{width:100%;box-sizing:border-box;font-size:11px}
+#ptJoin{width:132px;font-size:20px;text-transform:uppercase;letter-spacing:3px}
+.who.on{background:#ff4040;border-color:#fff}
+#chatBox{position:fixed;left:12px;bottom:148px;width:min(300px,70vw);z-index:6;pointer-events:auto}
+#chatLog{height:92px;overflow:auto;background:rgba(0,0,0,.58);border:2px solid #7cf;padding:6px;font-size:12px;margin-bottom:4px;line-height:1.45}
+#chatEmo button{padding:3px 6px;font-size:16px;margin:1px;border-width:2px;box-shadow:2px 2px 0 #000}
+#chatRow{display:flex;gap:4px;margin-bottom:4px}
+#chatIn{flex:1;min-width:0}
+#ptMini{position:absolute;left:12px;top:70px;background:rgba(0,0,0,.55);border:3px solid #4cff6a;padding:4px 8px;font-weight:bold;font-size:13px;box-shadow:4px 4px 0 #000}
+#ptStatus{color:#ffd21e;font-weight:bold;font-size:13px;min-height:18px}
+#title{position:fixed;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(ellipse at center,rgba(11,11,42,.42),rgba(11,11,42,.88));text-align:center;pointer-events:auto}
+#title h1{font-size:clamp(28px,6.4vw,64px);margin:0;color:#ff9a3a;text-shadow:5px 5px 0 #000,0 0 28px #fc6;letter-spacing:3px}
+#title .by{color:#ffd21e;font-size:clamp(14px,2.6vw,22px);font-weight:bold;text-shadow:3px 3px 0 #000;margin:8px 0 18px}
+#title p{max-width:560px;color:#cde;line-height:1.5;margin:0 16px 18px;font-size:14px}
+#bStart{font-size:26px;padding:14px 32px;background:#ff4040;animation:pulse 1s infinite alternate}
+@keyframes pulse{to{transform:scale(1.06)}}
+#err,#loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0b0b2a;z-index:40;font-size:22px;font-weight:bold;color:#ffd21e;text-shadow:3px 3px 0 #000;text-align:center;padding:20px}
+#err{z-index:50}
+#pads{position:fixed;inset:0;z-index:7;pointer-events:none}
+#stick{position:absolute;left:18px;bottom:18px;width:130px;height:130px;border-radius:50%;background:rgba(0,0,0,.35);border:3px solid #ffd21e;pointer-events:auto}
+#nub{position:absolute;left:45px;top:45px;width:40px;height:40px;border-radius:50%;background:#ffd21e;border:3px solid #000}
+#padBtns{position:absolute;right:14px;bottom:168px;display:flex;flex-direction:column;gap:8px;pointer-events:auto}
+#padBtns button{min-width:92px}
+@media (hover:hover) and (pointer:fine){#pads{display:none}}
+@media (hover:none), (pointer:coarse){#pads{display:block}}
+body.touch #pads, #pads.show{display:block!important}
+#how{left:50%;right:auto;transform:translate(-50%,-50%);width:min(520px,94vw)}
+</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+</head><body>
+<div id="ui">
+  <div id="topl"><div id="logo">CAT AIRPLANE PILOT 3D<small>by Weston and Rocky</small></div>
+    <a class="btn pe" href="../index.html">🕹 ARCADE</a>
+    <button id="ptOpenIn" class="pe" style="margin-left:6px;background:#2a6cff">PLAY TOGETHER</button>
+    <button id="howOpen" class="pe" style="margin-left:6px">HOW IT'S BUILT</button>
+  </div>
+  <div id="ptMini" class="hidden"></div>
+  <div id="goal" class="hidden">Walk to the hangar and pick a plane!</div>
+  <div id="vname" class="hidden">🐱 ORANGE TABBY</div>
+  <div id="hud" class="hidden">COINS <b id="sc">0</b><br>PLANE <b id="splane">on foot</b><br>JOB <b id="sjob">none yet</b></div>
+  <div id="speedo" class="hidden"><div style="width:150px;height:150px;border-radius:50%;background:rgba(0,0,0,.6);border:4px solid #000;position:relative"><div id="mph">0</div><div id="mphl">MPH</div><div id="altl">ALT 0</div><div id="throt"><i id="throti"></i></div></div></div>
+  <div id="rocky" style="opacity:0">
+    <svg viewBox="0 0 100 82" width="74"><g stroke="#3b3631" stroke-width="7" stroke-linecap="round" fill="none"><path d="M30 40 L12 56 L8 77"/><path d="M40 45 L32 62 L30 79"/><path d="M50 46 L50 79"/><path d="M60 45 L68 62 L70 79"/><path d="M70 40 L88 56 L92 77"/></g><polygon points="50,8 79,23 72,48 28,48 21,23" fill="#6b625a" stroke="#3b3631" stroke-width="3"/><polygon points="50,17 67,26 62,42 38,42 33,26" fill="#8a7f73"/></svg>
+    <div id="bubble">Hello!</div>
+  </div>
+  <div id="pop" style="opacity:0"></div>
+  <div id="prompt" class="hidden"></div>
+  <div id="help" class="hidden"></div>
+</div>
+<div id="title">
+  <h1>CAT AIRPLANE<br>PILOT 3D</h1>
+  <div class="by">by Weston and Rocky · for ages 8–9 (Weston is 7 and wants to fly!)</div>
+  <p>You are the orange tabby with green eyes. Walk to the airport, pick a plane in the hangar, taxi, then take off! Planes fly when they have <b>speed plus lift</b>. Loop through gold rings, deliver packages, give rides, do stunts, and land softly for bonus coins. Crashes are just a BONK and a puff of smoke — then you try again.</p>
+  <button id="bStart">▶ PLAY</button>
+  <p style="margin-top:16px"><button id="ptOpen" class="pe">PLAY TOGETHER</button> <a href="../index.html" style="color:#7cf;margin-left:12px">← arcade</a></p>
+</div>
+<div id="hangar" class="hidden pe"></div>
+<div id="ptPanel" class="hidden pe">
+  <h2>PLAY TOGETHER</h2>
+  <p>Weston and Dad in the same sky. Same cats, same planes, same clouds. One makes a room. The other types the code.</p>
+  <div id="ptLobby">
+    <div style="margin-bottom:8px">
+      <button id="whoWeston" class="pe who on">I AM WESTON</button>
+      <button id="whoDad" class="pe who">I AM DAD</button>
+    </div>
+    <button id="ptMake" class="pe" style="background:#ff4040">MAKE A ROOM</button>
+    <div style="margin-top:10px">Join: <input id="ptJoin" maxlength="6" placeholder="CODE" autocomplete="off"> <button id="ptJoinBtn" class="pe">JOIN</button></div>
+  </div>
+  <div id="ptLive" class="hidden">
+    <div>Room code</div>
+    <div id="ptCode">----</div>
+    <input id="ptLink" readonly>
+    <div style="margin-top:8px"><button id="ptCopy" class="pe">COPY LINK</button></div>
+  </div>
+  <div id="ptStatus">Ready</div>
+  <div style="margin-top:8px"><button id="ptClose" class="pe">CLOSE</button></div>
+</div>
+<div id="chatBox" class="hidden pe">
+  <div id="chatLog"></div>
+  <div id="chatRow"><input id="chatIn" maxlength="140" placeholder="say hi!" autocomplete="off"><button id="chatSend" class="pe">SEND</button></div>
+  <div id="chatEmo"></div>
+</div>
+<div id="how" class="hidden pe">
+  <h2>HOW IT'S BUILT</h2>
+  <p>A few flying ideas, said simply:</p>
+  <p><b>Speed plus lift.</b> Air rushing over the wings pushes the plane up. That is why you taxi fast down the runway before you pull up. Slow planes sink. Fast planes fly!</p>
+  <p><b>Landing is the opposite.</b> Slow down, stay level, and kiss the runway. A bouncy landing still counts. A super-soft landing pays bonus coins.</p>
+  <p><b>Arcade auto-level.</b> Let go of the stick and the plane gently flattens out, so loops and rolls are fun — not scary.</p>
+  <p><b>Saving is a superpower.</b> Coins and unlocked planes stay in a tiny notebook on this iPad (localStorage).</p>
+  <p><b>Play Together.</b> A WebSocket room shares where each cat-plane is so two screens match.</p>
+  <div style="margin-top:10px"><button id="howClose">GOT IT</button></div>
+</div>
+<div id="pads">
+  <div id="stick"><div id="nub"></div></div>
+  <div id="padBtns">
+    <button id="padAct" style="background:#1faa4a">ENTER</button>
+    <button id="padBoost" style="background:#ff8a1e">BOOST</button>
+    <button id="padBrake">BRAKE</button>
+    <button id="padLoop">LOOP</button>
+    <button id="padRoll">ROLL</button>
+    <button id="padOut">GET OUT</button>
+  </div>
+</div>
+<div id="loading">Rocky is building the airport... wait wait</div>
+<div id="err" class="hidden"></div>
+<script>
+setTimeout(function(){ if(!window.CATAIR_READY){ var e=document.getElementById('err'); e.classList.remove('hidden'); e.innerHTML='Rocky cannot load the 3D engine. Sad sad.<br><br>Check the internet, then reload, question?<br><br><a href="../index.html" style="color:#7cf">back to arcade</a>'; } }, 25000);
+window.addEventListener('error', function(ev){ (window.CATAIR_ERRS = window.CATAIR_ERRS || []).push(String(ev.message||ev.error||'err')); });
+window.addEventListener('unhandledrejection', function(ev){ (window.CATAIR_ERRS = window.CATAIR_ERRS || []).push(String(ev.reason||'reject')); });
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { makeCat } from '../shared/tabby-cat.js';
+import { PlayTogether, EMOJI, roomFromUrl } from '../shared/play-together.js';
+
+const $ = id => document.getElementById(id);
+const V3 = THREE.Vector3;
+const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), pick=a=>a[Math.floor(Math.random()*a.length)];
+function wrapPi(a){ while(a>Math.PI) a-=Math.PI*2; while(a<-Math.PI) a+=Math.PI*2; return a; }
+function h3(x,y,z){ const s=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453; return s-Math.floor(s); }
+
+const SAVE_KEY='catAirplanePilot3d';
+const PLANES=[
+  {id:'cub', name:'CUBBY PROP', price:0, kind:'prop', col:0xffd21e, stripe:0xff4040, top:38, acc:16, take:15, turn:1.4, lift:1.15, blurb:'Little yellow propeller plane. Perfect first flyer!'},
+  {id:'jet', name:'ZOOM JET', price:25, kind:'jet', col:0x4aa8ff, stripe:0xffffff, top:74, acc:24, take:22, turn:1.1, lift:1.35, blurb:'Fast and zippy. Boost goes WHOOSH.'},
+  {id:'sea', name:'SPLASH SEAPLANE', price:50, kind:'sea', col:0xff6b6b, stripe:0xfff2df, top:44, acc:14, take:14, turn:1.25, lift:1.2, water:true, blurb:'Lands on the ocean. Floats, not sinks!'},
+  {id:'cargo', name:'BIG CARGO', price:80, kind:'cargo', col:0x3cb043, stripe:0xffd21e, top:34, acc:10, take:17, turn:.82, lift:1.45, pack:1.5, blurb:'Fat and friendly. Extra coins for packages.'},
+  {id:'heli', name:'WHIRLYBIRD', price:120, kind:'heli', col:0xff9a3a, stripe:0x1d1d48, top:32, acc:13, take:0, turn:2.2, lift:2.4, hover:true, blurb:'No runway needed. Up, up, and hover!'},
+];
+const POI={
+  spawn:{x:-78,z:14,name:'Home path'},
+  hangar:{x:-46,z:-32,r:16,name:'Hangar'},
+  runway:{x:0,z:20,r:28,name:'Runway'},
+  main:{x:0,z:0,r:40,name:'Kitty Field', elev:0},
+  island:{x:0,z:470,r:36,name:'Island Dock', elev:.4},
+  peak:{x:-300,z:-380,r:28,name:'Peak Strip', elev:20},
+};
+const RING_PAY=6, LAND_PAY=10, PACK_PAY=12, RIDE_PAY=15, STUNT_PAY=8;
+
+let save={coins:0, owned:['cub'], plane:'cub', jobs:0, rings:0, packs:0, rides:0, stunts:0, landings:0, taught:{takeoff:false, land:false}};
+function loadSave(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');
+    if(raw && typeof raw==='object'){
+      save.coins=Math.max(0, raw.coins|0);
+      const owned=Array.isArray(raw.owned)?raw.owned.filter(id=>PLANES.some(p=>p.id===id)):[];
+      save.owned=owned.includes('cub')?owned:['cub',...owned];
+      save.plane=PLANES.some(p=>p.id===raw.plane)?raw.plane:'cub';
+      save.jobs=raw.jobs|0; save.rings=raw.rings|0; save.packs=raw.packs|0; save.rides=raw.rides|0; save.stunts=raw.stunts|0; save.landings=raw.landings|0;
+      save.taught={takeoff:!!(raw.taught&&raw.taught.takeoff), land:!!(raw.taught&&raw.taught.land)};
+    }
+  }catch(e){}
+}
+function persist(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(e){} hud(); }
+
+let AC=null, master=null, NB=null, LOOP=null;
+function audio(){ try{ if(!AC){ AC=new (window.AudioContext||window.webkitAudioContext)(); master=AC.createGain(); master.gain.value=.45; master.connect(AC.destination);
+  NB=AC.createBuffer(1, AC.sampleRate*2, AC.sampleRate); const ch=NB.getChannelData(0); for(let i=0;i<ch.length;i++) ch[i]=Math.random()*2-1;
+  const o1=AC.createOscillator(), fl=AC.createBiquadFilter(), g=AC.createGain();
+  o1.type='sawtooth'; fl.type='lowpass'; g.gain.value=0; o1.connect(fl); fl.connect(g); g.connect(master); o1.start();
+  LOOP={eng:{o1,fl,g}}; }
+  if(AC.state==='suspended') AC.resume(); }catch(e){} }
+function tone(f,d=.1,type='square',v=.1,when=0,slide=null){ if(!AC) return; const t=AC.currentTime+when, o=AC.createOscillator(), g=AC.createGain(); o.type=type; o.frequency.setValueAtTime(f,t); if(slide) o.frequency.exponentialRampToValueAtTime(slide,t+d); g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(.0005,t+d); o.connect(g); g.connect(master); o.start(t); o.stop(t+d+.05); }
+function nz(d=.5,v=.4,f0=2000,f1=100,when=0){ if(!AC) return; const t=AC.currentTime+when, s=AC.createBufferSource(); s.buffer=NB; s.loop=true; const fl=AC.createBiquadFilter(); fl.type='lowpass'; fl.frequency.setValueAtTime(f0,t); fl.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t+d); const g=AC.createGain(); g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(.0005,t+d); s.connect(fl); fl.connect(g); g.connect(master); s.start(t, Math.random()); s.stop(t+d+.05); }
+function coinSnd(){ tone(880,.08,'sine',.07); tone(1320,.1,'sine',.06,.07); }
+function bonkSnd(){ tone(180,.18,'square',.1); nz(.35,.25,900,80); tone(140,.3,'sawtooth',.06,.05); }
+function meow(){ tone(820,.12,'square',.08); tone(640,.16,'triangle',.07,.08); tone(980,.08,'sine',.05,.18); }
+
+let sayTimer=null, popT=0;
+function say(text){ $('bubble').textContent=text; $('rocky').style.opacity=1; for(let i=0;i<3;i++) tone(pick([523,659,784]),.08,'triangle',.06,i*.1);
+  clearTimeout(sayTimer); sayTimer=setTimeout(()=>{ $('rocky').style.opacity=0; }, 4200); }
+function popup(html){ $('pop').innerHTML=html; $('pop').style.opacity=1; popT=2.2; }
+
+const renderer=new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance', preserveDrawingBuffer:true});
+const Q={level:(navigator.maxTouchPoints||0)>1?1:2, fps:60, acc:0, n:0, pr:Math.min(window.devicePixelRatio||1,1.5)};
+renderer.setPixelRatio(Q.pr); renderer.setSize(innerWidth, innerHeight);
+renderer.domElement.id='c'; document.body.prepend(renderer.domElement);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.shadowMap.enabled=Q.level>0; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x87c8ef);
+scene.fog=new THREE.Fog(0x9fd0ea, 180, 920);
+const camera=new THREE.PerspectiveCamera(58, innerWidth/innerHeight, .25, 1100);
+scene.add(new THREE.HemisphereLight(0xd8ecff, 0x5a6a48, .95));
+const sun=new THREE.DirectionalLight(0xfff3e0, 1.55); sun.position.set(80,140,-40); sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024); sun.shadow.camera.near=10; sun.shadow.camera.far=420;
+sun.shadow.camera.left=-160; sun.shadow.camera.right=160; sun.shadow.camera.top=160; sun.shadow.camera.bottom=-160;
+scene.add(sun, sun.target);
+
+function applyQuality(lv){
+  Q.level=clamp(lv|0,0,2);
+  const nextPr=Q.level>=2?Math.min(window.devicePixelRatio||1,1.5):Q.level>=1?Math.min(window.devicePixelRatio||1,1.1):.85;
+  Q.pr=nextPr;
+  if(Math.abs(renderer.getPixelRatio()-nextPr)>0.02){ try{ renderer.setPixelRatio(Q.pr); }catch(e){} }
+  try{ renderer.setSize(Math.max(1,innerWidth), Math.max(1,innerHeight)); }catch(e){}
+  camera.aspect=innerWidth/Math.max(1,innerHeight); camera.far=Q.level>=2?1100:Q.level>=1?760:560; camera.updateProjectionMatrix();
+  renderer.shadowMap.enabled=Q.level>0;
+}
+
+const mats={};
+function mat(c, extra){ const k=c+'_'+(extra||''); if(!mats[k]) mats[k]=new THREE.MeshLambertMaterial({color:c, emissive:extra==='glow'?c:0x000000, emissiveIntensity:extra==='glow'?.35:0}); return mats[k]; }
+const worldRoot=new THREE.Group(); scene.add(worldRoot);
+function box(w,h,d,m,x,y,z, parent=worldRoot){ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), m); o.position.set(x,y,z); o.castShadow=true; o.receiveShadow=true; parent.add(o); return o; }
+function label(text, col, x, y, z, w=10){
+  const c=document.createElement('canvas'); c.width=512; c.height=128; const g=c.getContext('2d');
+  g.fillStyle=col||'#2a6cff'; g.fillRect(0,0,512,128); g.fillStyle='#fff'; g.font='bold 48px Arial Black,Arial'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(text,256,70);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,w*.25), new THREE.MeshBasicMaterial({map:t}));
+  m.position.set(x,y,z); worldRoot.add(m); return m;
+}
+
+const buildings=[], solids=[];
+function addSolid(x,z,w,d,h,kind){ solids.push({x,z,w,d,h,kind:kind||'wall', minx:x-w/2, maxx:x+w/2, minz:z-d/2, maxz:z+d/2}); }
+function pushOut(x,z,r){
+  let dx=0, dz=0, hit=null;
+  for(const b of solids){
+    if(x<b.minx-r || x>b.maxx+r || z<b.minz-r || z>b.maxz+r) continue;
+    const nx=clamp(x,b.minx,b.maxx), nz=clamp(z,b.minz,b.maxz), ex=x-nx, ez=z-nz, dd=Math.hypot(ex,ez);
+    if(dd<r){ hit=b; if(dd>0){ dx+=ex/dd*(r-dd); dz+=ez/dd*(r-dd); } else { dx+=r; } }
+  }
+  return {dx,dz,hit};
+}
+function hitBuilding(x,y,z,r){
+  for(const b of solids){
+    if(y>b.h+r) continue;
+    if(x<b.minx-r || x>b.maxx+r || z<b.minz-r || z>b.maxz+r) continue;
+    const nx=clamp(x,b.minx,b.maxx), nz=clamp(z,b.minz,b.maxz);
+    if(Math.hypot(x-nx,z-nz)<r) return b;
+  }
+  return null;
+}
+
+function inWater(x,z){
+  if(Math.hypot(x, z-470)<78) return false;
+  if(z>260 && Math.abs(x)<160) return true;
+  if(x<-210 && z>-40) return true;
+  if(z>340) return true;
+  return false;
+}
+function groundY(x,z){
+  if(Math.hypot(x+300, z+380)<42) return 20;
+  if(Math.hypot(x, z-470)<70) return .4;
+  if(inWater(x,z)) return 0;
+  return 0;
+}
+function onRunway(x,z){
+  if(Math.abs(x)<10 && z>-110 && z<150) return 'main';
+  if(Math.abs(x)<8 && Math.abs(z-470)<40) return 'island';
+  const dx=x+300, dz=z+380; if(Math.abs(dx)<8 && Math.abs(dz)<36) return 'peak';
+  return null;
+}
+
+const BCOLS=[0xff6b6b,0x4ecdc4,0xffe66d,0x7bdff2,0xff9f1c,0x9b5de5,0x00bb77,0xf15bb5,0x3a86ff,0xffbe0b];
+const clouds=[], smokes=[], parked=[];
+let cat=null, craft=null, form='cat', screen='title', mode='walk';
+let keys={}, touchSteer=0, touchGas=0, padBoost=false, padBrake=false, padLoop=false, padRoll=false;
+let mission=null, lastLanding=null, crashT=0, taughtNow=false;
+let camLook=new V3(), camPos=new V3(0,8,16);
+
+function makeGround(){
+  const grass=new THREE.Mesh(new THREE.PlaneGeometry(1400,1400), mat(0x4aaa58)); grass.rotation.x=-Math.PI/2; grass.receiveShadow=true; worldRoot.add(grass);
+  const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1400,700), mat(0x2a8fc4)); ocean.rotation.x=-Math.PI/2; ocean.position.set(0,-.15,520); ocean.receiveShadow=true; worldRoot.add(ocean);
+  const west=new THREE.Mesh(new THREE.PlaneGeometry(400,900), mat(0x2a8fc4)); west.rotation.x=-Math.PI/2; west.position.set(-420,-.12,200); worldRoot.add(west);
+  const beach=new THREE.Mesh(new THREE.PlaneGeometry(340,48), mat(0xe8d5a3)); beach.rotation.x=-Math.PI/2; beach.position.set(40,.04,248); beach.receiveShadow=true; worldRoot.add(beach);
+}
+function makeAirport(){
+  const tarmac=new THREE.Mesh(new THREE.BoxGeometry(90,.12,280), mat(0x5b6168)); tarmac.position.set(0,.06,20); tarmac.receiveShadow=true; worldRoot.add(tarmac);
+  const rw=new THREE.Mesh(new THREE.BoxGeometry(18,.14,250), mat(0x3a3e44)); rw.position.set(0,.08,20); rw.receiveShadow=true; worldRoot.add(rw);
+  for(let z=-90; z<140; z+=12) box(1.6,.02,5, mat(0xfff6d8), 0, .16, z);
+  box(18,.02,4, mat(0xfff6d8), 0, .16, -104); box(18,.02,4, mat(0xfff6d8), 0, .16, 142);
+  // hangar
+  box(36,10,28, mat(0xc45c48), -50, 5, -36);
+  box(34,.6,26, mat(0x8a4034), -50, 10.2, -36);
+  const hole=new THREE.Mesh(new THREE.BoxGeometry(18,7,2), mat(0x1a1020)); hole.position.set(-38, 3.6, -22.2); worldRoot.add(hole);
+  box(.8,8,28, mat(0xb45440), -68, 4, -36); addSolid(-68,-36,.8,28,8,'wall');
+  box(36,8,.8, mat(0xb45440), -50, 4, -50); addSolid(-50,-50,36,.8,8,'wall');
+  label('HANGAR', '#c45c48', -50, 12.2, -20, 12);
+  label('KITTY FIELD', '#2a6cff', 0, 8, -118, 16);
+  // tower
+  box(6,18,6, mat(0xf2e6c8), 28, 9, -80); box(8,3,8, mat(0x4aa8ff), 28, 19, -80);
+  addSolid(28,-80,6,6,18,'tower');
+  // island
+  const isle=new THREE.Mesh(new THREE.CylinderGeometry(62,70,1.2,20), mat(0x5ecf7a)); isle.position.set(0,.2,470); worldRoot.add(isle);
+  box(14,.16,78, mat(0x4a4e54), 0, .9, 470);
+  label('ISLAND DOCK', '#1faa4a', 0, 6, 430, 14);
+  box(10,5,8, mat(0xfff2df), 18, 3, 448);
+  // peak strip
+  const plateau=new THREE.Mesh(new THREE.BoxGeometry(48,2,80), mat(0x8a9098)); plateau.position.set(-300,19, -380); worldRoot.add(plateau);
+  box(12,.16,70, mat(0x3a3e44), -300, 20.2, -380);
+  label('PEAK STRIP', '#7a5a3a', -300, 26, -348, 12);
+}
+function makeCity(){
+  for(let ix=0; ix<7; ix++) for(let iz=0; iz<6; iz++){
+    const x=190+ix*28, z=-90+iz*32;
+    const h=8+((ix*5+iz*3)%9)*3.2, w=10+((ix+iz)%3)*2, d=10+((ix*2+iz)%3)*2;
+    const col=BCOLS[(ix*3+iz+2)%BCOLS.length];
+    box(w,h,d, mat(col), x, h/2, z);
+    addSolid(x,z,w,d,h,'city');
+    buildings.push({x,z,w,d,h});
+    for(let wy=3; wy<h-1; wy+=3) box(w*.62,.45,.12, mat(0xcfe8ff), x, wy, z+d/2+.06);
+  }
+  for(let i=0;i<18;i++){
+    const x=40+h3(i,2,9)*90, z=-40+h3(i,8,3)*80;
+    if(Math.abs(x)<50 && z>-120 && z<160) continue;
+    box(.5,3.2,.5, mat(0x5a3a18), x, 1.6, z);
+    const leaf=new THREE.Mesh(new THREE.ConeGeometry(2.2,4.2,7), mat(0x2f9e44)); leaf.position.set(x,4.6,z); worldRoot.add(leaf);
+  }
+}
+function makeMountains(){
+  for(let i=0;i<14;i++){
+    const x=-80+h3(i,1,4)*220-40, z=-280-h3(i,7,2)*140, h=28+h3(i,3,8)*38, r=18+h3(i,5,1)*16;
+    const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,6), mat(i%3?0x6b8f5a:0x8a9090));
+    m.position.set(x,h/2,z); m.castShadow=true; worldRoot.add(m);
+  }
+  const cap=new THREE.Mesh(new THREE.ConeGeometry(22,18,6), mat(0xf4f7fb)); cap.position.set(-300, 20+18, -430); worldRoot.add(cap);
+}
+function makeClouds(){
+  for(let i=0;i<28;i++){
+    const g=new THREE.Group();
+    const n=3+(i%3);
+    for(let k=0;k<n;k++){
+      const s=new THREE.Mesh(new THREE.SphereGeometry(4+h3(i,k,2)*3, 8, 6), mat(0xffffff));
+      s.position.set(k*4-4, h3(i,k,9)*2, (k%2)*2); g.add(s);
+    }
+    g.position.set(rand(-420,420), rand(38,78), rand(-420,520));
+    g.userData.v=rand(.8,2.2); worldRoot.add(g); clouds.push(g);
+  }
+}
+function makeHouse(){
+  box(8,4.4,7, mat(0xd8c4a0), -90, 2.2, 18);
+  const roof=new THREE.Mesh(new THREE.ConeGeometry(6.2,3.2,4), mat(0xc45c48)); roof.position.set(-90,5.8,18); roof.rotation.y=Math.PI/4; worldRoot.add(roof);
+  addSolid(-90,18,8,7,4.4,'house');
+}
+
+function planeById(id){ return PLANES.find(p=>p.id===id); }
+function makeCraftMesh(def){
+  const g=new THREE.Group();
+  const body=mat(def.col), stripe=mat(def.stripe), dark=mat(0x22232a), glass=mat(0xa8e4ff);
+  const spin=new THREE.Group(); g.add(spin);
+  if(def.kind==='heli'){
+    box(1.6,1.2,2.6, body, 0,.9,0, g);
+    box(1.4,.7,1.4, glass, 0,1.35,.3, g);
+    box(.25,.25,3.2, stripe, 0,1.1,-2.2, g);
+    const rot=new THREE.Group(); rot.position.set(0,1.85,0); g.add(rot);
+    box(7.2,.08,.35, dark, 0,0,0, rot); box(.35,.08,7.2, dark, 0,0,0, rot);
+    const tail=new THREE.Group(); tail.position.set(0,1.15,-3.6); g.add(tail);
+    box(.08,1.4,.08, dark, 0,0,0, tail);
+    g.userData.rotor=rot; g.userData.tail=tail;
+  } else {
+    const L=def.kind==='cargo'?4.6:def.kind==='jet'?4.2:3.6;
+    const W=def.kind==='cargo'?1.5:1.05;
+    const H=def.kind==='cargo'?1.2:.72;
+    box(W,H,L, body, 0,1.0,0, g);
+    box(W*.7,.4,L*.45, glass, 0,1.35, L*.18, g);
+    const wingW=def.kind==='cargo'?7.4:def.kind==='jet'?6.2:5.6;
+    box(wingW,.12,1.1, stripe, 0,1.05, -0.1, g);
+    box(.16,1.1,.9, stripe, 0,1.7, -L*.42, g);
+    box(2.2,.1,.5, stripe, 0,1.55, -L*.42, g);
+    if(def.kind==='prop' || def.kind==='sea' || def.kind==='cargo'){
+      const prop=new THREE.Group(); prop.position.set(0,1.05, L*.52); g.add(prop);
+      box(.12,.12,.12, dark, 0,0,0, prop);
+      box(1.8,.08,.12, dark, 0,0,.04, prop); box(.08,1.8,.12, dark, 0,0,.04, prop);
+      g.userData.prop=prop;
+    }
+    if(def.kind==='jet'){
+      box(.35,.35,1.4, dark, -.45,.85, -L*.4, g);
+      box(.35,.35,1.4, dark, .45,.85, -L*.4, g);
+    }
+    if(def.kind==='sea'){
+      box(.35,.35,3.2, dark, -1.1,.35, .1, g);
+      box(.35,.35,3.2, dark, 1.1,.35, .1, g);
+    }
+    if(def.kind==='cargo'){
+      box(1.8,1.3,2.4, body, 0,1.55, -.3, g);
+    }
+    for(const [x,z] of [[-.7,1.1],[.7,1.1],[-.7,-1.2],[.7,-1.2]]){
+      const wh=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.16,8), dark); wh.rotation.z=Math.PI/2; wh.position.set(x,.22,z); g.add(wh);
+    }
+  }
+  const light=new THREE.Mesh(new THREE.SphereGeometry(.12,6,6), mat(0xff4040,'glow')); light.position.set(.5,1.1,-1.6); g.add(light);
+  g.userData.def=def;
+  return g;
+}
+
+function seatCat(){
+  if(!cat||!craft) return;
+  craft.g.add(cat);
+  cat.position.set(0, craft.def.kind==='heli'?1.7:1.55, craft.def.kind==='cargo'?.2:.35);
+  cat.rotation.set(0,0,0);
+  cat.scale.setScalar(.9);
+  cat.visible=true;
+}
+function unseatCat(x,z,yaw){
+  scene.add(cat);
+  cat.scale.setScalar(1.7);
+  cat.position.set(x,0,z);
+  cat.rotation.set(0,yaw||0,0);
+  cat.visible=true;
+}
+
+function spawnParked(){
+  for(const p of parked){ worldRoot.remove(p.g); }
+  parked.length=0;
+    PLANES.forEach((def,i)=>{
+    const g=makeCraftMesh(def);
+    const x=-62+i*8, z=-12;
+    g.position.set(x, groundY(x,z), z); g.rotation.y=0;
+    worldRoot.add(g);
+    parked.push({id:def.id, g, x, z, def});
+    if(craft && craft.id===def.id && form==='plane') g.visible=false;
+  });
+}
+
+function makeSmoke(){
+  const g=new THREE.Group();
+  for(let i=0;i<8;i++){
+    const s=new THREE.Mesh(new THREE.SphereGeometry(.45,6,5), new THREE.MeshLambertMaterial({color:0xcccccc, transparent:true, opacity:.7}));
+    s.position.set(rand(-.6,.6), rand(0,1), rand(-.6,.6)); g.add(s);
+  }
+  return g;
+}
+
+function hud(){
+  $('sc').textContent=save.coins|0;
+  $('splane').textContent=form==='plane' && craft ? craft.def.name : 'on foot';
+  $('sjob').textContent=mission? mission.label : 'none yet';
+  $('vname').textContent=form==='plane' && craft ? '✈️ '+craft.def.name : '🐱 ORANGE TABBY';
+  $('goal').textContent=goalHint();
+  const sp=craft&&form==='plane'?craft.spd: (form==='cat'?catWalkSp:0);
+  $('mph').textContent=Math.round(Math.abs(sp)*2.237);
+  $('mphl').textContent=form==='cat'?'CAT':'MPH';
+  const alt=form==='plane'&&craft?Math.max(0, craft.y-groundY(craft.x,craft.z)):0;
+  $('altl').textContent='ALT '+Math.round(alt);
+  $('throti').style.width=((craft&&form==='plane'?craft.thr:0)*100)+'%';
+  $('help').innerHTML=helpText();
+}
+function goalHint(){
+  if(form==='cat') return 'Walk to the HANGAR and pick a plane!';
+  if(mode==='taxi' && craft && craft.spd<craft.def.take) return 'Hold W. Planes need SPEED before wings can LIFT!';
+  if(mode==='taxi') return 'Speed + lift = flying! Keep holding W to pull up.';
+  if(mission) return mission.hint;
+  if(mode==='air') return 'Fly free! Rings, packages, rides, stunts. Land softly for bonus coins.';
+  return 'Taxi to the runway. Go fast, then pull up!';
+}
+function helpText(){
+  if(form==='cat') return '<b>WASD</b> walk · <b>ENTER</b> hop in · iPad stick + ENTER';
+  if(mode==='air') return '<b>W/S</b> climb/dive · <b>A/D</b> turn · <b>SHIFT</b> boost · <b>X</b> loop · <b>Q/E</b> roll · <b>F</b> get out';
+  return '<b>W</b> throttle · <b>S</b> brake · <b>A/D</b> steer · hold <b>W</b> to take off · <b>SHIFT</b> boost';
+}
+
+function addCoins(n, why){
+  n=n|0; if(!n) return;
+  save.coins=Math.max(0,(save.coins|0)+n); persist();
+  coinSnd(); popup((n>0?'+':'')+n+' 🪙'+(why?`<small>${why}</small>`:''));
+}
+
+function openHangar(){
+  const el=$('hangar'); el.classList.remove('hidden');
+  el.innerHTML=`<h2>HANGAR</h2><p>Coins: <b>${save.coins}</b>. Starter plane is free. Unlock the rest!</p>`+
+    PLANES.map(p=>{
+      const have=save.owned.includes(p.id);
+      const btn=have?`<button data-board="${p.id}">HOP IN</button>`:
+        (save.coins>=p.price?`<button data-buy="${p.id}">BUY ${p.price}</button>`:`<button disabled>NEED ${p.price}</button>`);
+      return `<div class="item"><span><b>${p.name}</b><br><small>${p.blurb}</small></span>${btn}</div>`;
+    }).join('')+`<div style="margin-top:8px"><button id="hangarClose">CLOSE</button></div>`;
+  el.querySelectorAll('[data-board]').forEach(b=>b.onclick=()=>{ board(b.dataset.board); el.classList.add('hidden'); });
+  el.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{ if(buyPlane(b.dataset.buy)){ board(b.dataset.buy); el.classList.add('hidden'); } else openHangar(); });
+  const c=$('hangarClose'); if(c) c.onclick=()=>el.classList.add('hidden');
+}
+
+function buyPlane(id){
+  const def=planeById(id); if(!def) return false;
+  if(save.owned.includes(id)) return true;
+  if(save.coins<def.price){ say('Need more coins, question? Fly rings!'); return false; }
+  save.coins-=def.price; save.owned.push(id); save.plane=id; persist();
+  popup(`UNLOCKED!<small>${def.name}</small>`); say('New plane! Zoom zoom!');
+  spawnParked(); return true;
+}
+
+function board(id){
+  const def=planeById(id||save.plane||'cub'); if(!def) return false;
+  if(!save.owned.includes(def.id)) return false;
+  if(form==='plane') hopOut(true);
+  const g=makeCraftMesh(def);
+  const pk=parked.find(p=>p.id===def.id);
+  const x=pk?pk.x:-46, z=pk?pk.z:-12;
+  g.position.set(x, groundY(x,z)+(def.kind==='heli'?0.2:0), z);
+  g.rotation.y=0;
+  worldRoot.add(g);
+  if(pk) pk.g.visible=false;
+  craft={id:def.id, def, g, x, y:g.position.y, z, yaw:0, pitch:0, roll:0, spd:0, thr:.15, vy:0, stuntA:0, stuntKind:null, loopAcc:0, rollAcc:0, airBorn:0, flyT:0};
+  form='plane'; mode=def.hover?'air':'taxi';
+  if(def.hover){ craft.y=Math.max(craft.y, 2.2); craft.thr=.45; }
+  save.plane=def.id; persist();
+  $('prompt').classList.add('hidden');
+  $('hangar').classList.add('hidden');
+  seatCat(); hud();
+  say(def.hover?'Up we go! Helicopters lift straight up.':'Taxi to the big runway. Speed plus lift!');
+  if(!save.taught.takeoff && !def.hover){ save.taught.takeoff=true; persist(); say('Wings need moving air. Go FAST, then pull UP!'); }
+  return true;
+}
+
+function hopOut(silent){
+  if(form!=='plane' || !craft) return false;
+  const x=craft.x+Math.sin(craft.yaw+1.2)*2.4, z=craft.z+Math.cos(craft.yaw+1.2)*2.4;
+  const yaw=craft.yaw;
+  worldRoot.remove(craft.g);
+  const pk=parked.find(p=>p.id===craft.id); if(pk) pk.g.visible=true;
+  unseatCat(x,z,yaw);
+  craft=null; form='cat'; mode='walk';
+  if(!silent){ meow(); say('Paws on the ground!'); }
+  hud(); return true;
+}
+
+function placeOnRunway(which){
+  if(form!=='plane') board(save.plane||'cub');
+  if(!craft) return false;
+  const spot=which==='island'?{x:0,z:450,yaw:0,y:.8}:which==='peak'?{x:-300,z:-360,yaw:0,y:21}:{x:0,z:-90,yaw:0,y:0};
+  craft.x=spot.x; craft.z=spot.z; craft.y=spot.y+(craft.def.kind==='heli'?1.2:0.35); craft.yaw=spot.yaw; craft.pitch=0; craft.roll=0; craft.spd=0; craft.thr=.2; craft.vy=0;
+  mode=craft.def.hover?'air':'taxi';
+  syncCraft(); return true;
+}
+
+function syncCraft(){
+  if(!craft) return;
+  craft.g.position.set(craft.x, craft.y, craft.z);
+  craft.g.rotation.set(craft.pitch, craft.yaw, craft.roll);
+  const spin=craft.g.userData;
+  if(spin.prop) spin.prop.rotation.z += (0.4+craft.thr*1.6+craft.spd*.04);
+  if(spin.rotor) spin.rotor.rotation.y += 0.8+craft.thr*1.4;
+  if(spin.tail) spin.tail.rotation.x += 1.2+craft.thr;
+}
+
+function clearMission(){
+  if(mission && mission.rings) mission.rings.forEach(r=>worldRoot.remove(r));
+  if(mission && mission.marker) worldRoot.remove(mission.marker);
+  mission=null;
+}
+function mkRing(x,y,z){
+  const m=new THREE.Mesh(new THREE.TorusGeometry(3.2,.38,8,20), new THREE.MeshLambertMaterial({color:0xffd21e, emissive:0xaa7700, emissiveIntensity:.4}));
+  m.position.set(x,y,z); m.rotation.y=Math.PI/2; worldRoot.add(m); return m;
+}
+function mkMarker(x,y,z,col){
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(.4, .4, 10, 8), mat(col||0x4cff6a,'glow')); m.position.set(x,y+5,z); worldRoot.add(m); return m;
+}
+function startMission(type){
+  clearMission();
+  if(type==='rings'){
+    const rings=[];
+    const base=form==='plane'&&craft?{x:craft.x,y:Math.max(craft.y,18),z:craft.z,yaw:craft.yaw}:{x:0,y:22,z:0,yaw:0};
+    for(let i=0;i<5;i++){
+      const d=28+i*26;
+      const x=base.x+Math.sin(base.yaw)*d + Math.sin(i)*6;
+      const z=base.z+Math.cos(base.yaw)*d;
+      const y=base.y+4+i*3;
+      rings.push(mkRing(x,y,z));
+    }
+    mission={type:'rings', rings, got:0, n:5, pay:RING_PAY, label:'gold rings', hint:'Fly through the gold rings! Each one is coins.'};
+  } else if(type==='package'){
+    mission={type:'package', phase:'pick', from:'main', to:'island', pay:PACK_PAY*(craft&&craft.def.pack?craft.def.pack:1), label:'package', hint:'Land at Kitty Field, grab the package, fly to Island Dock!', marker:mkMarker(6,0,-20,0xffd21e)};
+  } else if(type==='ride'){
+    mission={type:'ride', phase:'pick', from:'main', to:'peak', pay:RIDE_PAY, label:'passenger ride', hint:'Pick up a friend at Kitty Field, land at Peak Strip!', marker:mkMarker(-8,0,8,0x7cf)};
+  } else if(type==='stunt'){
+    mission={type:'stunt', need:{loop:false, barrel:false}, label:'stunts', hint:'Do a LOOP (X) and a BARREL ROLL (Q or E)!', pay:STUNT_PAY};
+  }
+  hud(); say(mission.hint); return mission;
+}
+
+function hitRings(){
+  if(!mission || mission.type!=='rings' || !craft) return 0;
+  let n=0;
+  for(const r of mission.rings.slice()){
+    if(Math.hypot(craft.x-r.position.x, craft.y-r.position.y, craft.z-r.position.z)<4.4){
+      worldRoot.remove(r); mission.rings.splice(mission.rings.indexOf(r),1); mission.got++; n++;
+      addCoins(mission.pay, 'RING!'); tone(1200,.08,'sine',.07);
+    }
+  }
+  if(mission.got>=mission.n){ save.rings++; save.jobs++; persist(); popup('RING RUN DONE!<small>So shiny.</small>'); say('All the rings! You are a sky cat!'); clearMission(); }
+  return n;
+}
+
+function crashNow(why){
+  if(mode==='crash') return;
+  mode='crash'; crashT=1.4; lastLanding='crash';
+  bonkSnd(); meow(); popup('BONK!<small>puff of smoke</small>');
+  say(why||'Oof! Puff of smoke. Back to the hangar, no big deal!');
+  if(craft){ const sm=makeSmoke(); sm.position.copy(craft.g.position); worldRoot.add(sm); smokes.push({g:sm, t:1.6}); }
+}
+
+function respawnAfterCrash(){
+  if(form==='plane') hopOut(true);
+  unseatCat(POI.hangar.x+8, POI.hangar.z+8, 0);
+  form='cat'; mode='walk'; spawnParked();
+  hud();
+}
+
+function tryLand(){
+  if(!craft || mode!=='air') return;
+  const water=inWater(craft.x,craft.z);
+  const rw=onRunway(craft.x,craft.z);
+  const gy=groundY(craft.x,craft.z);
+  const sink=-craft.vy, sp=craft.spd, level=Math.abs(craft.pitch)<.28 && Math.abs(craft.roll)<.4;
+  if(water && !craft.def.water && !craft.def.hover){ crashNow('Splash! Seaplanes float. This one does a silly belly flop.'); return; }
+  const tooHard=sink>14 || sp>craft.def.top*.95 || Math.abs(craft.pitch)>.7;
+  if(tooHard && !craft.def.hover){ crashNow('Bumpy bonk! Try slower and level next time.'); return; }
+  craft.y=gy+(craft.def.kind==='heli'?0.2:0.35); craft.vy=0; craft.pitch*=.2; craft.roll*=.2;
+  mode='taxi';
+  const realFlight=(craft.flyT||0)>0.7;
+  if(!realFlight){ lastLanding=null; return; }
+  if(water && craft.def.water) lastLanding=level&&sink<7?'smooth':'ok';
+  else if(craft.def.hover) lastLanding=sink<8?'smooth':'ok';
+  else lastLanding=(rw && level && sink<8 && sp<craft.def.take*1.55)?'smooth':'ok';
+  if(lastLanding==='smooth'){ save.landings++; persist(); addCoins(LAND_PAY, 'SOFT LANDING!'); say('Kissed the runway. That is how planes land!'); if(!save.taught.land){ save.taught.land=true; persist(); } }
+  else { addCoins(3, 'Landed!'); say('Landed! Next time slow down and stay level for BONUS coins.'); }
+  finishGroundMission();
+}
+
+function finishGroundMission(){
+  if(!mission || !craft) return;
+  const here=onRunway(craft.x,craft.z) || (inWater(craft.x,craft.z)&&craft.def.water?'island':null);
+  if(mission.type==='package'){
+    if(mission.phase==='pick' && (here==='main' || Math.hypot(craft.x,craft.z)<40)){
+      mission.phase='carry'; if(mission.marker) worldRoot.remove(mission.marker);
+      mission.marker=mkMarker(0,1,470,0xffd21e); mission.hint='Package on board! Fly to Island Dock.'; say(mission.hint); hud();
+    } else if(mission.phase==='carry' && (here==='island' || Math.hypot(craft.x, craft.z-470)<40)){
+      save.packs++; save.jobs++; persist(); addCoins(Math.round(mission.pay), 'DELIVERED!'); popup('PACKAGE DELIVERED!'); clearMission();
+    }
+  } else if(mission.type==='ride'){
+    if(mission.phase==='pick' && (here==='main' || Math.hypot(craft.x,craft.z)<40)){
+      mission.phase='carry'; if(mission.marker) worldRoot.remove(mission.marker);
+      mission.marker=mkMarker(-300,20,-380,0x7cf); mission.hint='Passenger aboard! Land on Peak Strip.'; say(mission.hint); hud();
+    } else if(mission.phase==='carry' && (here==='peak' || Math.hypot(craft.x+300, craft.z+380)<36)){
+      save.rides++; save.jobs++; persist(); addCoins(mission.pay, 'NICE RIDE!'); popup('PASSENGER HAPPY!'); clearMission();
+    }
+  }
+}
+
+function doStunt(kind){
+  if(!craft || mode!=='air') return false;
+  craft.stuntKind=kind; craft.stuntA=0;
+  return true;
+}
+function noteStunt(kind){
+  popup(kind==='loop'?'LOOP DE LOOP!':'BARREL ROLL!');
+  addCoins(STUNT_PAY, kind==='loop'?'LOOP':'ROLL');
+  save.stunts++; persist();
+  if(mission && mission.type==='stunt'){
+    mission.need[kind==='loop'?'loop':'barrel']=true;
+    if(mission.need.loop && mission.need.barrel){ save.jobs++; persist(); popup('STUNT SHOW!'); clearMission(); }
+    else hud();
+  }
+}
+
+let catWalkSp=0, catYaw=0;
+function walkCat(dt){
+  const up=!!(keys.KeyW||keys.ArrowUp||touchGas>0.2);
+  const dn=!!(keys.KeyS||keys.ArrowDown||touchGas<-0.2);
+  const lf=!!(keys.KeyA||keys.ArrowLeft)||touchSteer<-.2;
+  const rt=!!(keys.KeyD||keys.ArrowRight)||touchSteer>.2;
+  if(lf) catYaw+=1.9*dt; if(rt) catYaw-=1.9*dt;
+  const want=(up?8:0)+(dn?-5:0)+touchGas*8;
+  catWalkSp+=(want-catWalkSp)*Math.min(1,dt*6);
+  cat.position.x+=Math.sin(catYaw)*catWalkSp*dt;
+  cat.position.z+=Math.cos(catYaw)*catWalkSp*dt;
+  const p=pushOut(cat.position.x, cat.position.z, .7);
+  cat.position.x+=p.dx; cat.position.z+=p.dz;
+  cat.position.y=0; cat.rotation.y=catYaw;
+  const legs=cat.userData&&cat.userData.legs;
+  if(legs){ const ph=performance.now()*.01*Math.abs(catWalkSp); legs.forEach((lg,i)=>lg.rotation.x=Math.sin(ph+(i<2?0:Math.PI))*.5); }
+  if(cat.userData&&cat.userData.tail) cat.userData.tail.rotation.y=Math.sin(performance.now()*.004)*.3;
+  const near=Math.hypot(cat.position.x-POI.hangar.x, cat.position.z-POI.hangar.z)<POI.hangar.r;
+  if(form==='cat' && near){ $('prompt').classList.remove('hidden'); $('prompt').innerHTML='HANGAR TIME!<small>Press ENTER to pick a plane</small>'; }
+  else if(!$('hangar').classList.contains('hidden')) {}
+  else $('prompt').classList.add('hidden');
+}
+
+function flyPlane(dt){
+  const d=craft.def;
+  const up=!!(keys.KeyW||keys.ArrowUp||touchGas>0.18);
+  const dn=!!(keys.KeyS||keys.ArrowDown||touchGas<-0.18||padBrake);
+  const lf=!!(keys.KeyA||keys.ArrowLeft)||touchSteer<-.18;
+  const rt=!!(keys.KeyD||keys.ArrowRight)||touchSteer>.18;
+  const boost=!!(keys.ShiftLeft||keys.ShiftRight||padBoost);
+  const wantLoop=!!(keys.KeyX||padLoop);
+  const wantRoll=!!(keys.KeyQ||keys.KeyE||padRoll);
+  const steer=(rt?1:0)-(lf?1:0) + touchSteer;
+
+  if(mode==='taxi'){
+    const acc=d.acc*(boost?1.6:1);
+    if(up) craft.thr=Math.min(1, craft.thr+dt*.7);
+    else if(dn) craft.thr=Math.max(0, craft.thr-dt*1.1);
+    else craft.thr+=(0-craft.thr)*dt*.4;
+    const top=d.top*(boost?1.35:1)*.55;
+    craft.spd+=(craft.thr*acc - craft.spd*(dn?2.4:.9))*dt;
+    craft.spd=clamp(craft.spd, d.hover?0:-6, top);
+    craft.yaw+=-steer*d.turn*(.4+clamp(Math.abs(craft.spd)/10,.15,1))*dt;
+    craft.x+=Math.sin(craft.yaw)*craft.spd*dt;
+    craft.z+=Math.cos(craft.yaw)*craft.spd*dt;
+    const p=pushOut(craft.x, craft.z, 1.6);
+    craft.x+=p.dx; craft.z+=p.dz;
+    const gy=groundY(craft.x,craft.z);
+    if(inWater(craft.x,craft.z) && !d.water && !d.hover){ crashNow('Splash taxi! That is ocean. Try the seaplane.'); return; }
+    craft.y=gy+(d.kind==='heli'?0.2:0.35);
+    craft.pitch+=(0-craft.pitch)*Math.min(1,dt*4); craft.roll+=(-steer*.15-craft.roll)*Math.min(1,dt*5);
+    const liftReady=d.hover ? craft.thr>.32 : (craft.spd>=d.take && (up||craft.thr>.78||boost));
+    if(liftReady){
+      mode='air'; craft.y+=2.4; craft.vy=d.hover?10:10*d.lift; craft.pitch=d.hover?0:-.28; craft.airBorn=1.4; craft.flyT=0;
+      popup('LIFTOFF!<small>speed + lift</small>');
+      if(!taughtNow){ taughtNow=true; say('See? Fast air over the wings PUSHES you up!'); }
+    } else if(!d.hover && craft.spd>d.take*.62 && craft.spd<d.take){
+      $('goal').textContent='Faster! Wings need moving air to make LIFT.';
+    } else if(!d.hover && craft.spd>=d.take){
+      $('goal').textContent='Now PULL UP! Hold W. Speed + lift = flying!';
+    }
+  } else if(mode==='air'){
+    craft.airBorn=Math.max(0,(craft.airBorn||0)-dt); craft.flyT=(craft.flyT||0)+dt;
+    if(up) craft.thr=Math.min(1, craft.thr+dt*.45);
+    else if(dn) craft.thr=Math.max(.08, craft.thr-dt*.5);
+    else craft.thr+=(.62-craft.thr)*dt*.25;
+    const top=d.top*(boost?1.42:1);
+    const acc=d.acc*(boost?1.7:1);
+    if(d.hover){
+      craft.vy += ((up?16:dn?-12: (craft.thr-.4)*10) - craft.vy)*dt*2.4;
+      craft.spd += (craft.thr*d.top*(boost?1.1:.55) - craft.spd)*dt*1.6;
+      craft.yaw += -steer*d.turn*dt;
+    } else {
+      craft.spd += (craft.thr*acc*0.9 - craft.spd*0.55)*dt;
+      if(boost) craft.spd += acc*dt;
+      craft.spd=clamp(craft.spd, 6, top);
+      craft.yaw += -steer*d.turn*(.7+craft.spd/top)*dt;
+    }
+    if(wantLoop){ craft.stuntKind=craft.stuntKind||'loop'; }
+    if(wantRoll){ craft.stuntKind=craft.stuntKind||'barrel'; }
+    if(craft.stuntKind==='loop'){
+      craft.pitch -= dt*2.5; craft.stuntA += dt*2.5;
+      if(craft.stuntA>Math.PI*2-0.05){ craft.stuntKind=null; craft.stuntA=0; craft.pitch=wrapPi(craft.pitch); noteStunt('loop'); }
+    } else if(craft.stuntKind==='barrel'){
+      craft.roll += dt*3.1; craft.stuntA += dt*3.1;
+      if(craft.stuntA>Math.PI*2-0.05){ craft.stuntKind=null; craft.stuntA=0; craft.roll=wrapPi(craft.roll); noteStunt('barrel'); }
+    } else {
+      const wantPitch=d.hover?0:(up?-.42:dn?.38:0);
+      craft.pitch += (wantPitch-craft.pitch)*Math.min(1,dt*2.4);
+      craft.roll += (-steer*.5 - craft.roll)*Math.min(1,dt*2.6);
+    }
+    if(!d.hover){
+      const fx=Math.sin(craft.yaw)*Math.cos(craft.pitch);
+      const fy=-Math.sin(craft.pitch);
+      const fz=Math.cos(craft.yaw)*Math.cos(craft.pitch);
+      craft.x+=fx*craft.spd*dt; craft.z+=fz*craft.spd*dt;
+      const stall=clamp(1-craft.spd/(d.take*1.15),0,1);
+      craft.vy = fy*craft.spd + (boost&&up?8:0) - 9*stall*stall;
+      craft.y+=craft.vy*dt;
+      if(craft.spd<d.take*.72) $('goal').textContent='Speed makes lift! Add throttle so you do not sink.';
+    } else {
+      craft.x+=Math.sin(craft.yaw)*craft.spd*dt;
+      craft.z+=Math.cos(craft.yaw)*craft.spd*dt;
+      craft.y+=craft.vy*dt;
+    }
+    if(craft.y>130){ craft.y=130; if(craft.vy>0) craft.vy=0; }
+    const gy=groundY(craft.x,craft.z);
+    const agl=craft.y-gy;
+    if(agl<40 && onRunway(craft.x,craft.z) && !save.taught.land){
+      $('goal').textContent='Landing: slow down, stay level, kiss the runway. Soft landing = bonus coins!';
+    }
+    const hit=hitBuilding(craft.x, craft.y, craft.z, 1.8);
+    if(hit && hit.kind==='city'){ crashNow('Bonk on a building! Puff of smoke.'); return; }
+    if(agl<1.15 && (craft.airBorn||0)<=0){ tryLand(); }
+    hitRings();
+  }
+  if(craft && mode!=='crash') syncCraft();
+}
+
+function interact(){
+  if(screen!=='play') return;
+  if(form==='cat'){
+    const near=Math.hypot(cat.position.x-POI.hangar.x, cat.position.z-POI.hangar.z)<POI.hangar.r+6;
+    if(near){ openHangar(); return 'hangar'; }
+    const pk=parked.find(p=>Math.hypot(cat.position.x-p.x, cat.position.z-p.z)<4);
+    if(pk){ if(save.owned.includes(pk.id)){ board(pk.id); return 'board'; } openHangar(); return 'hangar'; }
+    openHangar(); return 'hangar';
+  }
+  hopOut(); return 'out';
+}
+
+function camFollow(dt){
+  let tx,ty,tz, lx,ly,lz, dist, hi;
+  if(form==='plane' && craft){
+    const air=mode==='air';
+    dist=air?18:10; hi=air?6.5:3.6;
+    const fx=Math.sin(craft.yaw), fz=Math.cos(craft.yaw);
+    tx=craft.x - fx*dist; ty=craft.y+hi; tz=craft.z - fz*dist;
+    lx=craft.x + fx*8; ly=craft.y+1.2; lz=craft.z + fz*8;
+  } else {
+    const fx=Math.sin(catYaw), fz=Math.cos(catYaw);
+    tx=cat.position.x - fx*8; ty=4.2; tz=cat.position.z - fz*8;
+    lx=cat.position.x; ly=1.2; lz=cat.position.z;
+  }
+  const k=1-Math.exp(-dt*4.2);
+  camPos.x+=(tx-camPos.x)*k; camPos.y+=(ty-camPos.y)*k; camPos.z+=(tz-camPos.z)*k;
+  camLook.x+=(lx-camLook.x)*k; camLook.y+=(ly-camLook.y)*k; camLook.z+=(lz-camLook.z)*k;
+  camera.position.copy(camPos); camera.lookAt(camLook);
+  sun.target.position.set(lx,0,lz); sun.position.set(lx+80,140,lz-40);
+}
+
+function simStep(dt){
+  dt=clamp(dt,0.001,0.05);
+  if(screen!=='play' && screen!=='title') return;
+  if(popT>0){ popT-=dt; if(popT<=0) $('pop').style.opacity=0; }
+  clouds.forEach(c=>{ c.position.x+=c.userData.v*dt; if(c.position.x>480) c.position.x=-480; });
+  for(let i=smokes.length-1;i>=0;i--){ const s=smokes[i]; s.t-=dt; s.g.position.y+=dt*3; s.g.scale.setScalar(1+(1.6-s.t)); if(s.t<=0){ worldRoot.remove(s.g); smokes.splice(i,1); } }
+  if(mission && mission.rings) mission.rings.forEach(r=>r.rotation.z+=dt);
+  if(mode==='crash'){ crashT-=dt; if(crashT<=0) respawnAfterCrash(); camFollow(dt); return; }
+  if(screen==='play'){
+    if(form==='cat') walkCat(dt);
+    else if(form==='plane' && craft) flyPlane(dt);
+    if(netKit) netKit.updateRemotes(dt);
+    hud();
+  }
+  camFollow(dt);
+  if(LOOP && form==='plane' && craft){
+    LOOP.eng.o1.frequency.setTargetAtTime(70+craft.thr*90+craft.spd*2, AC?AC.currentTime:0, .08);
+    LOOP.eng.g.gain.setTargetAtTime(mode==='air'||craft.thr>.1?.05:0, AC?AC.currentTime:0, .08);
+  } else if(LOOP) LOOP.eng.g.gain.setTargetAtTime(0, AC?AC.currentTime:0, .1);
+  if(netKit) netKit.sendMine(performance.now());
+}
+
+let lastT=performance.now();
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt=clamp((now-lastT)/1000, 0, .05); lastT=now;
+  simStep(dt);
+  Q.acc+=dt; Q.n++;
+  if(Q.acc>.8){ Q.fps=Q.n/Q.acc; Q.acc=0; Q.n=0; if(Q.fps<42 && Q.level>0) applyQuality(Q.level-1); }
+  try{ renderer.setViewport(0,0,innerWidth,innerHeight); renderer.setScissorTest(false); renderer.autoClear=true; renderer.render(scene,camera); }catch(e){}
+}
+requestAnimationFrame(frame);
+
+function startPlay(){
+  screen='play';
+  $('title').classList.add('hidden');
+  ['hud','goal','vname','speedo','help'].forEach(id=>$(id).classList.remove('hidden'));
+  audio(); hud();
+  say('Walk to the hangar, orange tabby! Then we FLY.');
+}
+function snapCam(){ camFollow(1); }
+
+$('bStart').onclick=()=>startPlay();
+$('howOpen').onclick=()=>$('how').classList.remove('hidden');
+$('howClose').onclick=()=>$('how').classList.add('hidden');
+
+addEventListener('pointerdown',()=>audio());
+addEventListener('keydown', ev=>{
+  if(ev.target && (ev.target.tagName==='INPUT'||ev.target.tagName==='TEXTAREA')) return;
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(ev.code)) ev.preventDefault();
+  keys[ev.code]=true; if(ev.repeat) return; audio();
+  if(screen==='title' && (ev.code==='Enter'||ev.code==='Space')) { startPlay(); return; }
+  if(ev.code==='Escape'){ $('hangar').classList.add('hidden'); $('how').classList.add('hidden'); $('ptPanel').classList.add('hidden'); }
+  else if(ev.code==='Enter') interact();
+  else if(ev.code==='KeyF' && form==='plane') hopOut();
+  else if(ev.code==='KeyX') doStunt('loop');
+  else if(ev.code==='KeyQ'||ev.code==='KeyE') doStunt('barrel');
+  else if(ev.code==='KeyM') { const types=['rings','package','ride','stunt']; startMission(pick(types)); }
+  else if(ev.code==='Digit1') startMission('rings');
+  else if(ev.code==='Digit2') startMission('package');
+  else if(ev.code==='Digit3') startMission('ride');
+  else if(ev.code==='Digit4') startMission('stunt');
+});
+addEventListener('keyup', ev=>{ keys[ev.code]=false; });
+addEventListener('blur', ()=>{ for(const k in keys) keys[k]=false; });
+addEventListener('resize', ()=>applyQuality(Q.level));
+renderer.domElement.addEventListener('webglcontextlost', ev=>{ try{ ev.preventDefault(); }catch(e){} (window.CATAIR_ERRS=window.CATAIR_ERRS||[]).push('webglcontextlost'); });
+renderer.domElement.addEventListener('webglcontextrestored', ()=>{ try{ applyQuality(Q.level); renderer.render(scene,camera); }catch(e){} });
+
+(function touch(){
+  const stick=$('stick'), nub=$('nub');
+  let pid=null, cx=0, cy=0;
+  function setFrom(x,y){ const r=65, dx=clamp(x-cx,-r,r), dy=clamp(y-cy,-r,r); nub.style.left=(45+dx)+'px'; nub.style.top=(45+dy)+'px'; touchSteer=dx/r; touchGas=-dy/r; }
+  stick.addEventListener('pointerdown', e=>{ pid=e.pointerId; const b=stick.getBoundingClientRect(); cx=b.left+b.width/2; cy=b.top+b.height/2; stick.setPointerCapture(pid); setFrom(e.clientX,e.clientY); });
+  stick.addEventListener('pointermove', e=>{ if(pid===e.pointerId) setFrom(e.clientX,e.clientY); });
+  const end=()=>{ pid=null; nub.style.left='45px'; nub.style.top='45px'; touchSteer=0; touchGas=0; };
+  stick.addEventListener('pointerup', end); stick.addEventListener('pointercancel', end);
+  $('padAct').addEventListener('pointerdown', e=>{ e.preventDefault(); interact(); });
+  $('padOut').addEventListener('pointerdown', e=>{ e.preventDefault(); if(form==='plane') hopOut(); });
+  const hold=(id,set)=>{ const el=$(id); el.addEventListener('pointerdown', e=>{ e.preventDefault(); set(true); }); el.addEventListener('pointerup', ()=>set(false)); el.addEventListener('pointerleave', ()=>set(false)); };
+  hold('padBoost', v=>padBoost=v);
+  hold('padBrake', v=>padBrake=v);
+  $('padLoop').addEventListener('pointerdown', e=>{ e.preventDefault(); doStunt('loop'); padLoop=true; });
+  $('padLoop').addEventListener('pointerup', ()=>padLoop=false);
+  $('padRoll').addEventListener('pointerdown', e=>{ e.preventDefault(); doStunt('barrel'); padRoll=true; });
+  $('padRoll').addEventListener('pointerup', ()=>padRoll=false);
+  if((navigator.maxTouchPoints||0)>0) document.body.classList.add('touch');
+})();
+
+let netKit=null;
+function bootNetKit(){
+  const remotes=new Map();
+  let net=null, lastSend=0, myName=localStorage.getItem('catAirWho')||'Weston';
+  function setWho(n){
+    myName=n==='Dad'?'Dad':'Weston';
+    localStorage.setItem('catAirWho', myName);
+    $('whoWeston').classList.toggle('on', myName==='Weston');
+    $('whoDad').classList.toggle('on', myName==='Dad');
+    if(net) net.setName(myName);
+  }
+  function netOn(){ return !!(net && net.code); }
+  function isHost(){ return !netOn() || net.isHost; }
+  function makeLabel(text){
+    const c=document.createElement('canvas'); c.width=256; c.height=64; const g=c.getContext('2d');
+    const tex=new THREE.CanvasTexture(c);
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(3.2,.8), new THREE.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false}));
+    m.position.y=2.6;
+    m.userData.setText=t=>{ g.clearRect(0,0,256,64); g.fillStyle='rgba(0,0,0,.55)'; g.fillRect(8,8,240,48); g.strokeStyle='#ffd21e'; g.lineWidth=4; g.strokeRect(8,8,240,48); g.fillStyle='#fff'; g.font='bold 28px Courier New,monospace'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(String(t).slice(0,16),128,34); tex.needsUpdate=true; };
+    m.userData.setText(text); return m;
+  }
+  function upsertRemote(peer){
+    if(!peer || peer.id===(net&&net.id)) return;
+    let r=remotes.get(peer.id);
+    const data=peer.data||{};
+    if(!r){
+      const kitty=makeCat(THREE); kitty.scale.setScalar(1.5); scene.add(kitty);
+      r={id:peer.id, cat:kitty, plane:null, name:peer.name||'Friend', label:makeLabel(peer.name||'Friend'), form:data.form||'cat'};
+      kitty.add(r.label); remotes.set(peer.id, r);
+    }
+    r.name=peer.name||r.name; if(r.label) r.label.userData.setText(r.name);
+    r.form=data.form||r.form;
+    r.tx=+data.x||0; r.ty=+data.y||0; r.tz=+data.z||0; r.tyaw=+data.yaw||0; r.tpitch=+data.pitch||0;
+    if(data.form==='plane' && data.plane){
+      if(!r.plane || r.plane.id!==data.plane){
+        if(r.plane) worldRoot.remove(r.plane.g);
+        const def=planeById(data.plane)||PLANES[0];
+        r.plane={id:def.id, g:makeCraftMesh(def)}; worldRoot.add(r.plane.g);
+      }
+      r.cat.visible=false; r.plane.g.visible=true;
+    } else {
+      r.cat.visible=true; if(r.plane) r.plane.g.visible=false;
+    }
+  }
+  function dropRemote(id){ const r=remotes.get(id); if(!r) return; scene.remove(r.cat); if(r.plane) worldRoot.remove(r.plane.g); remotes.delete(id); }
+  function addChat(msg){ const box=$('chatLog'); const line=document.createElement('div'); line.textContent=(msg.name||'?')+': '+(msg.text||''); box.appendChild(line); box.scrollTop=box.scrollHeight; }
+  function showRoom(info){
+    $('ptPanel').classList.remove('hidden'); $('ptLobby').classList.add('hidden'); $('ptLive').classList.remove('hidden');
+    $('ptCode').textContent=info.code; $('ptLink').value=info.url; $('chatBox').classList.remove('hidden'); $('ptMini').classList.remove('hidden'); $('ptMini').textContent='ROOM '+info.code;
+    try{ history.replaceState(null,'',info.url); }catch(e){}
+    say(myName==='Dad'?'Dad is in the sky!':'Room ready! Share the code!');
+  }
+  function bootNet(){
+    if(net) return net;
+    net=PlayTogether({
+      game:'cat-airplane-pilot-3d', name:myName,
+      onRoom:showRoom, onPeer:upsertRemote,
+      onPeers:list=>{ const ids=new Set(list.map(p=>p.id)); for(const [id] of remotes) if(!ids.has(id)) dropRemote(id); list.forEach(upsertRemote); },
+      onLeave:dropRemote, onChat:addChat,
+      onStatus:(s,extra)=>{ $('ptStatus').textContent=s==='online'?(isHost()?'You are HOST. Same sky!':'Connected! Shared sky.'):s==='reconnect'?'Reconnecting…':s==='error'?(extra&&extra.message)||'Hmm.':'Ready'; },
+      onError:m=>{ $('ptStatus').textContent=m; say('Room no work. Try again, question?'); },
+    });
+    net.connect(); return net;
+  }
+  setWho(myName);
+  $('whoWeston').onclick=()=>setWho('Weston');
+  $('whoDad').onclick=()=>setWho('Dad');
+  const openPt=()=>{ bootNet(); $('ptPanel').classList.remove('hidden'); };
+  $('ptOpen').onclick=openPt; $('ptOpenIn').onclick=openPt;
+  $('ptClose').onclick=()=>$('ptPanel').classList.add('hidden');
+  $('ptMake').onclick=()=>{ setWho(myName); bootNet().create(); };
+  $('ptJoinBtn').onclick=()=>{ setWho(myName); bootNet().join($('ptJoin').value); };
+  $('ptJoin').addEventListener('keydown', ev=>{ if(ev.code==='Enter'){ ev.preventDefault(); bootNet().join($('ptJoin').value); } });
+  $('ptCopy').onclick=()=>{ const url=$('ptLink').value; if(navigator.clipboard) navigator.clipboard.writeText(url).catch(()=>{}); $('ptCopy').textContent='COPIED!'; setTimeout(()=>$('ptCopy').textContent='COPY LINK',1200); };
+  $('chatSend').onclick=()=>{ const v=$('chatIn').value.trim(); if(!v||!net) return; net.chat(v); $('chatIn').value=''; };
+  $('chatIn').addEventListener('keydown', ev=>{ if(ev.code==='Enter'){ ev.preventDefault(); $('chatSend').click(); } ev.stopPropagation(); });
+  const emos=$('chatEmo'); EMOJI.forEach(e=>{ const b=document.createElement('button'); b.type='button'; b.textContent=e; b.onclick=()=>{ if(net) net.chat(e); }; emos.appendChild(b); });
+  const preset=roomFromUrl();
+  if(preset){
+    const join=()=>{ $('ptPanel').classList.remove('hidden'); bootNet().join(preset); };
+    if(typeof window.arcadeWhenReady==='function') window.arcadeWhenReady(join); else join();
+  }
+  return {
+    remotes, netOn, isHost,
+    sendMine(now){
+      if(!net||!net.code) return;
+      if(now-lastSend<80) return; lastSend=now;
+      const P=form==='plane'&&craft?craft:cat.position;
+      net.sendState({ x:+(P.x||0).toFixed(2), y:+(P.y||0).toFixed(2), z:+(P.z||0).toFixed(2), yaw:+((form==='plane'&&craft?craft.yaw:catYaw)||0).toFixed(3), pitch:+((craft&&craft.pitch)||0).toFixed(3), form, plane:save.plane, name:myName });
+    },
+    updateRemotes(dt){
+      const lerp=Math.min(1,dt*8);
+      for(const r of remotes.values()){
+        const obj=r.form==='plane'&&r.plane?r.plane.g:r.cat;
+        obj.position.x+=(r.tx-obj.position.x)*lerp;
+        obj.position.y+=(r.ty-obj.position.y)*lerp;
+        obj.position.z+=(r.tz-obj.position.z)*lerp;
+        if(r.form==='plane'&&r.plane){ r.plane.g.rotation.y=r.tyaw; r.plane.g.rotation.x=r.tpitch||0; }
+        else r.cat.rotation.y=r.tyaw;
+        if(r.label) r.label.quaternion.copy(camera.quaternion);
+      }
+    },
+    simulatePeer:upsertRemote,
+  };
+}
+
+function sampleCanvas(){
+  const gl=renderer.getContext();
+  const canvas=renderer.domElement;
+  if(!gl) return { lost:true, mean:0, lit:0, n:0, w:0, h:0, scissor:true };
+  if(gl.isContextLost()) return { lost:true, mean:0, lit:0, n:0, w:canvas.width|0, h:canvas.height|0, scissor:!!renderer.getScissorTest() };
+  try{ renderer.setRenderTarget(null); renderer.setScissorTest(false); renderer.autoClear=true; renderer.setViewport(0,0,innerWidth,innerHeight); renderer.render(scene,camera); }catch(e){}
+  const w=gl.drawingBufferWidth|0, h=gl.drawingBufferHeight|0;
+  const p=new Uint8Array(4);
+  let n=0, lit=0, sum=0;
+  for(let j=0;j<6;j++) for(let i=0;i<6;i++){
+    const x=Math.floor((i+.5)/6*w), y=Math.floor((j+.5)/6*h);
+    try{ gl.readPixels(x,y,1,1,gl.RGBA,gl.UNSIGNED_BYTE,p); }catch(e){ continue; }
+    const m=(p[0]+p[1]+p[2])/3; sum+=m; n++; if(m>12) lit++;
+  }
+  const vp=new THREE.Vector4(); renderer.getViewport(vp);
+  return { lost:false, mean:n?sum/n:0, lit, n, w, h, scissor:!!renderer.getScissorTest(), autoClear:!!renderer.autoClear, vp:[vp.x,vp.y,vp.z,vp.w], pr:renderer.getPixelRatio() };
+}
+
+window.CATAIR={
+  get ready(){ return !!window.CATAIR_READY; },
+  get coins(){ return save.coins; },
+  get owned(){ return save.owned.slice(); },
+  get plane(){ return save.plane; },
+  get form(){ return form; },
+  get mode(){ return mode; },
+  get screen(){ return screen; },
+  get mission(){ return mission?{type:mission.type, got:mission.got||0, n:mission.n||0, phase:mission.phase, label:mission.label, hint:mission.hint}:null; },
+  get hint(){ return goalHint(); },
+  get lastLanding(){ return lastLanding; },
+  get pads(){ return {stick:!!$('stick'), act:!!$('padAct'), boost:!!$('padBoost'), brake:!!$('padBrake'), loop:!!$('padLoop'), roll:!!$('padRoll'), out:!!$('padOut')}; },
+  get cat(){ return cat?{x:cat.position.x,z:cat.position.z,vis:cat.visible}:null; },
+  get craft(){ return craft?{id:craft.id,n:craft.def.name,x:craft.x,y:craft.y,z:craft.z,spd:craft.spd,thr:craft.thr,pitch:craft.pitch,yaw:craft.yaw,alt:craft.y-groundY(craft.x,craft.z),mph:Math.round(Math.abs(craft.spd)*2.237)}:null; },
+  get prompt(){ return ($('prompt').classList.contains('hidden')?'':$('prompt').textContent)||''; },
+  get hangarOpen(){ return !$('hangar').classList.contains('hidden'); },
+  get errs(){ return window.CATAIR_ERRS||[]; },
+  SAVE_KEY, PLANES, POI, RING_PAY, LAND_PAY,
+  startPlay, persist, loadSave, addCoins, buyPlane, board, hopOut, interact, openHangar, startMission, hitRings, doStunt, crashNow, placeOnRunway,
+  resetSave(){ save={coins:0, owned:['cub'], plane:'cub', jobs:0, rings:0, packs:0, rides:0, stunts:0, landings:0, taught:{takeoff:false, land:false}}; persist(); if(form==='plane') hopOut(true); spawnParked(); },
+  goTo(key){ const p=POI[key]; if(!p) return; if(form==='plane'&&craft){ craft.x=p.x; craft.z=p.z; craft.y=(p.elev||0)+ (mode==='air'?18:0.4); syncCraft(); } else { cat.position.set(p.x,0,p.z); } },
+  pose(x,y,z,yaw){ if(form==='plane'&&craft){ craft.x=x; craft.y=y; craft.z=z; if(yaw!=null) craft.yaw=yaw; syncCraft(); } else cat.position.set(x,0,z); },
+  setVel(v){ if(craft) craft.spd=v; },
+  setThrottle(t){ if(craft) craft.thr=clamp(t,0,1); },
+  holdUp(on){ keys.KeyW=!!on; if(on) keys.KeyS=false; },
+  holdDown(on){ keys.KeyS=!!on; if(on) keys.KeyW=false; },
+  clearKeys(){ for(const k in keys) keys[k]=false; padBoost=false; padBrake=false; },
+  takeoffRun(){ this.clearKeys(); placeOnRunway('main'); this.holdUp(true); this.setThrottle(1); this.sim(4.5); return this.mode==='air' && craft && craft.y>3; },
+  sim(sec){ for(let t=0;t<sec;t+=1/30) simStep(1/30); },
+  snapCam,
+  completeRings(){ if(!mission||mission.type!=='rings') startMission('rings'); if(!craft) return 0; mode='air'; craft.airBorn=1; const list=(mission.rings||[]).slice(); for(const r of list){ this.pose(r.position.x, r.position.y, r.position.z, craft.yaw); this.hitRings(); } return (mission&&mission.got)||list.length; },
+  placeLandingApproach(){ placeOnRunway('main'); if(!craft) return false; mode='air'; craft.x=0; craft.z=50; craft.y=5.2; craft.yaw=0; craft.pitch=.2; craft.roll=0; craft.spd=12; craft.thr=.28; craft.vy=-2; craft.airBorn=0; craft.flyT=1.2; keys.KeyW=false; keys.KeyS=true; syncCraft(); return true; },
+  landRun(){ this.placeLandingApproach(); this.sim(5); if(mode==='air' && craft){ craft.flyT=Math.max(craft.flyT,1); craft.y=groundY(craft.x,craft.z)+0.5; tryLand(); } this.clearKeys(); return lastLanding; },
+  deliverPackage(){ startMission('package'); if(form!=='plane') board('cub'); placeOnRunway('main'); mode='taxi'; finishGroundMission(); placeOnRunway('island'); mode='taxi'; finishGroundMission(); return !mission; },
+  giveRide(){ startMission('ride'); if(form!=='plane') board('cub'); placeOnRunway('main'); mode='taxi'; finishGroundMission(); placeOnRunway('peak'); mode='taxi'; finishGroundMission(); return !mission; },
+  sampleCanvas, renderer, scene, camera,
+  showPads(){ $('pads').classList.add('show'); document.body.classList.add('touch'); return true; },
+  beautyCam(){
+    ['title','ui','pads','hangar','how','ptPanel','chatBox','loading'].forEach(id=>{ const el=$(id); if(el) el.classList.add('hidden'); });
+    document.querySelectorAll('.age6-hud,#age6-gate').forEach(el=>el.classList.add('hidden'));
+    if(screen!=='play') startPlay();
+    if(form!=='plane') board('cub');
+    placeOnRunway('main'); mode='air'; craft.x=8; craft.y=14; craft.z=10; craft.yaw=0.55; craft.pitch=-.1; craft.thr=.8; craft.spd=28; syncCraft();
+    camera.position.set(-6, 9, -18); camera.lookAt(14, 7, 24);
+    renderer.render(scene,camera);
+  },
+  simulatePeer(p){ if(netKit) netKit.simulatePeer(p); },
+  get remotes(){ return netKit?[...netKit.remotes.values()].map(r=>({id:r.id,form:r.form,name:r.name})): []; },
+};
+window.CATAIR_READY=false;
+
+loadSave();
+makeGround(); makeAirport(); makeCity(); makeMountains(); makeClouds(); makeHouse();
+cat=makeCat(THREE); cat.scale.setScalar(1.7); scene.add(cat); cat.position.set(POI.spawn.x,0,POI.spawn.z); cat.rotation.y=0.4; catYaw=0.4;
+spawnParked();
+applyQuality(Q.level);
+camera.position.set(-70, 8, 28); camera.lookAt(-88, 1.2, 16); camPos.copy(camera.position);
+$('loading').classList.add('hidden');
+window.CATAIR_READY=true;
+netKit=bootNetKit();
+</script>
+</body></html>
