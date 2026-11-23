@@ -1,0 +1,385 @@
+/* Seasonal home-page themes. Toggle from shared/arcade-theme.js (THEME) or ?theme=.
+   All rules are scoped to html.theme-* so the default arcade look is unchanged. */
+
+html.theme-christmas,
+html.theme-halloween,
+html.theme-july4 {
+  --arcade-gold: #ffd21e;
+}
+
+html.theme-christmas {
+  --arcade-bg: #07140e;
+  --arcade-card: #163024;
+  --arcade-ink: #f4f7ea;
+  --arcade-muted: #c5d6c0;
+  --arcade-red: #c41e3a;
+  --arcade-green: #1f6b3a;
+  --arcade-snow: #f7fbff;
+}
+html.theme-halloween {
+  --arcade-bg: #14081c;
+  --arcade-card: #2a1540;
+  --arcade-ink: #ffe8c8;
+  --arcade-muted: #e0c4a0;
+  --arcade-orange: #ff7a18;
+  --arcade-purple: #7b3bb0;
+}
+html.theme-july4 {
+  --arcade-bg: #0a1028;
+  --arcade-card: #162044;
+  --arcade-ink: #f4f7ff;
+  --arcade-muted: #c5d0ee;
+  --arcade-red: #c41e3a;
+  --arcade-blue: #2b57c1;
+}
+
+html.theme-christmas body {
+  background: radial-gradient(ellipse at top, #143322 0%, #07140e 58%, #040a08 100%);
+  color: var(--arcade-ink);
+}
+html.theme-halloween body {
+  background: radial-gradient(ellipse at top, #3a1a4a 0%, #14081c 55%, #0a0510 100%);
+  color: var(--arcade-ink);
+}
+html.theme-july4 body {
+  background: radial-gradient(ellipse at top, #1a2a6c 0%, #0b1028 58%, #070716 100%);
+  color: var(--arcade-ink);
+}
+
+html.theme-christmas h1 {
+  color: var(--arcade-gold);
+  text-shadow: 4px 4px 0 #3a1018, 0 0 18px #c41e3a;
+}
+html.theme-halloween h1 {
+  color: var(--arcade-orange);
+  text-shadow: 4px 4px 0 #2a0a40, 0 0 18px #ff7a18;
+}
+html.theme-july4 h1 {
+  color: #f4f7ff;
+  text-shadow: 4px 4px 0 #c41e3a, 0 0 16px #2b57c1;
+}
+
+html.theme-christmas .sub { color: #e8d48a; }
+html.theme-halloween .sub { color: #ffb347; }
+html.theme-july4 .sub { color: #9ec5ff; }
+
+html.theme-christmas footer { color: #6a8a72; }
+html.theme-halloween footer { color: #8a6a9a; }
+html.theme-july4 footer { color: #6a78a8; }
+
+html.theme-christmas .check {
+  background: repeating-linear-gradient(90deg, #c41e3a 0 10px, #f8f4ea 10px 20px);
+}
+html.theme-halloween .check {
+  background: repeating-linear-gradient(90deg, #ff7a18 0 10px, #1a0a24 10px 20px);
+}
+html.theme-july4 .check {
+  background: repeating-linear-gradient(90deg, #c41e3a 0 10px, #f4f7ff 10px 20px, #2b57c1 20px 30px);
+}
+
+html.theme-christmas .grid,
+html.theme-halloween .grid,
+html.theme-july4 .grid {
+  padding-top: 12px;
+}
+html.theme-christmas a.card,
+html.theme-halloween a.card,
+html.theme-july4 a.card {
+  overflow: visible;
+  color: var(--arcade-ink);
+}
+html.theme-christmas a.card {
+  background: var(--arcade-card);
+  border: 5px solid #f8f4ea;
+  border-image: repeating-linear-gradient(135deg, #c41e3a 0 8px, #f8f4ea 8px 16px) 5;
+  box-shadow: 6px 6px 0 #3a1018;
+}
+html.theme-christmas a.card:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 9px 9px 0 #3a1018;
+  filter: brightness(1.05);
+}
+html.theme-halloween a.card {
+  background: var(--arcade-card);
+  border: 4px solid var(--arcade-orange);
+  box-shadow: 6px 6px 0 #2a0a40;
+}
+html.theme-halloween a.card:hover {
+  border-color: #ffd21e;
+  box-shadow: 9px 9px 0 #2a0a40;
+}
+html.theme-july4 a.card {
+  background: var(--arcade-card);
+  border: 4px solid #f4f7ff;
+  box-shadow: 6px 6px 0 #c41e3a;
+}
+html.theme-july4 a.card:hover {
+  border-color: #ffd21e;
+  box-shadow: 9px 9px 0 #2b57c1;
+}
+
+html.theme-christmas a.card .t { color: var(--arcade-gold); }
+html.theme-halloween a.card .t { color: var(--arcade-orange); }
+html.theme-july4 a.card .t { color: #ffd21e; }
+html.theme-christmas a.card .d,
+html.theme-halloween a.card .d,
+html.theme-july4 a.card .d { color: var(--arcade-muted); }
+
+html.theme-christmas .age6-badge .n { background: #1a4d2e; }
+html.theme-halloween .age6-badge .n { background: #2a1540; color: #ff7a18; }
+html.theme-july4 .age6-badge .n { background: #1a2a6c; }
+
+.arcade-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 4px 12px 0;
+}
+.arcade-hero h1 { margin-top: 8px; }
+.arcade-hero .sub { margin-bottom: 18px; }
+.arcade-mascot {
+  margin: 6px 0 -4px;
+  line-height: 0;
+}
+.arcade-mascot-svg {
+  display: block;
+  width: 72px;
+  height: auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+@media (min-width: 700px) {
+  .arcade-mascot-svg { width: 92px; }
+}
+
+.arcade-banner {
+  width: min(720px, calc(100% - 32px));
+  margin: 14px auto 0;
+  padding: 10px 14px 12px;
+  text-align: center;
+  border: 4px solid #111;
+  box-shadow: 5px 5px 0 #000;
+  position: relative;
+  z-index: 3;
+}
+.arcade-banner .msg {
+  font-weight: bold;
+  font-size: clamp(15px, 3.4vw, 22px);
+  letter-spacing: 0.5px;
+  line-height: 1.25;
+}
+.arcade-banner .count {
+  margin-top: 4px;
+  font-size: clamp(12px, 2.6vw, 15px);
+}
+html.theme-christmas .arcade-banner {
+  background: #1a4d2e;
+  border-color: #ffd21e;
+  color: #fff8e4;
+}
+html.theme-halloween .arcade-banner {
+  background: #2a1540;
+  border-color: #ff7a18;
+  color: #ffe8c8;
+}
+html.theme-july4 .arcade-banner {
+  background: #162044;
+  border-color: #f4f7ff;
+  color: #f4f7ff;
+}
+
+.arcade-lights {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: flex-start;
+  position: relative;
+  z-index: 6;
+  padding: 6px 6px 18px;
+  pointer-events: none;
+}
+.arcade-lights::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 10px;
+  height: 10px;
+  border-top: 2px solid #111;
+  border-radius: 50%;
+}
+.arcade-bulb {
+  width: 11px;
+  height: 15px;
+  border-radius: 50% 50% 42% 42%;
+  border: 2px solid #111;
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  animation: arcade-twinkle 1.7s ease-in-out infinite;
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--bulb, #ffd21e) 70%, transparent);
+}
+.arcade-hang {
+  position: absolute;
+  top: 26px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #111;
+  box-shadow: 0 6px 0 -3px #111;
+}
+@keyframes arcade-twinkle {
+  0%, 100% { filter: brightness(1); opacity: 1; }
+  50% { filter: brightness(1.45); opacity: 0.72; }
+}
+
+.arcade-snow,
+.arcade-fx {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.arcade-card-deco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+a.card .age6-badge { z-index: 4; }
+
+html.theme-christmas .arcade-card-deco .snowcap {
+  position: absolute;
+  left: -3px;
+  right: 54px;
+  top: -11px;
+  height: 18px;
+  background: #f7fbff;
+  box-shadow: 0 1px 0 #cfe4f4;
+  clip-path: polygon(
+    0 0, 100% 0, 100% 38%,
+    90% 100%, 78% 42%, 66% 100%, 52% 40%, 40% 100%, 26% 44%, 14% 100%,
+    0 48%
+  );
+}
+html.theme-christmas a.card.soon .arcade-card-deco .snowcap { right: -3px; }
+
+html.theme-christmas .arcade-card-deco .ornament {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff 0 30%, var(--bead, #c41e3a) 32%);
+  border: 2px solid #111;
+  box-shadow: 0 -7px 0 -5px #111;
+}
+
+.arcade-corner {
+  position: fixed;
+  z-index: 4;
+  pointer-events: none;
+  line-height: 0;
+}
+.arcade-corner.bl { left: 8px; bottom: 8px; }
+.arcade-corner.br { right: 8px; bottom: 8px; }
+.arcade-corner.tl { left: 8px; top: 52px; }
+.arcade-corner.tr { right: 8px; top: 52px; }
+
+.arcade-bat {
+  position: fixed;
+  z-index: 5;
+  pointer-events: none;
+  width: 44px;
+  height: auto;
+  animation: arcade-bat-fly 9s linear infinite;
+  filter: drop-shadow(0 0 4px #ffb347);
+}
+.arcade-bat b {
+  display: block;
+  transform-origin: 50% 50%;
+  animation: arcade-wings 0.45s ease-in-out infinite;
+}
+@keyframes arcade-bat-fly {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(18px, 8px); }
+  50% { transform: translate(-6px, 14px); }
+  75% { transform: translate(12px, 4px); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes arcade-wings {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.72); }
+}
+
+.arcade-star-field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.arcade-star {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #f4f7ff;
+  clip-path: polygon(50% 0, 61% 35%, 100% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 0 35%, 39% 35%);
+  animation: arcade-twinkle 2.4s ease-in-out infinite;
+  opacity: 0.85;
+}
+
+.arcade-bunting {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 28px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 6;
+  position: relative;
+}
+.arcade-pennant {
+  width: 16px;
+  height: 22px;
+  flex: 0 0 auto;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  border: 0;
+}
+
+html.theme-christmas.reduced-motion body {
+  background:
+    radial-gradient(2px 2px at 12% 18%, #fff, transparent),
+    radial-gradient(2px 2px at 28% 42%, #fff, transparent),
+    radial-gradient(3px 3px at 61% 22%, #fff, transparent),
+    radial-gradient(2px 2px at 81% 58%, #fff, transparent),
+    radial-gradient(2px 2px at 44% 72%, #fff, transparent),
+    radial-gradient(3px 3px at 8% 84%, #fff, transparent),
+    radial-gradient(2px 2px at 93% 12%, #fff, transparent),
+    radial-gradient(ellipse at top, #143322 0%, #07140e 58%, #040a08 100%);
+}
+html.reduced-motion .arcade-bulb,
+html.reduced-motion .arcade-bat,
+html.reduced-motion .arcade-bat b,
+html.reduced-motion .arcade-star,
+html.reduced-motion .arcade-hang {
+  animation: none !important;
+}
+
+@media (max-width: 640px) {
+  .arcade-corner.tl,
+  .arcade-corner.tr { display: none; }
+  .arcade-corner.bl,
+  .arcade-corner.br { transform: scale(0.82); transform-origin: bottom; }
+  .arcade-banner { width: calc(100% - 24px); margin-top: 10px; }
+  .arcade-lights { padding-bottom: 14px; }
+  .arcade-bat { width: 22px; }
+}
+
+@media (max-width: 420px) {
+  .arcade-corner.bl,
+  .arcade-corner.br { bottom: 4px; }
+}
