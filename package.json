@@ -9,6 +9,7 @@
     "test:catlife": "node scripts/test-cat-life-city.mjs",
     "test:air": "node scripts/test-cat-airplane-pilot.mjs",
     "test:parkour": "node scripts/test-cat-parkour.mjs",
+    "test:themes": "node scripts/test-arcade-themes.mjs",
     "icons": "node scripts/make-icons.mjs",
     "og": "node scripts/make-og.mjs"
   },
