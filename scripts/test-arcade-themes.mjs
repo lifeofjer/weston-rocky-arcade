@@ -221,12 +221,38 @@ check(reducedOn, 'christmas respects prefers-reduced-motion');
 await reduced.screenshot({ path: path.join(artifacts, 'arcade-christmas-reduced-motion.jpg'), type: 'jpeg', quality: 80, fullPage: true });
 await reduced.close();
 
+function denverMD() {
+  const o = {};
+  for (const p of new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Denver', month: 'numeric', day: 'numeric',
+  }).formatToParts(new Date())) {
+    if (p.type !== 'literal') o[p.type] = Number(p.value);
+  }
+  return o.month * 100 + o.day;
+}
+function expectedAuto() {
+  const n = denverMD();
+  if (n >= 1001 && n <= 1031) return 'halloween';
+  if (n >= 1120 && n <= 1231) return 'christmas';
+  if (n >= 620 && n <= 710) return 'july4';
+  return 'none';
+}
+
 const autoPage = await browser.newPage();
 await autoPage.setViewport({ width: 1440, height: 900 });
+autoPage.on('pageerror', err => fails.push('auto pageerror: ' + err.message));
 await autoPage.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: 'networkidle0' });
-const autoTheme = await autoPage.evaluate(() => document.documentElement.dataset.arcadeTheme);
-console.log('auto theme (America/Denver today) =', autoTheme);
-check(autoTheme === 'none' || ['christmas', 'halloween', 'july4'].includes(autoTheme), 'auto theme is a known value');
+const autoInfo = await autoPage.evaluate(() => ({
+  theme: document.documentElement.dataset.arcadeTheme,
+  banner: document.querySelector('.arcade-banner .msg')?.textContent?.trim() || null,
+}));
+const want = expectedAuto();
+console.log('auto theme (America/Denver today) =', autoInfo.theme, '(expected', want + ')');
+check(autoInfo.theme === want, `auto theme without ?theme= is ${want} (got ${autoInfo.theme})`);
+if (want === 'christmas') {
+  check(autoInfo.banner === 'Merry Christmas from Weston & Rocky!', 'bare / shows Christmas banner');
+}
+await autoPage.screenshot({ path: path.join(artifacts, 'arcade-auto-home.jpg'), type: 'jpeg', quality: 80, fullPage: true });
 await autoPage.close();
 
 await browser.close();
