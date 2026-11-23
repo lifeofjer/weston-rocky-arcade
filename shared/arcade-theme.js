@@ -5,6 +5,7 @@
 //   THEME = 'none'       always the normal arcade (easy off-switch after holidays)
 // URL always wins: ?theme=christmas|halloween|july4|none
 (function () {
+  if (typeof document === 'undefined') return;
   const THEME = 'auto';
   const VALID = new Set(['christmas', 'halloween', 'july4', 'none']);
   const WINDOWS = [
@@ -472,6 +473,7 @@
   }
 
   function boot() {
+    if (!document.body || !document.body.classList.contains('arcade-home')) return;
     if (!document.querySelector('a.card') && !document.querySelector('h1')) return;
     const theme = resolveTheme();
     document.documentElement.dataset.arcadeTheme = theme || 'none';
@@ -513,3 +515,101 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
+
+// ES module API for games (homepage IIFE above still boots .arcade-home).
+export const ZONE = 'America/Denver';
+export const THEME_NONE = 'none';
+export const THEME_CHRISTMAS = 'christmas';
+
+function searchFrom(opts) {
+  if (opts && opts.search != null) return String(opts.search);
+  try {
+    if (typeof location !== 'undefined' && location.search) return location.search;
+  } catch (e) {}
+  return '';
+}
+
+function parseOverride(search) {
+  const q = String(search || '');
+  const m = /[?&]theme=([^&]+)/i.exec(q);
+  if (!m) return null;
+  const v = decodeURIComponent(m[1] || '').trim().toLowerCase();
+  if (v === 'christmas' || v === 'xmas' || v === 'snow' || v === 'holiday') return THEME_CHRISTMAS;
+  if (v === 'halloween') return 'halloween';
+  if (v === 'july4' || v === 'july' || v === '4th') return 'july4';
+  if (v === 'none' || v === 'off' || v === 'normal' || v === 'default' || v === 'no') return THEME_NONE;
+  return null;
+}
+
+export function denverParts(now) {
+  const d = now instanceof Date ? now : new Date(now || Date.now());
+  const parts = { year: 0, month: 0, day: 0 };
+  try {
+    for (const p of new Intl.DateTimeFormat('en-US', {
+      timeZone: ZONE, year: 'numeric', month: 'numeric', day: 'numeric',
+    }).formatToParts(d)) {
+      if (p.type === 'year') parts.year = +p.value;
+      else if (p.type === 'month') parts.month = +p.value;
+      else if (p.type === 'day') parts.day = +p.value;
+    }
+  } catch (e) {}
+  if (!parts.year) {
+    parts.year = d.getUTCFullYear();
+    parts.month = d.getUTCMonth() + 1;
+    parts.day = d.getUTCDate();
+  }
+  return { ...parts, y: parts.year, m: parts.month, d: parts.day };
+}
+
+export function inChristmasWindow(now) {
+  const p = denverParts(now);
+  return (p.month === 11 && p.day >= 20) || p.month === 12;
+}
+
+export function christmasSeasonYear(now) {
+  return denverParts(now).year || new Date().getFullYear();
+}
+
+function autoSeason(now) {
+  const p = denverParts(now);
+  const n = p.month * 100 + p.day;
+  if (n >= 1001 && n <= 1031) return 'halloween';
+  if ((p.month === 11 && p.day >= 20) || p.month === 12) return THEME_CHRISTMAS;
+  if (n >= 620 && n <= 710) return 'july4';
+  return '';
+}
+
+export function resolveArcadeTheme(opts) {
+  opts = opts || {};
+  const override = parseOverride(searchFrom(opts));
+  const auto = autoSeason(opts.now);
+  const theme = override != null ? override : (auto || THEME_NONE);
+  return {
+    theme: theme === THEME_NONE ? 'none' : theme,
+    override,
+    seasonal: auto === THEME_CHRISTMAS,
+    zone: ZONE,
+    christmas: theme === THEME_CHRISTMAS,
+    year: christmasSeasonYear(opts.now),
+    denver: denverParts(opts.now),
+  };
+}
+
+export function getTheme(opts) {
+  return resolveArcadeTheme(opts).theme;
+}
+
+export function isChristmas(opts) {
+  return resolveArcadeTheme(opts).christmas;
+}
+
+const api = {
+  ZONE, THEME_NONE, THEME_CHRISTMAS,
+  denverParts, inChristmasWindow, christmasSeasonYear,
+  resolveArcadeTheme, getTheme, isChristmas,
+};
+
+if (typeof window !== 'undefined') {
+  window.ArcadeTheme = api;
+  window.arcadeIsChristmas = isChristmas;
+}

@@ -10,6 +10,7 @@
     "test:air": "node scripts/test-cat-airplane-pilot.mjs",
     "test:parkour": "node scripts/test-cat-parkour.mjs",
     "test:themes": "node scripts/test-arcade-themes.mjs",
+    "test:xmas": "node scripts/test-christmas.mjs",
     "icons": "node scripts/make-icons.mjs",
     "og": "node scripts/make-og.mjs"
   },

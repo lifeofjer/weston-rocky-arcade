@@ -81,8 +81,8 @@ const EXPECTED = [
   'games/train-crash-3d.html',
   'games/rail-city-3d.html?v=play9',
   'games/crash-test-3d.html?v=play9',
-  'games/race-city-3d.html?v=race7',
-  'games/cat-life-city-3d.html?v=cat4',
+  'games/race-city-3d.html?v=race8',
+  'games/cat-life-city-3d.html?v=cat5',
   'games/cat-airplane-pilot-3d.html?v=air1',
   'games/cat-parkour-3d.html?v=park1',
 ];
