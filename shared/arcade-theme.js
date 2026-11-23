@@ -9,7 +9,7 @@
   const VALID = new Set(['christmas', 'halloween', 'july4', 'none']);
   const WINDOWS = [
     { id: 'halloween', start: [10, 1], end: [10, 31] },
-    { id: 'christmas', start: [12, 1], end: [12, 31] },
+    { id: 'christmas', start: [11, 20], end: [12, 31] },
     { id: 'july4', start: [6, 20], end: [7, 10] },
   ];
 
