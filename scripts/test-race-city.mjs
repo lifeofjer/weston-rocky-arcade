@@ -80,7 +80,7 @@ await page.evaluateOnNewDocument(() => {
   try { localStorage.setItem('arcadeAge6plus', 'yes'); } catch {}
 });
 
-const url = `http://127.0.0.1:${PORT}/games/race-city-3d.html?v=race7`;
+const url = `http://127.0.0.1:${PORT}/games/race-city-3d.html?theme=none&v=race8`;
 await page.goto(url, { waitUntil: 'load', timeout: 60000 });
 await page.waitForFunction(() => window.RACE_READY === true, { timeout: 90000 });
 

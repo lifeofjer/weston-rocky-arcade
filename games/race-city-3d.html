@@ -289,11 +289,13 @@ window.addEventListener('unhandledrejection', function(ev){ (window.RACE_ERRS = 
 import * as THREE from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
-import { makeRoster, carKind, findRosterIndex, createVehicleSystem, wreckDeform, popChance } from './arcade-cars.js?v=race7';
-import { installKit } from './race-city-kit.js?v=race7';
-import { loadCarKit } from './race-city-gltf.js?v=race7';
-import { makeWorldMats, decorateRoads, loadHdris, setupLook } from './race-city-look.js?v=race7';
+import { makeRoster, carKind, findRosterIndex, createVehicleSystem, wreckDeform, popChance } from './arcade-cars.js?v=race8';
+import { installKit } from './race-city-kit.js?v=race8';
+import { loadCarKit } from './race-city-gltf.js?v=race8';
+import { makeWorldMats, decorateRoads, loadHdris, setupLook } from './race-city-look.js?v=race8';
 import { makeCat } from '../shared/tabby-cat.js';
+import { resolveArcadeTheme } from '../shared/arcade-theme.js';
+import { installChristmasCity, raceCityRoads, raceCityPlowRoutes } from '../shared/christmas-city.js?v=xmas2';
 
 const $ = id => document.getElementById(id);
 const V3 = THREE.Vector3;
@@ -439,8 +441,10 @@ let coins=0, inv={snack:0,hat:0,stickers:0,keys:0};
 let TARGET={x:90,z:90,w:28,d:22}, CRASHZ={x:-150,z:-150,on:false};
 let race={on:false, lap:0, laps:3, wp:0, path:[], pos:1, done:false, racers:[]};
 let flyers=[];
+let xmasCity=null;
 
 function clearWorld(){
+  if(xmasCity && xmasCity.dispose){ xmasCity.dispose(); xmasCity=null; }
   while(worldRoot.children.length) worldRoot.remove(worldRoot.children[0]);
   while(airRoot.children.length) airRoot.remove(airRoot.children[0]);
   OB.clear(); flyers=[]; race.path=[];
@@ -1118,7 +1122,14 @@ function drivePlayer(e,dt,ctl){
     else vf-=Math.sign(vf)*Math.min(Math.abs(vf),(1.6+Math.abs(vf)*.012)*dt);
   }
   if(vf>top) vf-=(vf-top)*Math.min(1,dt*2);
-  vl*=Math.exp(-((brake&&!flying)?1.0:d.grip*(wl>=4?1:.5))*dt);
+  const Ppre=e.G.position;
+  const slip=(!flying && !e.air && xmasCity && xmasCity.on)?xmasCity.slipAt(Ppre.x, Ppre.z):0;
+  const gripMul=(1-slip*0.4);
+  vl*=Math.exp(-((brake&&!flying)?1.0:d.grip*(wl>=4?1:.5)*gripMul)*dt);
+  if(slip>0.05 && !flying && !e.air){
+    vl+=(Math.sin(performance.now()/260)*slip*1.2)*dt*7;
+    vf*=1-slip*0.07*dt*4;
+  }
   e.V.copy(F).multiplyScalar(vf).addScaledVector(R,vl); e.fwd=vf; e.lat=vl;
   const P=e.G.position;
   e.flipX=e.flipX||0; e.flipZ=e.flipZ||0; e.flyPitch=e.flyPitch||0;
@@ -1290,6 +1301,13 @@ function loadMap(id, opts={}){
   else if(id==='california'){ train.z=48; train.y=.14; train.span=560; train.elevated=false; train.cruise=26; assembleTrain('diesel'); buildCalifornia(); }
   else { train.z=0; train.y=16; train.span=400; train.elevated=true; train.cruise=20; assembleTrain('frontrunner'); buildVegas(); }
   $('sm').textContent=MAPS.find(m=>m.id===id).name;
+  xmasCity=installChristmasCity(THREE, {
+    scene, worldRoot,
+    roads: raceCityRoads(id),
+    routes: raceCityPlowRoutes(id),
+    groundSize: id==='california'?1600:1400,
+    tablet: (navigator.maxTouchPoints||0)>1,
+  });
   if(!opts.fromNet && window.RACE_KIT && window.RACE_KIT.sendMap) window.RACE_KIT.sendMap(id);
 }
 
@@ -1506,6 +1524,11 @@ function simStep(rdt){
   }
   if(window.RACE_KIT){ window.RACE_KIT.updateRemotes(dt); }
   if(preview && screen!=='play') preview.rotation.y+=dt*.6;
+  if(xmasCity && xmasCity.on){
+    const fx=me?me.G.position.x:(cat?cat.position.x:0);
+    const fz=me?me.G.position.z:(cat?cat.position.z:0);
+    xmasCity.tick(dt, fx, fz);
+  }
 }
 
 function mphOf(e, f){
@@ -1724,6 +1747,9 @@ window.RACE={
   get race(){ return {on:race.on,lap:race.lap,laps:race.laps,wp:race.wp,pos:race.pos,done:race.done,path:race.path.length}; },
   get stats(){ return {wrecks:wreckCount, big:bigHit, coins, fps:Q.fps, q:Q.level, calls:renderer.info.render.calls, tris:renderer.info.render.triangles}; },
   get errs(){ return window.RACE_ERRS||[]; },
+  get christmas(){ return xmasCity&&xmasCity.on?xmasCity.stats():{on:false,plows:0,flakes:0}; },
+  get theme(){ return resolveArcadeTheme(); },
+  snowCover(x,z){ return xmasCity&&xmasCity.on?xmasCity.snowCover(x,z):0; },
   pickMap(id){ mapId=id; loadMap(id); enterCarPick(); },
   chooseCar(i){ setSel(i); },
   startPlay, startRace, startSplitPlay, beginSplitPick, becomeCat, hopIn, buyItem, openShop,
